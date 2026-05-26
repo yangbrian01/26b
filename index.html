@@ -97,12 +97,12 @@
         
         <div class="heatmap-legend">
             <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0人</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1-2</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>3-4</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ef5350;"></div>5-6</div>
-            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>7-8</div>
-            <div class="legend-item"><div class="legend-box" style="background: #c2185b;"></div>9-10</div>
-            <div class="legend-item"><div class="legend-box" style="background: #4a148c;"></div>11+</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>2</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ff9800;"></div>3</div>
+            <div class="legend-item"><div class="legend-box" style="background: #f44336;"></div>4</div>
+            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>5-6</div>
+            <div class="legend-item"><div class="legend-box" style="background: #880e4f;"></div>7+</div>
         </div>
 
         <div class="calendar-grid" id="admin-calendar"></div>
@@ -258,14 +258,15 @@
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
-                        // 更新為 1-10 人的判斷邏輯
+                        // 更新為 0, 1, 2, 3, 4, 5-6, 7+ 的判斷邏輯
                         let bgColor = '#fff', textColor = '#2b2d42';
-                        if (count <= 2) { bgColor = '#ffe0b2'; }
-                        else if (count <= 4) { bgColor = '#ffb74d'; }
-                        else if (count <= 6) { bgColor = '#ef5350'; textColor = '#fff'; }
-                        else if (count <= 8) { bgColor = '#d32f2f'; textColor = '#fff'; }
-                        else if (count <= 10) { bgColor = '#c2185b'; textColor = '#fff'; }
-                        else { bgColor = '#4a148c'; textColor = '#fff'; }
+                        
+                        if (count === 1) { bgColor = '#ffe0b2'; }
+                        else if (count === 2) { bgColor = '#ffb74d'; }
+                        else if (count === 3) { bgColor = '#ff9800'; }
+                        else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
+                        else if (count <= 6) { bgColor = '#d32f2f'; textColor = '#fff'; }
+                        else { bgColor = '#880e4f'; textColor = '#fff'; }
                         
                         dayEl.style.backgroundColor = bgColor;
                         dayEl.style.borderColor = bgColor;
