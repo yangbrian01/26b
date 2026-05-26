@@ -24,7 +24,6 @@
         button.admin-btn { background-color: #4a4e69; margin-top: 15px; }
         button.admin-btn:hover { background-color: #22223b; }
         
-        /* 儲存按鈕的閃爍動畫 */
         @keyframes pulse-btn {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
             50% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(230, 57, 70, 0); }
@@ -44,11 +43,16 @@
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
-        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 35px; border-radius: 20px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
         .close-btn:hover { color: var(--accent); }
 
-        /* 熱力圖專用樣式 */
+        /* 多選日期標籤樣式 */
+        .date-chip-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0 15px 0; max-height: 120px; overflow-y: auto; padding-right: 5px; }
+        .date-chip { padding: 8px 4px; background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 8px; font-size: 13px; color: #495057; cursor: pointer; transition: 0.2s; }
+        .date-chip:hover { background: #e2eafc; border-color: #bde0fe; }
+        .date-chip.selected { background: #e2eafc; border-color: var(--primary); color: var(--primary); font-weight: bold; }
+
         .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; font-weight: 500; gap: 4px; }
         .legend-item { display: flex; align-items: center; margin: 0 4px; }
         .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
@@ -61,10 +65,6 @@
         
         #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(4px); }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-        
-        /* 下拉選單樣式 */
-        select.date-select { padding: 8px; border-radius: 8px; border: 2px solid #edf2f4; font-size: 14px; outline: none; background: #f8f9fa; color: var(--text); font-weight: bold; }
-        select.date-select:focus { border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -116,16 +116,14 @@
         <span class="close-btn" onclick="dismissModal()">&times;</span>
         <h3 style="margin-top: 0; color: var(--primary); font-size: 20px; margin-bottom: 15px;">無法參加的原因</h3>
         
-        <div style="margin-bottom: 15px; text-align: left; font-size: 15px; color: #495057; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span id="modal-start-date" style="color: var(--accent); font-weight: bold; font-size: 18px;"></span>
-            <span id="date-range-container">
-                至 <select id="modal-end-date" class="date-select"></select>
-            </span>
-        </div>
+        <div style="font-size: 13px; color: #8d99ae; margin-bottom: 5px; text-align: left; font-weight: bold;">已選日期：<span id="selected-dates-display" style="color: var(--accent); font-size: 15px;"></span></div>
+        <div style="font-size: 12px; color: #adb5bd; text-align: left; margin-bottom: 5px;">點擊下方按鈕可快速套用到其他日期</div>
+        
+        <div id="multi-select-grid" class="date-chip-grid"></div>
 
         <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因 (如: 出國)">
         <button type="button" onclick="saveReason()">確認紀錄</button>
-        <button type="button" class="secondary" onclick="closeModal()">取消 / 清除紀錄</button>
+        <button type="button" class="secondary" onclick="closeModal()">清除所選日期的紀錄</button>
     </div>
 </div>
 
@@ -143,11 +141,11 @@
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = '';
     let unavailableData = {}; 
-    let selectedDateStr = '';
     let adminParsedData = {}; 
-    let allValidDates = []; // 儲存所有可點選的日期字串
+    let allValidDates = []; 
+    let activeMultiDates = []; // 儲存這次彈窗中被選中的多個日期
 
-    // 產生所有有效日期 (6/6 到 7/4，排除 6/8)
+    // ⭐ 產生有效日期 (排除 6/8 和 6/16)
     function generateValidDates() {
         allValidDates = [];
         let curr = new Date(2026, 5, 6);
@@ -155,7 +153,7 @@
         while(curr <= endDate) {
             const m = curr.getMonth() + 1;
             const d = curr.getDate();
-            if (!(m === 6 && d === 8)) {
+            if (!(m === 6 && (d === 8 || d === 16))) {
                 allValidDates.push(`${m}/${d}`);
             }
             curr.setDate(curr.getDate() + 1);
@@ -245,7 +243,8 @@
             const date = curr.getDate();
             const dateStr = `${month}/${date}`;
             
-            const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && date === 8);
+            // ⭐ 判斷是否為排除的日期 (6/8, 6/16)
+            const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && (date === 8 || date === 16));
             const dayEl = document.createElement('div');
             dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
             dayEl.innerText = dateStr;
@@ -259,13 +258,10 @@
                     dayEl.onclick = () => openModal(dateStr);
                 }
             } else {
-                // 熱力圖多層次顏色邏輯
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
-                        let bgColor = '#fff';
-                        let textColor = '#2b2d42';
-                        
+                        let bgColor = '#fff', textColor = '#2b2d42';
                         if (count <= 5) { bgColor = '#ffe0b2'; }
                         else if (count <= 10) { bgColor = '#ffb74d'; }
                         else if (count <= 15) { bgColor = '#ef5350'; textColor = '#fff'; }
@@ -280,34 +276,48 @@
                     dayEl.onclick = () => openAdminModal(dateStr, count);
                 }
             }
-            
             container.appendChild(dayEl);
             curr.setDate(curr.getDate() + 1);
         }
     }
 
+    // 更新顯示被選取的日期陣列文字
+    function updateSelectedDatesDisplay() {
+        const sorted = [...activeMultiDates].sort((a,b) => {
+            const [mA, dA] = a.split('/').map(Number);
+            const [mB, dB] = b.split('/').map(Number);
+            return (mA*100+dA) - (mB*100+dB);
+        });
+        document.getElementById('selected-dates-display').innerText = sorted.join(', ');
+    }
+
     function openModal(dateStr) {
-        selectedDateStr = dateStr;
-        document.getElementById('modal-start-date').innerText = dateStr;
+        activeMultiDates = [dateStr]; // 初始化：只包含當下點擊的日期
+        updateSelectedDatesDisplay();
         document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
         
-        // 處理連續日期的下拉選單
-        const selectEl = document.getElementById('modal-end-date');
-        selectEl.innerHTML = '<option value="">(單日)</option>';
-        
-        const startIndex = allValidDates.indexOf(dateStr);
-        if (startIndex !== -1 && startIndex < allValidDates.length - 1) {
-            document.getElementById('date-range-container').style.display = 'inline-block';
-            for (let i = startIndex + 1; i < allValidDates.length; i++) {
-                const opt = document.createElement('option');
-                opt.value = allValidDates[i];
-                opt.innerText = allValidDates[i];
-                selectEl.appendChild(opt);
-            }
-        } else {
-            // 如果是最後一天，隱藏結束日期選單
-            document.getElementById('date-range-container').style.display = 'none';
-        }
+        // 產生多選的日期標籤 Grid
+        const grid = document.getElementById('multi-select-grid');
+        grid.innerHTML = '';
+        allValidDates.forEach(d => {
+            if (d === dateStr) return; // 略過主要點擊的那天，因為已經強制選取了
+            
+            const chip = document.createElement('div');
+            chip.className = 'date-chip';
+            chip.innerText = d;
+            
+            chip.onclick = () => {
+                if (chip.classList.contains('selected')) {
+                    chip.classList.remove('selected');
+                    activeMultiDates = activeMultiDates.filter(x => x !== d);
+                } else {
+                    chip.classList.add('selected');
+                    activeMultiDates.push(d);
+                }
+                updateSelectedDatesDisplay();
+            };
+            grid.appendChild(chip);
+        });
         
         const overlay = document.getElementById('modal-overlay');
         const box = document.getElementById('modal-box');
@@ -322,8 +332,11 @@
     function dismissModal() { hideModal(); }
 
     function closeModal() {
-        delete unavailableData[selectedDateStr];
-        document.getElementById(`day-${selectedDateStr}`).classList.remove('unavailable');
+        // 清除陣列中「所有」被選取日期的紀錄
+        activeMultiDates.forEach(d => {
+            delete unavailableData[d];
+        });
+        renderCalendar();
         hideModal();
         triggerSaveReminder();
     }
@@ -332,22 +345,12 @@
         const reason = document.getElementById('reasonInput').value.trim();
         if (!reason) return showToast('請填寫原因！若可參加請點選取消');
         
-        const endDateStr = document.getElementById('modal-end-date').value;
-        const startIndex = allValidDates.indexOf(selectedDateStr);
+        // 將原因套用到陣列中的「所有」日期
+        activeMultiDates.forEach(d => {
+            unavailableData[d] = reason;
+        });
         
-        if (endDateStr) {
-            // 多選範圍儲存
-            const endIndex = allValidDates.indexOf(endDateStr);
-            for (let i = startIndex; i <= endIndex; i++) {
-                unavailableData[allValidDates[i]] = reason;
-            }
-            renderCalendar(); // 重新繪製整個日曆來套用樣式
-        } else {
-            // 單日儲存
-            unavailableData[selectedDateStr] = reason;
-            document.getElementById(`day-${selectedDateStr}`).classList.add('unavailable');
-        }
-        
+        renderCalendar();
         hideModal();
         triggerSaveReminder();
     }
@@ -366,7 +369,6 @@
     }
 
     function submitData() {
-        // 取消按鈕閃爍
         document.getElementById('submitBtn').classList.remove('pulse-animation');
         document.getElementById('submitBtn').style.display = 'none';
         document.getElementById('submit-loading').style.display = 'block';
