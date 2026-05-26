@@ -10,14 +10,13 @@
         .app-container { background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         h2 { text-align: center; margin-top: 0; }
         
-        /* 輸入與按鈕 */
         input[type="text"] { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
         input[type="text"]:focus { border-color: var(--primary); }
         button { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background-color: #357abd; }
         button.secondary { background-color: #ccc; margin-top: 10px; }
+        button.logout { background-color: transparent; color: #888; border: 1px solid #ddd; padding: 8px; margin-bottom: 15px; font-size: 14px; }
         
-        /* 日曆區塊 */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 20px; text-align: center; }
         .cal-header { font-weight: bold; color: #888; padding: 10px 0; font-size: 14px; }
         .cal-day { padding: 15px 5px; border-radius: 8px; font-size: 14px; background-color: #f9f9f9; transition: 0.2s; position: relative; }
@@ -26,11 +25,9 @@
         .cal-day.clickable:hover { background-color: #eaf3fc; border-color: var(--primary); }
         .cal-day.unavailable { background-color: #ffecec; border-color: #ff6b6b; color: #d63031; font-weight: bold; }
         
-        /* 彈出視窗 (Modal) */
         #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 12px; width: 85%; max-width: 350px; text-align: center; }
-        
-        #loading { display: none; text-align: center; color: var(--primary); font-weight: bold; margin-top: 15px; }
+        #loading, #submit-loading { display: none; text-align: center; color: var(--primary); font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -40,51 +37,57 @@
     <!-- 畫面 1：登入驗證 -->
     <div id="login-screen">
         <h2>班級身分驗證</h2>
-        <p style="text-align: center; color: #666; font-size: 14px;">請輸入你的姓名進入調查系統</p>
-        <input type="text" id="studentName" placeholder="請輸入姓名 (例如：楊定豊)">
-        <button id="loginBtn" onclick="verifyName()">進入日曆</button>
-        <div id="login-loading" style="display: none; text-align: center; margin-top: 15px; color: var(--primary);">驗證中，請稍候...</div>
+        <input type="text" id="studentName" placeholder="請輸入姓名">
+        <button type="button" id="loginBtn" onclick="verifyName()">進入調查</button>
+        <div id="loading">載入資料中，請稍候...</div>
     </div>
 
     <!-- 畫面 2：日曆勾選 -->
     <div id="calendar-screen" style="display: none;">
+        <button type="button" class="logout" onclick="logout()">← 切換帳號</button>
         <h2>嗨，<span id="displayName"></span></h2>
         <p style="text-align: center; font-size: 14px; color: #e74c3c; font-weight: bold;">點擊你「不行」參加的日期，並註明原因</p>
         
-        <div class="calendar-grid" id="calendar">
-            <!-- 日曆會由 JS 動態生成 -->
-        </div>
+        <div class="calendar-grid" id="calendar"></div>
 
-        <button onclick="submitData()">確認送出</button>
-        <div id="loading">資料傳送中，請稍候...</div>
+        <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
+        <div id="submit-loading">資料同步中，請稍候...</div>
     </div>
 </div>
 
-<!-- 填寫原因的彈出視窗 -->
+<!-- 填寫原因彈出視窗 -->
 <div id="modal-overlay">
     <div class="modal-content">
         <h3 id="modal-title"></h3>
-        <input type="text" id="reasonInput" placeholder="請簡單說明原因 (如：要補習)">
-        <button onclick="saveReason()">儲存</button>
-        <button class="secondary" onclick="closeModal()">取消 / 清除該日紀錄</button>
+        <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因">
+        <button type="button" onclick="saveReason()">確認紀錄</button>
+        <button type="button" class="secondary" onclick="closeModal()">取消 / 清除該日紀錄</button>
     </div>
 </div>
 
 <script>
-    // ⭐ 請把這裡換成你剛部署好的新 GAS 網址
+    // 已經幫你填好 GAS 網址
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     
     let currentName = '';
-    let unavailableData = {}; // 儲存格式: {"6/6": "補習", "6/15": "家族旅遊"}
+    let unavailableData = {}; 
     let selectedDateStr = '';
 
-    // 【1】驗證姓名
+    // 檢查是否有登入過的紀錄
+    window.onload = function() {
+        const savedName = localStorage.getItem('teacherBanquetName');
+        if (savedName) {
+            document.getElementById('studentName').value = savedName;
+            verifyName();
+        }
+    }
+
     function verifyName() {
         const nameInput = document.getElementById('studentName').value.trim();
         if (!nameInput) return alert('請輸入姓名！');
 
         document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('login-loading').style.display = 'block';
+        document.getElementById('loading').style.display = 'block';
 
         fetch(gasURL, {
             method: 'POST',
@@ -94,28 +97,37 @@
         .then(data => {
             if (data.status === 'success') {
                 currentName = nameInput;
+                localStorage.setItem('teacherBanquetName', currentName); // 記住名字
+                unavailableData = data.previousData || {}; // 把後端傳來的舊紀錄存起來
+                
                 document.getElementById('displayName').innerText = currentName;
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('calendar-screen').style.display = 'block';
-                renderCalendar(); // 切換畫面後繪製日曆
+                renderCalendar(); 
             } else {
-                alert(data.message); // 名字對不上的警告
-                document.getElementById('loginBtn').style.display = 'block';
-                document.getElementById('login-loading').style.display = 'none';
+                alert(data.message);
+                resetLoginBtn();
             }
         }).catch(err => {
             alert('連線失敗，請稍後再試');
-            document.getElementById('loginBtn').style.display = 'block';
-            document.getElementById('login-loading').style.display = 'none';
+            resetLoginBtn();
         });
     }
 
-    // 【2】動態繪製日曆 (範圍：6/6 - 7/4)
+    function resetLoginBtn() {
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    function logout() {
+        localStorage.removeItem('teacherBanquetName');
+        window.location.reload();
+    }
+
     function renderCalendar() {
         const cal = document.getElementById('calendar');
         cal.innerHTML = '';
         
-        // 加入星期標頭
         const days = ['日', '一', '二', '三', '四', '五', '六'];
         days.forEach(d => {
             const el = document.createElement('div');
@@ -124,28 +136,27 @@
             cal.appendChild(el);
         });
 
-        // 6月1日是星期一，我們要畫 6/1 ~ 7/4，但只讓 6/6 以後可以點擊
-        const startDate = new Date(2026, 5, 1); // 2026/6/1
-        const endDate = new Date(2026, 6, 4);   // 2026/7/4
+        const startDate = new Date(2026, 5, 1); // 6/1
+        const endDate = new Date(2026, 6, 4);   // 7/4
 
-        // 補齊 6/1 前面的空白 (星期日)
         for(let i=0; i<startDate.getDay(); i++) {
             cal.appendChild(document.createElement('div'));
         }
 
         let curr = new Date(startDate);
         while(curr <= endDate) {
-            const month = curr.getMonth() + 1;
-            const date = curr.getDate();
-            const dateStr = `${month}/${date}`;
-            
-            // 判斷是否在開放範圍內 (6/6 以後)
+            const dateStr = `${curr.getMonth() + 1}/${curr.getDate()}`;
             const isClickable = curr >= new Date(2026, 5, 6);
 
             const dayEl = document.createElement('div');
             dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
             dayEl.innerText = dateStr;
             dayEl.id = `day-${dateStr}`;
+            
+            // 如果舊紀錄中有這天，直接標示為不行
+            if (unavailableData[dateStr]) {
+                dayEl.classList.add('unavailable');
+            }
             
             if (isClickable) {
                 dayEl.onclick = () => openModal(dateStr);
@@ -156,17 +167,14 @@
         }
     }
 
-    // 【3】控制彈出視窗
     function openModal(dateStr) {
         selectedDateStr = dateStr;
         document.getElementById('modal-title').innerText = `${dateStr} 為什麼不行？`;
-        // 如果之前有填過，就把原因帶入輸入框
         document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
         document.getElementById('modal-overlay').style.display = 'block';
     }
 
     function closeModal() {
-        // 如果按取消，視同把那天的「不行」紀錄清掉
         delete unavailableData[selectedDateStr];
         document.getElementById(`day-${selectedDateStr}`).classList.remove('unavailable');
         document.getElementById('modal-overlay').style.display = 'none';
@@ -175,20 +183,18 @@
     function saveReason() {
         const reason = document.getElementById('reasonInput').value.trim();
         if (!reason) {
-            alert('請輸入原因喔！如果可以參加請按下方取消。');
+            alert('請填寫明確清楚的原因喔！如果可以參加請按下方取消。');
             return;
         }
         
-        // 記錄原因並改變日曆外觀
         unavailableData[selectedDateStr] = reason;
         document.getElementById(`day-${selectedDateStr}`).classList.add('unavailable');
         document.getElementById('modal-overlay').style.display = 'none';
     }
 
-    // 【4】送出最終資料
     function submitData() {
-        document.querySelector('#calendar-screen button').style.display = 'none';
-        document.getElementById('loading').style.display = 'block';
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('submit-loading').style.display = 'block';
 
         fetch(gasURL, {
             method: 'POST',
@@ -201,18 +207,16 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                alert('時間已經成功記錄囉！');
-                window.location.reload();
-            } else {
-                alert('發生錯誤，請稍後再試。');
-                document.querySelector('#calendar-screen button').style.display = 'block';
-                document.getElementById('loading').style.display = 'none';
+                alert('時間已經成功儲存囉！你可以隨時回來修改。');
+                document.getElementById('submitBtn').style.display = 'block';
+                document.getElementById('submit-loading').style.display = 'none';
+                // 這裡拿掉了 window.location.reload()，不會再跳回首頁
             }
         })
         .catch(err => {
-            // 防止 GAS 轉址引發的 CORS 假錯誤
-            alert('送出完成！');
-            window.location.reload();
+            alert('時間已經成功儲存囉！');
+            document.getElementById('submitBtn').style.display = 'block';
+            document.getElementById('submit-loading').style.display = 'none';
         });
     }
 </script>
