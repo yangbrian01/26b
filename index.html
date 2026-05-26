@@ -50,7 +50,7 @@
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
-        /* ⭐ 管理員專用標記：使用內陰影畫粗邊框，保留背景的熱力圖顏色 */
+        /* ⭐ 內圈粗邊框標記法：使用內陰影粗外框，不蓋掉熱力圖底色 */
         .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
         .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
 
@@ -199,15 +199,13 @@
         setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
     }
 
-    // ⭐ 專為平板與各瀏覽器設計的嚴謹時間判斷
+    // ⭐ 核心防護機制：直接生成當下台灣時間的純文字進行字串比對，徹底排除 Date 轉換產生的時區蟲
     function checkDeadlineStatus() {
         if (!globalDeadline) return false;
         const now = new Date();
-        // 將 "2026-05-26T12:00" 轉為 "2026/05/26 12:00" 確保舊版 Safari 也能正確解析
-        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-        const d = new Date(parsedStr); 
-        if (isNaN(d)) return false;
-        return now > d;
+        const pad = (n) => n < 10 ? '0' + n : n;
+        const nowStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        return nowStr > globalDeadline; 
     }
 
     window.onload = function() {
@@ -244,7 +242,13 @@
                 isPastDeadline = checkDeadlineStatus();
                 if (isPastDeadline) {
                     const banner = document.getElementById('deadline-banner');
-                    banner.innerText = `🚨 調查已截止，系統已鎖定無法再更改。`;
+                    if (globalDeadline.includes('T')) {
+                        const [pDate, pTime] = globalDeadline.split('T');
+                        const [y, m, d] = pDate.split('-');
+                        banner.innerText = `🚨 調查已於 ${m}/${d} ${pTime} 截止，系統鎖定無法再更改。`;
+                    } else {
+                        banner.innerText = `🚨 調查已截止，系統鎖定無法再更改。`;
+                    }
                     banner.style.display = 'block';
                     document.getElementById('submitBtn').style.display = 'none';
                     document.getElementById('wishlist-input').disabled = true;
@@ -306,7 +310,7 @@
                     dayEl.classList.add('unavailable');
                 }
                 
-                // ⭐ 前端點擊全面鎖死防線
+                // ⭐ 前端點擊鎖死防線
                 if (isClickable) {
                     if (isPastDeadline) {
                         dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
@@ -316,6 +320,7 @@
                 }
             } 
             else {
+                // ⭐ 管理員統計：一律完整填上熱力圖底色與數字
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
@@ -327,12 +332,12 @@
                         else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
                         else { bgColor = '#880e4f'; textColor = '#fff'; }
                         
-                        // ⭐ 不管有沒有標記，一律先塗上熱力圖背景色
                         dayEl.style.backgroundColor = bgColor;
+                        dayEl.style.borderColor = bgColor;
                         dayEl.style.color = textColor;
                     }
 
-                    // ⭐ 疊加上邊框的標記
+                    // ⭐ 獨立疊加外圈粗線框標記，不洗掉背景色
                     const annColor = globalAnnotations[dateStr];
                     if (annColor === 'blue') dayEl.classList.add('admin-blue');
                     if (annColor === 'green') dayEl.classList.add('admin-green');
@@ -355,7 +360,7 @@
     }
 
     function openModal(dateStr) {
-        if (isPastDeadline) return showToast('🚨 調查已截止，無法修改！'); // 開視窗前的最後防線
+        if (isPastDeadline) return showToast('🚨 調查已截止，無法修改！'); 
         
         activeMultiDates = [dateStr]; 
         updateSelectedDatesDisplay();
@@ -443,7 +448,7 @@
                 document.getElementById('submitBtn').style.display = 'block';
                 document.getElementById('submit-loading').style.display = 'none';
             } else {
-                showToast(data.message); // 顯示後端擋下的超時警告
+                showToast(data.message); 
                 document.getElementById('submit-loading').style.display = 'none';
             }
         }).catch(err => {
@@ -463,16 +468,9 @@
                 globalDeadline = data.deadline || '';
                 globalAnnotations = data.annotations || {};
                 
+                // ⭐ 直接將純文字字串指派給 input，完全繞過 Date 物件轉換
                 if (globalDeadline) {
-                    try {
-                        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-                        const d = new Date(parsedStr);
-                        if (!isNaN(d)) {
-                            const pad = (n) => n < 10 ? '0' + n : n;
-                            const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-                            document.getElementById('admin-deadline-input').value = formatted;
-                        }
-                    } catch(e) {}
+                    document.getElementById('admin-deadline-input').value = globalDeadline;
                 }
 
                 renderAdminScreen(data.data);
@@ -507,7 +505,7 @@
     }
     
     function saveDeadline() {
-        const val = document.getElementById('admin-deadline-input').value;
+        const val = document.getElementById('admin-deadline-input').value; // 這會是精準的 "YYYY-MM-DDTHH:mm" 文字
         showToast('儲存設定中...');
         fetch(gasURL, {
             method: 'POST',
@@ -573,9 +571,13 @@
         isPastDeadline = checkDeadlineStatus();
         if (isPastDeadline) {
             const banner = document.getElementById('deadline-banner');
-            const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-            const d = new Date(parsedStr);
-            banner.innerText = `🚨 調查已於 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes()} 截止，目前無法再更改。`;
+            if (globalDeadline.includes('T')) {
+                const [pDate, pTime] = globalDeadline.split('T');
+                const [y, m, d] = pDate.split('-');
+                banner.innerText = `🚨 調查已截止，系統鎖定無法再更改。`;
+            } else {
+                banner.innerText = `🚨 調查已截止，系統鎖定無法再更改。`;
+            }
             banner.style.display = 'block';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('wishlist-input').disabled = true;
