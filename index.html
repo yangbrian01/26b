@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026TCLIPb 謝師宴調查</title>
     <style>
-        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); }
+        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
         .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); backdrop-filter: blur(10px); margin-bottom: 20px; box-sizing: border-box;}
@@ -27,10 +27,9 @@
         button.admin-btn { background-color: #4a4e69; margin-top: 10px; }
         button.admin-btn:hover { background-color: #22223b; }
         
-        /* 管理員彈窗色塊按鈕 */
-        .btn-blue { background-color: #3a86ff; flex: 1; }
+        .btn-blue { background-color: var(--admin-blue); flex: 1; }
         .btn-blue:hover { background-color: #266dd3; }
-        .btn-green { background-color: #2a9d8f; flex: 1; }
+        .btn-green { background-color: var(--admin-green); flex: 1; }
         .btn-green:hover { background-color: #21867a; }
 
         @keyframes pulse-btn {
@@ -46,15 +45,14 @@
         
         .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .cal-day.clickable:hover { background-color: #f1f7ff; border-color: #bde0fe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         
-        /* 一般使用者無法參加的標示 */
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
-        /* ⭐ 管理員專用藍綠標記 (加 !important 防止被熱力圖洗掉) */
-        .cal-day.admin-blue { background-color: #3a86ff !important; border-color: #266dd3 !important; color: #fff !important; }
-        .cal-day.admin-green { background-color: #2a9d8f !important; border-color: #21867a !important; color: #fff !important; }
+        /* ⭐ 管理員專用標記：使用內陰影畫粗邊框，保留背景的熱力圖顏色 */
+        .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
+        .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
@@ -160,8 +158,8 @@
         <div id="admin-modal-list"></div>
         
         <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 不行</button>
-            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 有機會</button>
+            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 標記不行</button>
+            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 標記有機會</button>
         </div>
         <button type="button" class="secondary" onclick="setAnnotation('none')" style="margin-top: 8px; padding: 12px; font-size: 14px;">❌ 清除標記</button>
     </div>
@@ -176,7 +174,7 @@
     let adminParsedData = {}; 
     let allValidDates = []; 
     let activeMultiDates = []; 
-    let globalAnnotations = {}; // 變成物件： { "6/10": "blue", "6/11": "green" }
+    let globalAnnotations = {}; 
     let globalDeadline = '';
     let isPastDeadline = false;
     let selectedAdminDate = '';
@@ -201,23 +199,23 @@
         setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
     }
 
+    // ⭐ 專為平板與各瀏覽器設計的嚴謹時間判斷
+    function checkDeadlineStatus() {
+        if (!globalDeadline) return false;
+        const now = new Date();
+        // 將 "2026-05-26T12:00" 轉為 "2026/05/26 12:00" 確保舊版 Safari 也能正確解析
+        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+        const d = new Date(parsedStr); 
+        if (isNaN(d)) return false;
+        return now > d;
+    }
+
     window.onload = function() {
         const savedName = localStorage.getItem('teacherBanquetName');
         if (savedName) {
             document.getElementById('studentName').value = savedName;
             verifyName();
         }
-    }
-
-    // 嚴謹檢查時間，修正跨瀏覽器問題
-    function checkDeadlineStatus() {
-        if (!globalDeadline) return false;
-        const now = new Date();
-        const d = new Date(globalDeadline.replace(/-/g, '/').replace('T', ' ')); 
-        const fallback = new Date(globalDeadline); 
-        const finalDate = isNaN(d) ? fallback : d;
-        if (isNaN(finalDate)) return false;
-        return now > finalDate;
     }
 
     function verifyName() {
@@ -303,26 +301,21 @@
             dayEl.innerText = dateStr;
             
             if (isUser) {
-                // ⭐ 前端徹底鎖死：使用者畫面判斷超時，直接綁死警告框
                 dayEl.id = `day-${dateStr}`;
                 if (unavailableData[dateStr] && isClickable) {
                     dayEl.classList.add('unavailable');
                 }
                 
+                // ⭐ 前端點擊全面鎖死防線
                 if (isClickable) {
                     if (isPastDeadline) {
-                        dayEl.onclick = () => showToast('🚨 已經截止囉，不能再偷改了！');
+                        dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
                     } else {
                         dayEl.onclick = () => openModal(dateStr);
                     }
                 }
             } 
             else {
-                // ⭐ 管理員畫面：加上藍綠標記與熱力圖
-                const annColor = globalAnnotations[dateStr];
-                if (annColor === 'blue') dayEl.classList.add('admin-blue');
-                if (annColor === 'green') dayEl.classList.add('admin-green');
-
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
@@ -334,13 +327,16 @@
                         else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
                         else { bgColor = '#880e4f'; textColor = '#fff'; }
                         
-                        // 只在沒有標記的情況下套用熱力圖顏色（標記優先顯示）
-                        if (!annColor) {
-                            dayEl.style.backgroundColor = bgColor;
-                            dayEl.style.borderColor = bgColor;
-                            dayEl.style.color = textColor;
-                        }
+                        // ⭐ 不管有沒有標記，一律先塗上熱力圖背景色
+                        dayEl.style.backgroundColor = bgColor;
+                        dayEl.style.color = textColor;
                     }
+
+                    // ⭐ 疊加上邊框的標記
+                    const annColor = globalAnnotations[dateStr];
+                    if (annColor === 'blue') dayEl.classList.add('admin-blue');
+                    if (annColor === 'green') dayEl.classList.add('admin-green');
+
                     dayEl.onclick = () => openAdminModal(dateStr, count);
                 }
             }
@@ -359,7 +355,8 @@
     }
 
     function openModal(dateStr) {
-        if (isPastDeadline) return; // 雙重保險
+        if (isPastDeadline) return showToast('🚨 調查已截止，無法修改！'); // 開視窗前的最後防線
+        
         activeMultiDates = [dateStr]; 
         updateSelectedDatesDisplay();
         document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
@@ -397,6 +394,7 @@
     function dismissModal() { hideModal(); }
 
     function closeModal() {
+        if (isPastDeadline) return;
         activeMultiDates.forEach(d => { delete unavailableData[d]; });
         renderCalendar();
         hideModal();
@@ -404,6 +402,7 @@
     }
 
     function saveReason() {
+        if (isPastDeadline) return;
         const reason = document.getElementById('reasonInput').value.trim();
         if (!reason) return showToast('請填寫原因！若可參加請點選取消');
         
@@ -427,7 +426,8 @@
     }
 
     function submitData() {
-        if (isPastDeadline) return showToast('🚨 已經截止囉，無法儲存！');
+        if (isPastDeadline) return showToast('🚨 已過截止時間，無法儲存');
+        
         document.getElementById('submitBtn').classList.remove('pulse-animation');
         document.getElementById('submitBtn').style.display = 'none';
         document.getElementById('submit-loading').style.display = 'block';
@@ -443,7 +443,7 @@
                 document.getElementById('submitBtn').style.display = 'block';
                 document.getElementById('submit-loading').style.display = 'none';
             } else {
-                showToast(data.message); // 會跳出後端擋下的超時警告
+                showToast(data.message); // 顯示後端擋下的超時警告
                 document.getElementById('submit-loading').style.display = 'none';
             }
         }).catch(err => {
@@ -453,7 +453,6 @@
         });
     }
 
-    // --- 管理員功能 ---
     function fetchAdminData() {
         showToast('讀取統計資料中...');
         fetch(gasURL, {
@@ -466,7 +465,8 @@
                 
                 if (globalDeadline) {
                     try {
-                        const d = new Date(globalDeadline);
+                        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+                        const d = new Date(parsedStr);
                         if (!isNaN(d)) {
                             const pad = (n) => n < 10 ? '0' + n : n;
                             const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
@@ -541,7 +541,6 @@
         setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
     }
     
-    // ⭐ 管理員設定顏色標記
     function setAnnotation(color) {
         if (color === 'none') {
             delete globalAnnotations[selectedAdminDate];
@@ -574,7 +573,9 @@
         isPastDeadline = checkDeadlineStatus();
         if (isPastDeadline) {
             const banner = document.getElementById('deadline-banner');
-            banner.innerText = `🚨 調查已截止，系統已鎖定無法再更改。`;
+            const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+            const d = new Date(parsedStr);
+            banner.innerText = `🚨 調查已於 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes()} 截止，目前無法再更改。`;
             banner.style.display = 'block';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('wishlist-input').disabled = true;
