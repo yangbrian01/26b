@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>謝師宴時間調查</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f9f9f9; }
+        .container { background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .date-item { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fafafa; }
+        .reason-input { display: none; margin-top: 10px; } /* 預設隱藏原因輸入框 */
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        #loading { display: none; text-align: center; color: #007bff; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>謝師宴時間調查</h2>
+    
+    <div class="form-group">
+        <label for="studentName">你的姓名：</label>
+        <input type="text" id="studentName" placeholder="請輸入姓名 (例如: 王小明)" required>
+    </div>
+
+    <p style="font-weight: bold;">請勾選你 <u>不行</u> 參加的日期，並註明原因：</p>
+
+    <div class="date-item">
+        <input type="checkbox" class="date-checkbox" id="date1" value="6/15 (六)">
+        <label for="date1" style="display:inline;">6/15 (六)</label>
+        <input type="text" class="reason-input" id="reason1" placeholder="請填寫不行參加的原因">
+    </div>
+
+    <div class="date-item">
+        <input type="checkbox" class="date-checkbox" id="date2" value="6/16 (日)">
+        <label for="date2" style="display:inline;">6/16 (日)</label>
+        <input type="text" class="reason-input" id="reason2" placeholder="請填寫不行參加的原因">
+    </div>
+
+    <div class="date-item">
+        <input type="checkbox" class="date-checkbox" id="date3" value="6/22 (六)">
+        <label for="date3" style="display:inline;">6/22 (六)</label>
+        <input type="text" class="reason-input" id="reason3" placeholder="請填寫不行參加的原因">
+    </div>
+
+    <button onclick="submitForm()">送出調查</button>
+    <div id="loading">資料傳送中，請稍候...</div>
+</div>
+
+<script>
+    // 監聽所有 checkbox，如果打勾就顯示原因輸入框
+    document.querySelectorAll('.date-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            // 找到這個 checkbox 同一層的 text input
+            const reasonInput = this.parentElement.querySelector('.reason-input');
+            if (this.checked) {
+                reasonInput.style.display = 'block';
+            } else {
+                reasonInput.style.display = 'none';
+                reasonInput.value = ''; // 取消勾選時清空原因
+            }
+        });
+    });
+
+    function submitForm() {
+        const name = document.getElementById('studentName').value.trim();
+        if (!name) {
+            alert('請務必填寫姓名！');
+            return;
+        }
+
+        let unavailableList = [];
+        let hasError = false;
+
+        // 收集所有打勾的日期與原因
+        document.querySelectorAll('.date-checkbox').forEach(function(checkbox) {
+            if (checkbox.checked) {
+                const dateVal = checkbox.value;
+                const reasonInput = checkbox.parentElement.querySelector('.reason-input').value.trim();
+                
+                if (!reasonInput) {
+                    alert(`請填寫 ${dateVal} 不行參加的原因！`);
+                    hasError = true;
+                } else {
+                    unavailableList.push(`${dateVal}: ${reasonInput}`);
+                }
+            }
+        });
+
+        if (hasError) return;
+
+        // 如果全部都可以參加
+        let finalReasonString = "全部皆可參加";
+        if (unavailableList.length > 0) {
+            finalReasonString = unavailableList.join(' | ');
+        }
+
+        const payload = {
+            name: name,
+            reasons: finalReasonString
+        };
+
+        // UI 變化
+        document.querySelector('button').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        // ⭐ 請將這裡替換成你在第一階段複製的 GAS 網頁應用程式網址
+        const gasURL = 'YOUR_GAS_WEB_APP_URL_HERE';
+
+        // 傳送資料到 GAS (使用 text/plain 避免 CORS 預檢請求)
+        fetch(gasURL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('感謝填寫，資料已成功送出！');
+                window.location.reload(); // 重整頁面
+            } else {
+                alert('發生錯誤，請稍後再試。');
+                document.querySelector('button').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // 由於 GAS 有時會強制轉址導致 CORS 報錯，但其實資料已經寫入
+            alert('送出完成！(若未看到試算表更新請通知負責人)'); 
+            window.location.reload();
+        });
+    }
+</script>
+</body>
+</html>
