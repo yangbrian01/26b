@@ -24,6 +24,14 @@
         button.admin-btn { background-color: #4a4e69; margin-top: 15px; }
         button.admin-btn:hover { background-color: #22223b; }
         
+        /* 儲存按鈕的閃爍動畫 */
+        @keyframes pulse-btn {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(230, 57, 70, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); }
+        }
+        .pulse-animation { animation: pulse-btn 1.5s infinite; background-color: var(--accent) !important; }
+        
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 30px; text-align: center; }
         .cal-header { font-weight: 700; color: #8d99ae; padding: 10px 0; font-size: 14px; }
         .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; }
@@ -32,22 +40,19 @@
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .cal-day.clickable:hover { background-color: #f1f7ff; border-color: #bde0fe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         
-        /* 一般使用者的不允許標示 */
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
-        /* 視窗共通樣式 */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 35px; border-radius: 20px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
-        
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
         .close-btn:hover { color: var(--accent); }
 
         /* 熱力圖專用樣式 */
-        .heatmap-legend { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 13px; color: #8d99ae; font-weight: 500; }
-        .legend-box { width: 16px; height: 16px; margin: 0 4px; border-radius: 4px; }
+        .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; font-weight: 500; gap: 4px; }
+        .legend-item { display: flex; align-items: center; margin: 0 4px; }
+        .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
         
-        /* 管理員詳細名單樣式 */
         #admin-modal-list { max-height: 50vh; overflow-y: auto; text-align: left; margin-top: 15px; padding-right: 5px; }
         .detail-item { padding: 12px 0; border-bottom: 1px solid #edf2f4; display: flex; flex-direction: column; }
         .detail-item:last-child { border-bottom: none; }
@@ -56,6 +61,10 @@
         
         #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(4px); }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+        
+        /* 下拉選單樣式 */
+        select.date-select { padding: 8px; border-radius: 8px; border: 2px solid #edf2f4; font-size: 14px; outline: none; background: #f8f9fa; color: var(--text); font-weight: bold; }
+        select.date-select:focus { border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -88,12 +97,13 @@
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計熱力圖</h3>
         
         <div class="heatmap-legend">
-            0人 
-            <div class="legend-box" style="background: #fff; border: 1px solid #edf2f4; margin-left: 8px;"></div>
-            <div class="legend-box" style="background: rgba(230, 57, 70, 0.3);"></div>
-            <div class="legend-box" style="background: rgba(230, 57, 70, 0.6);"></div>
-            <div class="legend-box" style="background: rgba(230, 57, 70, 1); margin-right: 8px;"></div> 
-            30人
+            <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0人</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1-5</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>6-10</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ef5350;"></div>11-15</div>
+            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>16-20</div>
+            <div class="legend-item"><div class="legend-box" style="background: #c2185b;"></div>21-25</div>
+            <div class="legend-item"><div class="legend-box" style="background: #4a148c;"></div>26-30</div>
         </div>
 
         <div class="calendar-grid" id="admin-calendar"></div>
@@ -104,10 +114,18 @@
 <div id="modal-overlay" class="overlay">
     <div class="modal-content" id="modal-box">
         <span class="close-btn" onclick="dismissModal()">&times;</span>
-        <h3 id="modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px;"></h3>
-        <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因">
+        <h3 style="margin-top: 0; color: var(--primary); font-size: 20px; margin-bottom: 15px;">無法參加的原因</h3>
+        
+        <div style="margin-bottom: 15px; text-align: left; font-size: 15px; color: #495057; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span id="modal-start-date" style="color: var(--accent); font-weight: bold; font-size: 18px;"></span>
+            <span id="date-range-container">
+                至 <select id="modal-end-date" class="date-select"></select>
+            </span>
+        </div>
+
+        <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因 (如: 出國)">
         <button type="button" onclick="saveReason()">確認紀錄</button>
-        <button type="button" class="secondary" onclick="closeModal()">取消 / 清除該日紀錄</button>
+        <button type="button" class="secondary" onclick="closeModal()">取消 / 清除紀錄</button>
     </div>
 </div>
 
@@ -126,7 +144,24 @@
     let currentName = '';
     let unavailableData = {}; 
     let selectedDateStr = '';
-    let adminParsedData = {}; // 儲存後台解析後的數據
+    let adminParsedData = {}; 
+    let allValidDates = []; // 儲存所有可點選的日期字串
+
+    // 產生所有有效日期 (6/6 到 7/4，排除 6/8)
+    function generateValidDates() {
+        allValidDates = [];
+        let curr = new Date(2026, 5, 6);
+        const endDate = new Date(2026, 6, 4);
+        while(curr <= endDate) {
+            const m = curr.getMonth() + 1;
+            const d = curr.getDate();
+            if (!(m === 6 && d === 8)) {
+                allValidDates.push(`${m}/${d}`);
+            }
+            curr.setDate(curr.getDate() + 1);
+        }
+    }
+    generateValidDates();
 
     function showToast(message) {
         const toast = document.getElementById("toast");
@@ -182,14 +217,12 @@
         document.getElementById('loading').style.display = 'none';
     }
 
-    // --- 個人調查日曆繪製 ---
     function renderCalendar() {
         const cal = document.getElementById('calendar');
         cal.innerHTML = '';
         generateCalendarGrid(cal, true);
     }
 
-    // 共用的日曆生成邏輯
     function generateCalendarGrid(container, isUser) {
         const days = ['日', '一', '二', '三', '四', '五', '六'];
         days.forEach(d => {
@@ -218,7 +251,6 @@
             dayEl.innerText = dateStr;
             
             if (isUser) {
-                // 一般使用者的邏輯
                 dayEl.id = `day-${dateStr}`;
                 if (unavailableData[dateStr] && isClickable) {
                     dayEl.classList.add('unavailable');
@@ -227,21 +259,23 @@
                     dayEl.onclick = () => openModal(dateStr);
                 }
             } else {
-                // 管理員熱力圖的邏輯
+                // 熱力圖多層次顏色邏輯
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
-                        // 計算透明度：最低 0.15，最高 1.0 (基於 30 人)
-                        let opacity = 0.15 + (0.85 * (count / 30));
-                        if(opacity > 1) opacity = 1;
+                        let bgColor = '#fff';
+                        let textColor = '#2b2d42';
                         
-                        dayEl.style.backgroundColor = `rgba(230, 57, 70, ${opacity})`;
-                        dayEl.style.borderColor = `rgba(230, 57, 70, ${opacity})`;
+                        if (count <= 5) { bgColor = '#ffe0b2'; }
+                        else if (count <= 10) { bgColor = '#ffb74d'; }
+                        else if (count <= 15) { bgColor = '#ef5350'; textColor = '#fff'; }
+                        else if (count <= 20) { bgColor = '#d32f2f'; textColor = '#fff'; }
+                        else if (count <= 25) { bgColor = '#c2185b'; textColor = '#fff'; }
+                        else { bgColor = '#4a148c'; textColor = '#fff'; }
                         
-                        // 若顏色夠深，把字體換成白色才看得清楚
-                        if (opacity > 0.5) {
-                            dayEl.style.color = '#fff';
-                        }
+                        dayEl.style.backgroundColor = bgColor;
+                        dayEl.style.borderColor = bgColor;
+                        dayEl.style.color = textColor;
                     }
                     dayEl.onclick = () => openAdminModal(dateStr, count);
                 }
@@ -252,11 +286,28 @@
         }
     }
 
-    // --- 使用者視窗控制 ---
     function openModal(dateStr) {
         selectedDateStr = dateStr;
-        document.getElementById('modal-title').innerText = `${dateStr} 無法參加？`;
+        document.getElementById('modal-start-date').innerText = dateStr;
         document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
+        
+        // 處理連續日期的下拉選單
+        const selectEl = document.getElementById('modal-end-date');
+        selectEl.innerHTML = '<option value="">(單日)</option>';
+        
+        const startIndex = allValidDates.indexOf(dateStr);
+        if (startIndex !== -1 && startIndex < allValidDates.length - 1) {
+            document.getElementById('date-range-container').style.display = 'inline-block';
+            for (let i = startIndex + 1; i < allValidDates.length; i++) {
+                const opt = document.createElement('option');
+                opt.value = allValidDates[i];
+                opt.innerText = allValidDates[i];
+                selectEl.appendChild(opt);
+            }
+        } else {
+            // 如果是最後一天，隱藏結束日期選單
+            document.getElementById('date-range-container').style.display = 'none';
+        }
         
         const overlay = document.getElementById('modal-overlay');
         const box = document.getElementById('modal-box');
@@ -274,15 +325,36 @@
         delete unavailableData[selectedDateStr];
         document.getElementById(`day-${selectedDateStr}`).classList.remove('unavailable');
         hideModal();
+        triggerSaveReminder();
     }
 
     function saveReason() {
         const reason = document.getElementById('reasonInput').value.trim();
         if (!reason) return showToast('請填寫原因！若可參加請點選取消');
         
-        unavailableData[selectedDateStr] = reason;
-        document.getElementById(`day-${selectedDateStr}`).classList.add('unavailable');
+        const endDateStr = document.getElementById('modal-end-date').value;
+        const startIndex = allValidDates.indexOf(selectedDateStr);
+        
+        if (endDateStr) {
+            // 多選範圍儲存
+            const endIndex = allValidDates.indexOf(endDateStr);
+            for (let i = startIndex; i <= endIndex; i++) {
+                unavailableData[allValidDates[i]] = reason;
+            }
+            renderCalendar(); // 重新繪製整個日曆來套用樣式
+        } else {
+            // 單日儲存
+            unavailableData[selectedDateStr] = reason;
+            document.getElementById(`day-${selectedDateStr}`).classList.add('unavailable');
+        }
+        
         hideModal();
+        triggerSaveReminder();
+    }
+
+    function triggerSaveReminder() {
+        showToast('📌 暫存成功！請記得點擊最下方的「儲存調查結果」喔');
+        document.getElementById('submitBtn').classList.add('pulse-animation');
     }
 
     function hideModal() {
@@ -294,6 +366,8 @@
     }
 
     function submitData() {
+        // 取消按鈕閃爍
+        document.getElementById('submitBtn').classList.remove('pulse-animation');
         document.getElementById('submitBtn').style.display = 'none';
         document.getElementById('submit-loading').style.display = 'block';
 
@@ -313,7 +387,6 @@
         });
     }
 
-    // --- 管理員專區邏輯 ---
     function fetchAdminData() {
         showToast('讀取統計資料中...');
         fetch(gasURL, {
@@ -332,7 +405,6 @@
         document.getElementById('calendar-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
-        // 解析並分類資料
         adminParsedData = {};
         allData.forEach(row => {
             if(row.reasonString && row.reasonString !== "全部皆可參加") {
@@ -353,7 +425,6 @@
         generateCalendarGrid(cal, false);
     }
     
-    // 管理員查看明細視窗
     function openAdminModal(dateStr, count) {
         document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
         const listContainer = document.getElementById('admin-modal-list');
