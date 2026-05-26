@@ -47,7 +47,6 @@
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
         .close-btn:hover { color: var(--accent); }
 
-        /* 多選日期標籤樣式 */
         .date-chip-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0 15px 0; max-height: 120px; overflow-y: auto; padding-right: 5px; }
         .date-chip { padding: 8px 4px; background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 8px; font-size: 13px; color: #495057; cursor: pointer; transition: 0.2s; }
         .date-chip:hover { background: #e2eafc; border-color: #bde0fe; }
@@ -98,12 +97,12 @@
         
         <div class="heatmap-legend">
             <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0人</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1-5</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>6-10</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ef5350;"></div>11-15</div>
-            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>16-20</div>
-            <div class="legend-item"><div class="legend-box" style="background: #c2185b;"></div>21-25</div>
-            <div class="legend-item"><div class="legend-box" style="background: #4a148c;"></div>26-30</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1-2</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>3-4</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ef5350;"></div>5-6</div>
+            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>7-8</div>
+            <div class="legend-item"><div class="legend-box" style="background: #c2185b;"></div>9-10</div>
+            <div class="legend-item"><div class="legend-box" style="background: #4a148c;"></div>11+</div>
         </div>
 
         <div class="calendar-grid" id="admin-calendar"></div>
@@ -143,9 +142,8 @@
     let unavailableData = {}; 
     let adminParsedData = {}; 
     let allValidDates = []; 
-    let activeMultiDates = []; // 儲存這次彈窗中被選中的多個日期
+    let activeMultiDates = []; 
 
-    // ⭐ 產生有效日期 (排除 6/8 和 6/16)
     function generateValidDates() {
         allValidDates = [];
         let curr = new Date(2026, 5, 6);
@@ -243,7 +241,6 @@
             const date = curr.getDate();
             const dateStr = `${month}/${date}`;
             
-            // ⭐ 判斷是否為排除的日期 (6/8, 6/16)
             const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && (date === 8 || date === 16));
             const dayEl = document.createElement('div');
             dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
@@ -261,12 +258,13 @@
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
+                        // 更新為 1-10 人的判斷邏輯
                         let bgColor = '#fff', textColor = '#2b2d42';
-                        if (count <= 5) { bgColor = '#ffe0b2'; }
-                        else if (count <= 10) { bgColor = '#ffb74d'; }
-                        else if (count <= 15) { bgColor = '#ef5350'; textColor = '#fff'; }
-                        else if (count <= 20) { bgColor = '#d32f2f'; textColor = '#fff'; }
-                        else if (count <= 25) { bgColor = '#c2185b'; textColor = '#fff'; }
+                        if (count <= 2) { bgColor = '#ffe0b2'; }
+                        else if (count <= 4) { bgColor = '#ffb74d'; }
+                        else if (count <= 6) { bgColor = '#ef5350'; textColor = '#fff'; }
+                        else if (count <= 8) { bgColor = '#d32f2f'; textColor = '#fff'; }
+                        else if (count <= 10) { bgColor = '#c2185b'; textColor = '#fff'; }
                         else { bgColor = '#4a148c'; textColor = '#fff'; }
                         
                         dayEl.style.backgroundColor = bgColor;
@@ -281,7 +279,6 @@
         }
     }
 
-    // 更新顯示被選取的日期陣列文字
     function updateSelectedDatesDisplay() {
         const sorted = [...activeMultiDates].sort((a,b) => {
             const [mA, dA] = a.split('/').map(Number);
@@ -292,15 +289,14 @@
     }
 
     function openModal(dateStr) {
-        activeMultiDates = [dateStr]; // 初始化：只包含當下點擊的日期
+        activeMultiDates = [dateStr]; 
         updateSelectedDatesDisplay();
         document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
         
-        // 產生多選的日期標籤 Grid
         const grid = document.getElementById('multi-select-grid');
         grid.innerHTML = '';
         allValidDates.forEach(d => {
-            if (d === dateStr) return; // 略過主要點擊的那天，因為已經強制選取了
+            if (d === dateStr) return; 
             
             const chip = document.createElement('div');
             chip.className = 'date-chip';
@@ -332,7 +328,6 @@
     function dismissModal() { hideModal(); }
 
     function closeModal() {
-        // 清除陣列中「所有」被選取日期的紀錄
         activeMultiDates.forEach(d => {
             delete unavailableData[d];
         });
@@ -345,7 +340,6 @@
         const reason = document.getElementById('reasonInput').value.trim();
         if (!reason) return showToast('請填寫原因！若可參加請點選取消');
         
-        // 將原因套用到陣列中的「所有」日期
         activeMultiDates.forEach(d => {
             unavailableData[d] = reason;
         });
