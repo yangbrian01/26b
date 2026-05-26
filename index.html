@@ -5,133 +5,213 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>謝師宴時間調查</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f9f9f9; }
-        .container { background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .date-item { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fafafa; }
-        .reason-input { display: none; margin-top: 10px; } /* 預設隱藏原因輸入框 */
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
-        #loading { display: none; text-align: center; color: #007bff; margin-top: 10px; }
+        :root { --primary: #4a90e2; --bg: #f4f7f6; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        h2 { text-align: center; margin-top: 0; }
+        
+        /* 輸入與按鈕 */
+        input[type="text"] { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input[type="text"]:focus { border-color: var(--primary); }
+        button { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #357abd; }
+        button.secondary { background-color: #ccc; margin-top: 10px; }
+        
+        /* 日曆區塊 */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 20px; text-align: center; }
+        .cal-header { font-weight: bold; color: #888; padding: 10px 0; font-size: 14px; }
+        .cal-day { padding: 15px 5px; border-radius: 8px; font-size: 14px; background-color: #f9f9f9; transition: 0.2s; position: relative; }
+        .cal-day.disabled { color: #ccc; background-color: transparent; }
+        .cal-day.clickable { cursor: pointer; border: 1px solid #eee; }
+        .cal-day.clickable:hover { background-color: #eaf3fc; border-color: var(--primary); }
+        .cal-day.unavailable { background-color: #ffecec; border-color: #ff6b6b; color: #d63031; font-weight: bold; }
+        
+        /* 彈出視窗 (Modal) */
+        #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 12px; width: 85%; max-width: 350px; text-align: center; }
+        
+        #loading { display: none; text-align: center; color: var(--primary); font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>謝師宴時間調查</h2>
+<div class="app-container">
     
-    <div class="form-group">
-        <label for="studentName">你的姓名：</label>
-        <input type="text" id="studentName" placeholder="請輸入姓名 (例如: 王小明)" required>
+    <!-- 畫面 1：登入驗證 -->
+    <div id="login-screen">
+        <h2>班級身分驗證</h2>
+        <p style="text-align: center; color: #666; font-size: 14px;">請輸入你的姓名進入調查系統</p>
+        <input type="text" id="studentName" placeholder="請輸入姓名 (例如：楊定豊)">
+        <button id="loginBtn" onclick="verifyName()">進入日曆</button>
+        <div id="login-loading" style="display: none; text-align: center; margin-top: 15px; color: var(--primary);">驗證中，請稍候...</div>
     </div>
 
-    <p style="font-weight: bold;">請勾選你 <u>不行</u> 參加的日期，並註明原因：</p>
+    <!-- 畫面 2：日曆勾選 -->
+    <div id="calendar-screen" style="display: none;">
+        <h2>嗨，<span id="displayName"></span></h2>
+        <p style="text-align: center; font-size: 14px; color: #e74c3c; font-weight: bold;">點擊你「不行」參加的日期，並註明原因</p>
+        
+        <div class="calendar-grid" id="calendar">
+            <!-- 日曆會由 JS 動態生成 -->
+        </div>
 
-    <div class="date-item">
-        <input type="checkbox" class="date-checkbox" id="date1" value="6/15 (六)">
-        <label for="date1" style="display:inline;">6/15 (六)</label>
-        <input type="text" class="reason-input" id="reason1" placeholder="請填寫不行參加的原因">
+        <button onclick="submitData()">確認送出</button>
+        <div id="loading">資料傳送中，請稍候...</div>
     </div>
+</div>
 
-    <div class="date-item">
-        <input type="checkbox" class="date-checkbox" id="date2" value="6/16 (日)">
-        <label for="date2" style="display:inline;">6/16 (日)</label>
-        <input type="text" class="reason-input" id="reason2" placeholder="請填寫不行參加的原因">
+<!-- 填寫原因的彈出視窗 -->
+<div id="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modal-title"></h3>
+        <input type="text" id="reasonInput" placeholder="請簡單說明原因 (如：要補習)">
+        <button onclick="saveReason()">儲存</button>
+        <button class="secondary" onclick="closeModal()">取消 / 清除該日紀錄</button>
     </div>
-
-    <div class="date-item">
-        <input type="checkbox" class="date-checkbox" id="date3" value="6/22 (六)">
-        <label for="date3" style="display:inline;">6/22 (六)</label>
-        <input type="text" class="reason-input" id="reason3" placeholder="請填寫不行參加的原因">
-    </div>
-
-    <button onclick="submitForm()">送出調查</button>
-    <div id="loading">資料傳送中，請稍候...</div>
 </div>
 
 <script>
-    // 監聽所有 checkbox，如果打勾就顯示原因輸入框
-    document.querySelectorAll('.date-checkbox').forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-            // 找到這個 checkbox 同一層的 text input
-            const reasonInput = this.parentElement.querySelector('.reason-input');
-            if (this.checked) {
-                reasonInput.style.display = 'block';
-            } else {
-                reasonInput.style.display = 'none';
-                reasonInput.value = ''; // 取消勾選時清空原因
-            }
-        });
-    });
+    // ⭐ 請把這裡換成你剛部署好的新 GAS 網址
+    const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
+    
+    let currentName = '';
+    let unavailableData = {}; // 儲存格式: {"6/6": "補習", "6/15": "家族旅遊"}
+    let selectedDateStr = '';
 
-    function submitForm() {
-        const name = document.getElementById('studentName').value.trim();
-        if (!name) {
-            alert('請務必填寫姓名！');
-            return;
-        }
+    // 【1】驗證姓名
+    function verifyName() {
+        const nameInput = document.getElementById('studentName').value.trim();
+        if (!nameInput) return alert('請輸入姓名！');
 
-        let unavailableList = [];
-        let hasError = false;
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('login-loading').style.display = 'block';
 
-        // 收集所有打勾的日期與原因
-        document.querySelectorAll('.date-checkbox').forEach(function(checkbox) {
-            if (checkbox.checked) {
-                const dateVal = checkbox.value;
-                const reasonInput = checkbox.parentElement.querySelector('.reason-input').value.trim();
-                
-                if (!reasonInput) {
-                    alert(`請填寫 ${dateVal} 不行參加的原因！`);
-                    hasError = true;
-                } else {
-                    unavailableList.push(`${dateVal}: ${reasonInput}`);
-                }
-            }
-        });
-
-        if (hasError) return;
-
-        // 如果全部都可以參加
-        let finalReasonString = "全部皆可參加";
-        if (unavailableList.length > 0) {
-            finalReasonString = unavailableList.join(' | ');
-        }
-
-        const payload = {
-            name: name,
-            reasons: finalReasonString
-        };
-
-        // UI 變化
-        document.querySelector('button').style.display = 'none';
-        document.getElementById('loading').style.display = 'block';
-
-        // ⭐ 請將這裡替換成你在第一階段複製的 GAS 網頁應用程式網址
-        const gasURL = 'YOUR_GAS_WEB_APP_URL_HERE';
-
-        // 傳送資料到 GAS (使用 text/plain 避免 CORS 預檢請求)
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ action: 'verify', name: nameInput })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                alert('感謝填寫，資料已成功送出！');
-                window.location.reload(); // 重整頁面
+                currentName = nameInput;
+                document.getElementById('displayName').innerText = currentName;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('calendar-screen').style.display = 'block';
+                renderCalendar(); // 切換畫面後繪製日曆
+            } else {
+                alert(data.message); // 名字對不上的警告
+                document.getElementById('loginBtn').style.display = 'block';
+                document.getElementById('login-loading').style.display = 'none';
+            }
+        }).catch(err => {
+            alert('連線失敗，請稍後再試');
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('login-loading').style.display = 'none';
+        });
+    }
+
+    // 【2】動態繪製日曆 (範圍：6/6 - 7/4)
+    function renderCalendar() {
+        const cal = document.getElementById('calendar');
+        cal.innerHTML = '';
+        
+        // 加入星期標頭
+        const days = ['日', '一', '二', '三', '四', '五', '六'];
+        days.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'cal-header';
+            el.innerText = d;
+            cal.appendChild(el);
+        });
+
+        // 6月1日是星期一，我們要畫 6/1 ~ 7/4，但只讓 6/6 以後可以點擊
+        const startDate = new Date(2026, 5, 1); // 2026/6/1
+        const endDate = new Date(2026, 6, 4);   // 2026/7/4
+
+        // 補齊 6/1 前面的空白 (星期日)
+        for(let i=0; i<startDate.getDay(); i++) {
+            cal.appendChild(document.createElement('div'));
+        }
+
+        let curr = new Date(startDate);
+        while(curr <= endDate) {
+            const month = curr.getMonth() + 1;
+            const date = curr.getDate();
+            const dateStr = `${month}/${date}`;
+            
+            // 判斷是否在開放範圍內 (6/6 以後)
+            const isClickable = curr >= new Date(2026, 5, 6);
+
+            const dayEl = document.createElement('div');
+            dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
+            dayEl.innerText = dateStr;
+            dayEl.id = `day-${dateStr}`;
+            
+            if (isClickable) {
+                dayEl.onclick = () => openModal(dateStr);
+            }
+            
+            cal.appendChild(dayEl);
+            curr.setDate(curr.getDate() + 1);
+        }
+    }
+
+    // 【3】控制彈出視窗
+    function openModal(dateStr) {
+        selectedDateStr = dateStr;
+        document.getElementById('modal-title').innerText = `${dateStr} 為什麼不行？`;
+        // 如果之前有填過，就把原因帶入輸入框
+        document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
+        document.getElementById('modal-overlay').style.display = 'block';
+    }
+
+    function closeModal() {
+        // 如果按取消，視同把那天的「不行」紀錄清掉
+        delete unavailableData[selectedDateStr];
+        document.getElementById(`day-${selectedDateStr}`).classList.remove('unavailable');
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function saveReason() {
+        const reason = document.getElementById('reasonInput').value.trim();
+        if (!reason) {
+            alert('請輸入原因喔！如果可以參加請按下方取消。');
+            return;
+        }
+        
+        // 記錄原因並改變日曆外觀
+        unavailableData[selectedDateStr] = reason;
+        document.getElementById(`day-${selectedDateStr}`).classList.add('unavailable');
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    // 【4】送出最終資料
+    function submitData() {
+        document.querySelector('#calendar-screen button').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        fetch(gasURL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'submit', 
+                name: currentName, 
+                reasons: unavailableData 
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('時間已經成功記錄囉！');
+                window.location.reload();
             } else {
                 alert('發生錯誤，請稍後再試。');
-                document.querySelector('button').style.display = 'block';
+                document.querySelector('#calendar-screen button').style.display = 'block';
                 document.getElementById('loading').style.display = 'none';
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            // 由於 GAS 有時會強制轉址導致 CORS 報錯，但其實資料已經寫入
-            alert('送出完成！(若未看到試算表更新請通知負責人)'); 
+        .catch(err => {
+            // 防止 GAS 轉址引發的 CORS 假錯誤
+            alert('送出完成！');
             window.location.reload();
         });
     }
