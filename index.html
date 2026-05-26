@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026TCLIPb 謝師宴調查</title>
     <style>
+        /* ===== 基礎與電腦/平板版樣式 ===== */
         :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
         
         * { box-sizing: border-box; }
@@ -18,11 +19,11 @@
         
         .deadline-banner { background: #ffe3e3; color: var(--accent); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 20px; display: none; border: 2px solid #ffc2d1; }
         
-        input[type="text"], input[type="datetime-local"], input[type="date"] { width: 100%; padding: 15px; margin: 10px 0 15px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
-        input[type="text"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
+        input[type="text"], input[type="datetime-local"] { width: 100%; padding: 15px; margin: 10px 0 15px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
+        input[type="text"]:focus, input[type="datetime-local"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
         input:disabled { background: #e9ecef; cursor: not-allowed; opacity: 0.7; }
         
-        button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px; touch-action: manipulation; }
+        button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px; }
         button:hover { background-color: #0f1923; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
         button:active { transform: translateY(0); }
         button.secondary { background-color: #edf2f4; color: #457b9d; }
@@ -44,17 +45,16 @@
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 25px; text-align: center; width: 100%; }
         .cal-header { font-weight: 700; color: #8d99ae; padding: 10px 0; font-size: 14px; }
-        .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 2px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; touch-action: manipulation; }
+        .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 2px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         
         .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
-        .cal-day.empty { background: transparent; border: none; } /* 用來隱藏非區間的空白格 */
-        
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
+        /* ⭐ 內圈粗邊框標記法：不蓋掉熱力圖底色 */
         .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
         .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
 
@@ -84,7 +84,7 @@
         .wishlist-container { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
         .wishlist-label { font-weight: bold; color: var(--primary); font-size: 14px; display: block; text-align: left; margin-bottom: 5px;}
 
-        /* RWD 手機版自動縮放 */
+        /* ===== 針對手機螢幕的 RWD 自動縮放 ===== */
         @media (max-width: 480px) {
             body { padding: 10px; }
             .app-container { padding: 25px 15px; border-radius: 15px; }
@@ -103,7 +103,7 @@
             .date-chip { padding: 6px 2px; font-size: 12px; }
             
             button { padding: 14px; font-size: 15px; }
-            input[type="text"], input[type="datetime-local"], input[type="date"] { padding: 12px; font-size: 14px; }
+            input[type="text"], input[type="datetime-local"] { padding: 12px; font-size: 14px; }
             
             .heatmap-legend { gap: 2px; font-size: 11px; }
             .legend-item { margin: 0 2px; }
@@ -147,18 +147,10 @@
     <div id="admin-screen" style="display: none;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計後台</h3>
         
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: bold; font-size: 14px; color: var(--primary);">🗓️ 調查日期區間</label>
-            <div style="display: flex; gap: 8px; margin: 8px 0 15px 0; align-items: center;">
-                <input type="date" id="admin-start-date" style="margin: 0;">
-                <span style="color: #8d99ae; font-weight: bold;">至</span>
-                <input type="date" id="admin-end-date" style="margin: 0;">
-            </div>
-
-            <label style="font-weight: bold; font-size: 14px; color: var(--primary);">⏳ 填寫截止時間</label>
-            <input type="datetime-local" id="admin-deadline-input" style="margin: 8px 0 0 0;">
-            
-            <button type="button" class="btn-blue" onclick="saveAllSettings()" style="padding: 12px; font-size: 14px; margin-top: 15px;">💾 儲存所有設定</button>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+            <label style="font-weight: bold; font-size: 14px; color: var(--primary);">⏳ 設定截止時間</label>
+            <input type="datetime-local" id="admin-deadline-input">
+            <button type="button" class="btn-blue" onclick="saveDeadline()" style="padding: 10px; font-size: 14px; margin-top: 8px;">儲存截止時間</button>
         </div>
 
         <div class="heatmap-legend">
@@ -214,28 +206,21 @@
     let activeMultiDates = []; 
     let globalAnnotations = {}; 
     let globalDeadline = '';
-    let configStartDate = '2026-06-06';
-    let configEndDate = '2026-07-04';
     let isPastDeadline = false;
     let selectedAdminDate = '';
 
-    // ⭐ 動態產生有效日期 (根據後台設定區間)
     function generateValidDates() {
         allValidDates = [];
-        const startD = new Date(configStartDate);
-        const endD = new Date(configEndDate);
-        let curr = new Date(startD);
-        
-        while(curr <= endD) {
+        let curr = new Date(2026, 5, 6);
+        const endDate = new Date(2026, 6, 4);
+        while(curr <= endDate) {
             const m = curr.getMonth() + 1;
             const d = curr.getDate();
-            // 依然保留特殊的 6/8, 6/16 排除設定 (若剛好落在這區間內的話)
-            if (!(m === 6 && (d === 8 || d === 16))) {
-                allValidDates.push(`${m}/${d}`);
-            }
+            if (!(m === 6 && (d === 8 || d === 16))) allValidDates.push(`${m}/${d}`);
             curr.setDate(curr.getDate() + 1);
         }
     }
+    generateValidDates();
 
     function showToast(message) {
         const toast = document.getElementById("toast");
@@ -277,10 +262,6 @@
                 unavailableData = data.previousData || {}; 
                 globalAnnotations = data.annotations || {};
                 globalDeadline = data.deadline || '';
-                configStartDate = data.startDate || '2026-06-06';
-                configEndDate = data.endDate || '2026-07-04';
-                
-                generateValidDates(); // 取得設定後，重新生成日期列表
                 
                 document.getElementById('wishlist-input').value = data.wishlist || '';
                 document.getElementById('displayName').innerText = currentName;
@@ -325,7 +306,6 @@
         generateCalendarGrid(cal, true);
     }
 
-    // ⭐ 動態網格生成
     function generateCalendarGrid(container, isUser) {
         const days = ['日', '一', '二', '三', '四', '五', '六'];
         days.forEach(d => {
@@ -335,72 +315,59 @@
             container.appendChild(el);
         });
 
-        const startD = new Date(configStartDate);
-        const endD = new Date(configEndDate);
-        
-        // 日曆永遠從開始月份的第一天畫起，排版才會整齊
-        const calStart = new Date(startD.getFullYear(), startD.getMonth(), 1);
+        const startDate = new Date(2026, 5, 1); 
+        const endDate = new Date(2026, 6, 4);   
 
-        for(let i=0; i<calStart.getDay(); i++) {
+        for(let i=0; i<startDate.getDay(); i++) {
             container.appendChild(document.createElement('div'));
         }
 
-        let curr = new Date(calStart);
-        while(curr <= endD) {
+        let curr = new Date(startDate);
+        while(curr <= endDate) {
             const month = curr.getMonth() + 1;
             const date = curr.getDate();
             const dateStr = `${month}/${date}`;
             
-            // 判斷是否落在你設定的區間內
-            const inRange = curr >= startD && curr <= endD;
-            const isClickable = inRange && !(month === 6 && (date === 8 || date === 16));
-            
+            const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && (date === 8 || date === 16));
             const dayEl = document.createElement('div');
+            dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
+            dayEl.innerText = dateStr;
             
-            if (!inRange && curr < startD) {
-                // 如果是區間前的日期，變透明空白
-                dayEl.className = 'cal-day empty';
-                dayEl.innerText = '';
-            } else {
-                dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
-                dayEl.innerText = dateStr;
+            if (isUser) {
+                dayEl.id = `day-${dateStr}`;
+                if (unavailableData[dateStr] && isClickable) {
+                    dayEl.classList.add('unavailable');
+                }
                 
-                if (isUser) {
-                    dayEl.id = `day-${dateStr}`;
-                    if (unavailableData[dateStr] && isClickable) {
-                        dayEl.classList.add('unavailable');
+                if (isClickable) {
+                    if (isPastDeadline) {
+                        dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
+                    } else {
+                        dayEl.onclick = () => openModal(dateStr);
                     }
-                    
-                    if (isClickable) {
-                        if (isPastDeadline) {
-                            dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
-                        } else {
-                            dayEl.onclick = () => openModal(dateStr);
-                        }
+                }
+            } 
+            else {
+                const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
+                if (isClickable) {
+                    if (count > 0) {
+                        let bgColor = '#fff', textColor = '#2b2d42';
+                        if (count === 1) { bgColor = '#ffe0b2'; }
+                        else if (count === 2) { bgColor = '#ffb74d'; }
+                        else if (count === 3) { bgColor = '#ff9800'; }
+                        else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
+                        else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
+                        else { bgColor = '#880e4f'; textColor = '#fff'; }
+                        
+                        dayEl.style.backgroundColor = bgColor;
+                        dayEl.style.color = textColor;
                     }
-                } 
-                else {
-                    const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
-                    if (isClickable) {
-                        if (count > 0) {
-                            let bgColor = '#fff', textColor = '#2b2d42';
-                            if (count === 1) { bgColor = '#ffe0b2'; }
-                            else if (count === 2) { bgColor = '#ffb74d'; }
-                            else if (count === 3) { bgColor = '#ff9800'; }
-                            else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
-                            else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
-                            else { bgColor = '#880e4f'; textColor = '#fff'; }
-                            
-                            dayEl.style.backgroundColor = bgColor;
-                            dayEl.style.color = textColor;
-                        }
 
-                        const annColor = globalAnnotations[dateStr];
-                        if (annColor === 'blue') dayEl.classList.add('admin-blue');
-                        if (annColor === 'green') dayEl.classList.add('admin-green');
+                    const annColor = globalAnnotations[dateStr];
+                    if (annColor === 'blue') dayEl.classList.add('admin-blue');
+                    if (annColor === 'green') dayEl.classList.add('admin-green');
 
-                        dayEl.onclick = () => openAdminModal(dateStr, count);
-                    }
+                    dayEl.onclick = () => openAdminModal(dateStr, count);
                 }
             }
             container.appendChild(dayEl);
@@ -499,7 +466,7 @@
 
         fetch(gasURL, {
             method: 'POST',
-            redirect: 'follow', 
+            redirect: 'follow', // ✅ 解決 GAS 轉址引發的 CORS 錯誤
             body: JSON.stringify({ action: 'submit', name: currentName, reasons: unavailableData, wishlist: wishlistVal })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
@@ -510,6 +477,7 @@
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('submit-loading').style.display = 'none';
         }).catch(err => {
+            // ✅ 正確捕捉真實錯誤
             console.error('Fetch Error:', err);
             showToast('❌ 傳送失敗，請檢查網路連線或稍後再試！');
             document.getElementById('submitBtn').style.display = 'block';
@@ -526,12 +494,7 @@
             if (data.status === 'success') {
                 globalDeadline = data.deadline || '';
                 globalAnnotations = data.annotations || {};
-                configStartDate = data.startDate || '2026-06-06';
-                configEndDate = data.endDate || '2026-07-04';
                 
-                document.getElementById('admin-start-date').value = configStartDate;
-                document.getElementById('admin-end-date').value = configEndDate;
-
                 if (globalDeadline) {
                     document.getElementById('admin-deadline-input').value = globalDeadline;
                 }
@@ -567,35 +530,16 @@
         generateCalendarGrid(cal, false);
     }
     
-    // ⭐ 管理員：一次儲存所有日期與時間設定
-    function saveAllSettings() {
-        const dlVal = document.getElementById('admin-deadline-input').value; 
-        const startVal = document.getElementById('admin-start-date').value;
-        const endVal = document.getElementById('admin-end-date').value;
-        
+    function saveDeadline() {
+        const val = document.getElementById('admin-deadline-input').value; 
         showToast('儲存設定中...');
         fetch(gasURL, {
             method: 'POST',
-            redirect: 'follow',
-            body: JSON.stringify({ 
-                action: 'updateAllSettings', 
-                name: currentName, 
-                deadline: dlVal,
-                startDate: startVal,
-                endDate: endVal
-            })
+            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'deadline', value: val })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
-                globalDeadline = dlVal; 
-                configStartDate = startVal || '2026-06-06';
-                configEndDate = endVal || '2026-07-04';
-                generateValidDates(); 
-                
-                showToast('✅ 所有設定已更新成功！');
-                
-                const cal = document.getElementById('admin-calendar');
-                cal.innerHTML = '';
-                generateCalendarGrid(cal, false);
+                globalDeadline = val; 
+                showToast('✅ 截止時間設定成功！');
             }
         });
     }
@@ -621,7 +565,6 @@
         setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
     }
     
-    // 只更新標記，節省 API 效能
     function setAnnotation(color) {
         if (color === 'none') {
             delete globalAnnotations[selectedAdminDate];
@@ -639,7 +582,7 @@
         
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'updateAnnotations', name: currentName, value: globalAnnotations })
+            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'annotations', value: globalAnnotations })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') showToast('✅ 標記已更新！');
         });
@@ -673,10 +616,7 @@
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('wishlist-input').disabled = false;
         }
-        
-        const cal = document.getElementById('calendar');
-        cal.innerHTML = '';
-        generateCalendarGrid(cal, true); 
+        renderCalendar(); 
         document.getElementById('calendar-screen').style.display = 'block';
     }
 </script>
