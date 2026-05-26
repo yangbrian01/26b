@@ -42,13 +42,11 @@
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .cal-day.clickable:hover { background-color: #f1f7ff; border-color: #bde0fe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         
-        /* 一般使用者標記 */
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
-        /* 管理員藍色註解標記 */
-        .cal-day.annotated { background-color: #e0f2fe; border-color: var(--admin-blue); color: #023e8a; }
-        .cal-day.annotated.unavailable { background-color: #e0f2fe; border-color: var(--accent); color: var(--accent); } /* 衝突時保留紅框 */
+        /* ⭐ 加入 !important 確保後台的藍色標記不會被熱力圖覆蓋 */
+        .cal-day.annotated { background-color: #e0f2fe !important; border-color: var(--admin-blue) !important; color: #023e8a !important; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
@@ -94,7 +92,7 @@
     <div id="calendar-screen" style="display: none;">
         <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
             <strong id="displayName" style="color: var(--primary); font-size: 22px;"></strong><br>
-            <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">點擊 <span style="color: var(--accent); font-weight: 700;">不行</span> 參加的日期 / 藍底為推薦日</span>
+            <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請點選你 <span style="color: var(--accent); font-weight: 700;">不行</span> 參加的日期，並註明原因</span>
         </p>
         
         <div class="calendar-grid" id="calendar"></div>
@@ -152,7 +150,7 @@
         <span class="close-btn" onclick="closeAdminModal()">&times;</span>
         <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
         <div id="admin-modal-list"></div>
-        <button type="button" id="toggle-annotation-btn" class="action-btn" onclick="toggleAnnotation()">標記為特別關注 (藍底)</button>
+        <button type="button" id="toggle-annotation-btn" class="action-btn" onclick="toggleAnnotation()">內部標記為推薦日 (一般同學不可見)</button>
     </div>
 </div>
 
@@ -231,7 +229,8 @@
                 isPastDeadline = checkDeadlineStatus();
                 if (isPastDeadline) {
                     const banner = document.getElementById('deadline-banner');
-                    banner.innerText = `🚨 調查已於 ${new Date(globalDeadline).toLocaleString()} 截止，目前無法再進行更改。`;
+                    const d = new Date(globalDeadline);
+                    banner.innerText = `🚨 調查已於 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes()} 截止，目前無法再更改。`;
                     banner.style.display = 'block';
                     document.getElementById('submitBtn').style.display = 'none';
                     document.getElementById('wishlist-input').disabled = true;
@@ -287,10 +286,7 @@
             dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
             dayEl.innerText = dateStr;
             
-            // 檢查是否被管理員標記
-            const isAnnotated = globalAnnotations.includes(dateStr);
-            if (isAnnotated) dayEl.classList.add('annotated');
-
+            // ⭐ 一般使用者：只判斷是否不可去，不加上藍色標記
             if (isUser) {
                 dayEl.id = `day-${dateStr}`;
                 if (unavailableData[dateStr] && isClickable) {
@@ -301,12 +297,17 @@
                 } else if (isClickable && isPastDeadline) {
                     dayEl.onclick = () => showToast('已超過截止時間，無法修改喔！');
                 }
-            } else {
+            } 
+            // ⭐ 管理員：畫出藍色標記與熱力圖
+            else {
+                if (globalAnnotations.includes(dateStr)) {
+                    dayEl.classList.add('annotated');
+                }
+
                 const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
                 if (isClickable) {
                     if (count > 0) {
                         let bgColor = '#fff', textColor = '#2b2d42';
-                        // 新的熱力圖級距：0, 1, 2, 3, 4, 5, 6+
                         if (count === 1) { bgColor = '#ffe0b2'; }
                         else if (count === 2) { bgColor = '#ffb74d'; }
                         else if (count === 3) { bgColor = '#ff9800'; }
@@ -315,7 +316,7 @@
                         else { bgColor = '#880e4f'; textColor = '#fff'; }
                         
                         dayEl.style.backgroundColor = bgColor;
-                        if (!isAnnotated) dayEl.style.borderColor = bgColor; // 如果有標記藍框，保留藍框
+                        dayEl.style.borderColor = bgColor;
                         dayEl.style.color = textColor;
                     }
                     dayEl.onclick = () => openAdminModal(dateStr, count);
@@ -426,7 +427,6 @@
         });
     }
 
-    // --- 管理員功能 ---
     function fetchAdminData() {
         showToast('讀取統計資料中...');
         fetch(gasURL, {
@@ -436,9 +436,19 @@
             if (data.status === 'success') {
                 globalDeadline = data.deadline || '';
                 globalAnnotations = data.annotations || [];
+                
+                // ⭐ 將時間轉換為 datetime-local 支援的 YYYY-MM-DDThh:mm 格式
                 if (globalDeadline) {
-                    document.getElementById('admin-deadline-input').value = globalDeadline;
+                    try {
+                        const d = new Date(globalDeadline);
+                        const pad = (n) => n < 10 ? '0' + n : n;
+                        const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                        document.getElementById('admin-deadline-input').value = formatted;
+                    } catch(e) {
+                        document.getElementById('admin-deadline-input').value = globalDeadline;
+                    }
                 }
+
                 renderAdminScreen(data.data);
             } else {
                 showToast(data.message);
@@ -477,7 +487,10 @@
             method: 'POST',
             body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'deadline', value: val })
         }).then(res => res.json()).then(data => {
-            if (data.status === 'success') showToast('✅ 截止時間設定成功！');
+            if (data.status === 'success') {
+                globalDeadline = val; // 確保當下變數也有更新
+                showToast('✅ 截止時間設定成功！');
+            }
         });
     }
 
@@ -498,10 +511,10 @@
         
         const toggleBtn = document.getElementById('toggle-annotation-btn');
         if (globalAnnotations.includes(dateStr)) {
-            toggleBtn.innerText = "移除藍色標記";
-            toggleBtn.style.backgroundColor = "#e63946"; // 移除用紅色
+            toggleBtn.innerText = "移除內部藍色標記";
+            toggleBtn.style.backgroundColor = "#e63946"; 
         } else {
-            toggleBtn.innerText = "標記為特別關注 (藍底)";
+            toggleBtn.innerText = "內部標記為推薦日 (一般同學不可見)";
             toggleBtn.style.backgroundColor = "var(--admin-blue)";
         }
         
@@ -519,7 +532,7 @@
         }
         
         closeAdminModal();
-        generateCalendarGrid(document.getElementById('admin-calendar'), false); // 刷新後台日曆顏色
+        generateCalendarGrid(document.getElementById('admin-calendar'), false); 
         showToast('更新標記中...');
         
         fetch(gasURL, {
@@ -542,7 +555,10 @@
         document.getElementById('admin-screen').style.display = 'none';
         isPastDeadline = checkDeadlineStatus();
         if (isPastDeadline) {
-            document.getElementById('deadline-banner').style.display = 'block';
+            const banner = document.getElementById('deadline-banner');
+            const d = new Date(globalDeadline);
+            banner.innerText = `🚨 調查已於 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes()} 截止，目前無法再更改。`;
+            banner.style.display = 'block';
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('wishlist-input').disabled = true;
         } else {
@@ -550,7 +566,7 @@
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('wishlist-input').disabled = false;
         }
-        renderCalendar(); // 返回前台刷新日曆
+        renderCalendar(); 
         document.getElementById('calendar-screen').style.display = 'block';
     }
 </script>
