@@ -13,29 +13,32 @@
         .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; letter-spacing: 1px; }
         .sub-title { text-align: center; color: #8d99ae; font-size: 15px; margin-bottom: 30px; margin-top: 0; font-weight: 500; }
         
-        input[type="text"], input[type="password"] { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #edf2f4; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: #f8f9fa; }
-        input[type="text"]:focus, input[type="password"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
+        input[type="text"] { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #edf2f4; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
+        input[type="text"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
         
-        button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.5px; }
+        button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
         button:hover { background-color: #0f1923; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
         button:active { transform: translateY(0); }
         button.secondary { background-color: #edf2f4; color: #457b9d; margin-top: 12px; }
         button.secondary:hover { background-color: #e2eafc; }
+        button.admin-btn { background-color: #4a4e69; margin-top: 15px; }
+        button.admin-btn:hover { background-color: #22223b; }
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 30px; text-align: center; }
         .cal-header { font-weight: 700; color: #8d99ae; padding: 10px 0; font-size: 14px; }
         .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; }
-        .cal-day.disabled { color: #adb5bd; background-color: transparent; border-color: transparent; text-decoration: line-through; text-decoration-color: #dee2e6; }
+        
+        /* 移除刪除線，改為反灰底色 */
+        .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
+        
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .cal-day.clickable:hover { background-color: #f1f7ff; border-color: #bde0fe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
-        /* 彈出視窗 */
         #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 35px; border-radius: 20px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
         
-        /* 管理員介面 */
         .admin-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 15px; margin-bottom: 12px; text-align: left; }
         .admin-date-title { font-weight: bold; color: var(--primary); font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;}
         .admin-item { font-size: 14px; margin: 4px 0; color: #495057; display: flex; justify-content: space-between; }
@@ -43,11 +46,6 @@
         
         #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(4px); }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-        
-        /* 頁尾 */
-        .footer { text-align: center; font-size: 12px; color: #adb5bd; margin-top: auto; padding: 20px 0; font-weight: 500; }
-        .lock-icon { cursor: pointer; margin-left: 5px; opacity: 0.5; transition: 0.2s; }
-        .lock-icon:hover { opacity: 1; transform: scale(1.2); }
     </style>
 </head>
 <body>
@@ -74,6 +72,9 @@
 
         <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
         <div id="submit-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">資料同步中，請稍候...</div>
+        
+        <!-- 管理員專用按鈕 (預設隱藏) -->
+        <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至管理員後台</button>
     </div>
 
     <!-- 畫面 3：管理員後台 -->
@@ -81,12 +82,8 @@
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px;">📊 統計後台</h3>
         <p style="font-size: 13px; color: #8d99ae;">列出每天「無法參加」的名單與原因：</p>
         <div id="admin-data-container" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
-        <button type="button" class="secondary" onclick="exitAdmin()">離開後台</button>
+        <button type="button" class="secondary" onclick="exitAdmin()">返回日曆畫面</button>
     </div>
-</div>
-
-<div class="footer">
-    System by 楊定豊 <span class="lock-icon" onclick="openAdminLogin()">🔒</span>
 </div>
 
 <!-- 填寫原因彈出視窗 -->
@@ -141,6 +138,12 @@
                 document.getElementById('displayName').innerText = currentName;
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('calendar-screen').style.display = 'block';
+                
+                // 如果後端回傳此人是管理員，顯示後台按鈕
+                if (data.isAdmin) {
+                    document.getElementById('adminBtn').style.display = 'block';
+                }
+                
                 renderCalendar(); 
             } else {
                 showToast(data.message);
@@ -182,7 +185,6 @@
             const date = curr.getDate();
             const dateStr = `${month}/${date}`;
             
-            // ⭐ 這裡設定 6/6 以後可選，並且「排除 6/8」
             const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && date === 8);
 
             const dayEl = document.createElement('div');
@@ -262,16 +264,11 @@
     }
 
     // ====== 管理員專區 ======
-    function openAdminLogin() {
-        const pwd = prompt("請輸入統籌專用密碼：");
-        if(pwd) fetchAdminData(pwd);
-    }
-
-    function fetchAdminData(pwd) {
+    function fetchAdminData() {
         showToast('讀取統計資料中...');
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'getAdminData', password: pwd })
+            body: JSON.stringify({ action: 'getAdminData', name: currentName })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
                 renderAdminScreen(data.data);
@@ -282,11 +279,9 @@
     }
 
     function renderAdminScreen(allData) {
-        document.getElementById('login-screen').style.display = 'none';
         document.getElementById('calendar-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
-        // 解析資料，結構: { "6/15": [{name: "張三", reason: "補習"}, ...] }
         const parsed = {};
         allData.forEach(row => {
             if(row.reasonString && row.reasonString !== "全部皆可參加") {
@@ -305,7 +300,6 @@
         const container = document.getElementById('admin-data-container');
         container.innerHTML = '';
         
-        // 依日期排序並顯示
         const sortedDates = Object.keys(parsed).sort((a,b) => {
             const [mA, dA] = a.split('/').map(Number);
             const [mB, dB] = b.split('/').map(Number);
@@ -330,11 +324,7 @@
 
     function exitAdmin() {
         document.getElementById('admin-screen').style.display = 'none';
-        if (localStorage.getItem('teacherBanquetName')) {
-            document.getElementById('calendar-screen').style.display = 'block';
-        } else {
-            document.getElementById('login-screen').style.display = 'block';
-        }
+        document.getElementById('calendar-screen').style.display = 'block';
     }
 </script>
 </body>
