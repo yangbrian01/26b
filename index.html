@@ -29,23 +29,30 @@
         .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; }
         
         .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
-        
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .cal-day.clickable:hover { background-color: #f1f7ff; border-color: #bde0fe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        
+        /* 一般使用者的不允許標示 */
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
-        #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
+        /* 視窗共通樣式 */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 35px; border-radius: 20px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
         
-        /* 叉叉關閉按鈕 */
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
         .close-btn:hover { color: var(--accent); }
 
-        .admin-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 15px; margin-bottom: 12px; text-align: left; }
-        .admin-date-title { font-weight: bold; color: var(--primary); font-size: 16px; margin-bottom: 8px; border-bottom: 2px solid #e9ecef; padding-bottom: 5px;}
-        .admin-item { font-size: 14px; margin: 4px 0; color: #495057; display: flex; justify-content: space-between; }
-        .admin-name { font-weight: 600; color: #2b2d42; }
+        /* 熱力圖專用樣式 */
+        .heatmap-legend { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 13px; color: #8d99ae; font-weight: 500; }
+        .legend-box { width: 16px; height: 16px; margin: 0 4px; border-radius: 4px; }
+        
+        /* 管理員詳細名單樣式 */
+        #admin-modal-list { max-height: 50vh; overflow-y: auto; text-align: left; margin-top: 15px; padding-right: 5px; }
+        .detail-item { padding: 12px 0; border-bottom: 1px solid #edf2f4; display: flex; flex-direction: column; }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-name { font-weight: bold; color: var(--primary); font-size: 16px; }
+        .detail-reason { color: #6c757d; font-size: 14px; margin-top: 5px; line-height: 1.4; }
         
         #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(4px); }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
@@ -57,14 +64,12 @@
     <h2 class="header-title">2026TCLIPb</h2>
     <p class="sub-title">謝師宴時間調查</p>
     
-    <!-- 畫面 1：一般登入 -->
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
         <button type="button" id="loginBtn" onclick="verifyName()">進入調查</button>
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">載入資料中，請稍候...</div>
     </div>
 
-    <!-- 畫面 2：日曆勾選 -->
     <div id="calendar-screen" style="display: none;">
         <p style="text-align: center; font-size: 16px; margin-bottom: 25px; color: #495057;">
             <strong id="displayName" style="color: var(--primary); font-size: 22px;"></strong><br>
@@ -76,27 +81,41 @@
         <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
         <div id="submit-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">資料同步中，請稍候...</div>
         
-        <!-- 管理員專用按鈕 (預設隱藏) -->
         <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至管理員後台</button>
     </div>
 
-    <!-- 畫面 3：管理員後台 -->
     <div id="admin-screen" style="display: none;">
-        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px;">📊 統計後台</h3>
-        <p style="font-size: 13px; color: #8d99ae;">列出每天「無法參加」的名單與原因：</p>
-        <div id="admin-data-container" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
-        <button type="button" class="secondary" onclick="exitAdmin()">返回日曆畫面</button>
+        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計熱力圖</h3>
+        
+        <div class="heatmap-legend">
+            0人 
+            <div class="legend-box" style="background: #fff; border: 1px solid #edf2f4; margin-left: 8px;"></div>
+            <div class="legend-box" style="background: rgba(230, 57, 70, 0.3);"></div>
+            <div class="legend-box" style="background: rgba(230, 57, 70, 0.6);"></div>
+            <div class="legend-box" style="background: rgba(230, 57, 70, 1); margin-right: 8px;"></div> 
+            30人
+        </div>
+
+        <div class="calendar-grid" id="admin-calendar"></div>
+        <button type="button" class="secondary" onclick="exitAdmin()">返回個人調查</button>
     </div>
 </div>
 
-<!-- 填寫原因彈出視窗 -->
-<div id="modal-overlay">
+<div id="modal-overlay" class="overlay">
     <div class="modal-content" id="modal-box">
         <span class="close-btn" onclick="dismissModal()">&times;</span>
         <h3 id="modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px;"></h3>
         <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因">
         <button type="button" onclick="saveReason()">確認紀錄</button>
         <button type="button" class="secondary" onclick="closeModal()">取消 / 清除該日紀錄</button>
+    </div>
+</div>
+
+<div id="admin-modal-overlay" class="overlay">
+    <div class="modal-content" id="admin-modal-box">
+        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 15px;"></h3>
+        <div id="admin-modal-list"></div>
     </div>
 </div>
 
@@ -107,6 +126,7 @@
     let currentName = '';
     let unavailableData = {}; 
     let selectedDateStr = '';
+    let adminParsedData = {}; // 儲存後台解析後的數據
 
     function showToast(message) {
         const toast = document.getElementById("toast");
@@ -146,7 +166,6 @@
                 if (data.isAdmin) {
                     document.getElementById('adminBtn').style.display = 'block';
                 }
-                
                 renderCalendar(); 
             } else {
                 showToast(data.message);
@@ -163,23 +182,28 @@
         document.getElementById('loading').style.display = 'none';
     }
 
+    // --- 個人調查日曆繪製 ---
     function renderCalendar() {
         const cal = document.getElementById('calendar');
         cal.innerHTML = '';
-        
+        generateCalendarGrid(cal, true);
+    }
+
+    // 共用的日曆生成邏輯
+    function generateCalendarGrid(container, isUser) {
         const days = ['日', '一', '二', '三', '四', '五', '六'];
         days.forEach(d => {
             const el = document.createElement('div');
             el.className = 'cal-header';
             el.innerText = d;
-            cal.appendChild(el);
+            container.appendChild(el);
         });
 
         const startDate = new Date(2026, 5, 1); 
         const endDate = new Date(2026, 6, 4);   
 
         for(let i=0; i<startDate.getDay(); i++) {
-            cal.appendChild(document.createElement('div'));
+            container.appendChild(document.createElement('div'));
         }
 
         let curr = new Date(startDate);
@@ -189,25 +213,46 @@
             const dateStr = `${month}/${date}`;
             
             const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && date === 8);
-
             const dayEl = document.createElement('div');
             dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
             dayEl.innerText = dateStr;
-            dayEl.id = `day-${dateStr}`;
             
-            if (unavailableData[dateStr] && isClickable) {
-                dayEl.classList.add('unavailable');
+            if (isUser) {
+                // 一般使用者的邏輯
+                dayEl.id = `day-${dateStr}`;
+                if (unavailableData[dateStr] && isClickable) {
+                    dayEl.classList.add('unavailable');
+                }
+                if (isClickable) {
+                    dayEl.onclick = () => openModal(dateStr);
+                }
+            } else {
+                // 管理員熱力圖的邏輯
+                const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
+                if (isClickable) {
+                    if (count > 0) {
+                        // 計算透明度：最低 0.15，最高 1.0 (基於 30 人)
+                        let opacity = 0.15 + (0.85 * (count / 30));
+                        if(opacity > 1) opacity = 1;
+                        
+                        dayEl.style.backgroundColor = `rgba(230, 57, 70, ${opacity})`;
+                        dayEl.style.borderColor = `rgba(230, 57, 70, ${opacity})`;
+                        
+                        // 若顏色夠深，把字體換成白色才看得清楚
+                        if (opacity > 0.5) {
+                            dayEl.style.color = '#fff';
+                        }
+                    }
+                    dayEl.onclick = () => openAdminModal(dateStr, count);
+                }
             }
             
-            if (isClickable) {
-                dayEl.onclick = () => openModal(dateStr);
-            }
-            
-            cal.appendChild(dayEl);
+            container.appendChild(dayEl);
             curr.setDate(curr.getDate() + 1);
         }
     }
 
+    // --- 使用者視窗控制 ---
     function openModal(dateStr) {
         selectedDateStr = dateStr;
         document.getElementById('modal-title').innerText = `${dateStr} 無法參加？`;
@@ -223,12 +268,8 @@
         }, 10);
     }
 
-    // 單純關閉視窗 (按右上角叉叉觸發)
-    function dismissModal() {
-        hideModal();
-    }
+    function dismissModal() { hideModal(); }
 
-    // 取消並清除該日紀錄 (按下方的次要按鈕觸發)
     function closeModal() {
         delete unavailableData[selectedDateStr];
         document.getElementById(`day-${selectedDateStr}`).classList.remove('unavailable');
@@ -272,6 +313,7 @@
         });
     }
 
+    // --- 管理員專區邏輯 ---
     function fetchAdminData() {
         showToast('讀取統計資料中...');
         fetch(gasURL, {
@@ -290,7 +332,8 @@
         document.getElementById('calendar-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
-        const parsed = {};
+        // 解析並分類資料
+        adminParsedData = {};
         allData.forEach(row => {
             if(row.reasonString && row.reasonString !== "全部皆可參加") {
                 row.reasonString.split('\n').forEach(line => {
@@ -298,36 +341,53 @@
                     if(parts.length >= 2) {
                         const date = parts[0].trim();
                         const reason = parts.slice(1).join('：').trim();
-                        if(!parsed[date]) parsed[date] = [];
-                        parsed[date].push({name: row.name, reason: reason});
+                        if(!adminParsedData[date]) adminParsedData[date] = [];
+                        adminParsedData[date].push({name: row.name, reason: reason});
                     }
                 });
             }
         });
 
-        const container = document.getElementById('admin-data-container');
-        container.innerHTML = '';
+        const cal = document.getElementById('admin-calendar');
+        cal.innerHTML = '';
+        generateCalendarGrid(cal, false);
+    }
+    
+    // 管理員查看明細視窗
+    function openAdminModal(dateStr, count) {
+        document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
+        const listContainer = document.getElementById('admin-modal-list');
+        listContainer.innerHTML = '';
         
-        const sortedDates = Object.keys(parsed).sort((a,b) => {
-            const [mA, dA] = a.split('/').map(Number);
-            const [mB, dB] = b.split('/').map(Number);
-            return (mA*100+dA) - (mB*100+dB);
-        });
-
-        if(sortedDates.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#8d99ae;">目前大家都可以參加喔！</p>';
-            return;
-        }
-
-        sortedDates.forEach(date => {
-            let html = `<div class="admin-card">
-                            <div class="admin-date-title">${date} <span style="font-size:12px; color:#e63946;">(${parsed[date].length}人不行)</span></div>`;
-            parsed[date].forEach(item => {
-                html += `<div class="admin-item"><span class="admin-name">${item.name}</span> <span style="color:#6c757d; max-width: 60%; text-align: right;">${item.reason}</span></div>`;
+        if (count === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #8d99ae; margin-top: 20px; font-size: 15px;">這天目前全員都可以參加喔！🎉</p>';
+        } else {
+            const people = adminParsedData[dateStr];
+            people.forEach(p => {
+                listContainer.innerHTML += `
+                    <div class="detail-item">
+                        <span class="detail-name">${p.name}</span>
+                        <span class="detail-reason">${p.reason}</span>
+                    </div>
+                `;
             });
-            html += `</div>`;
-            container.innerHTML += html;
-        });
+        }
+        
+        const overlay = document.getElementById('admin-modal-overlay');
+        const box = document.getElementById('admin-modal-box');
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+            box.style.transform = 'translate(-50%, -50%)';
+        }, 10);
+    }
+    
+    function closeAdminModal() {
+        const overlay = document.getElementById('admin-modal-overlay');
+        const box = document.getElementById('admin-modal-box');
+        overlay.style.opacity = '0';
+        box.style.transform = 'translate(-50%, -45%)';
+        setTimeout(() => overlay.style.display = 'none', 300);
     }
 
     function exitAdmin() {
