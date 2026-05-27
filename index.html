@@ -261,7 +261,7 @@
         }
         if (month === 8) {
             // 新增 8/24-31 不開放
-            return (date >= 24 && date <= 31);
+            return (date >= 24 && date <= 41) || [4, 5, 6].includes(date);
         }
         return false; 
     }
