@@ -243,7 +243,10 @@
             return [8, 9, 12, 22, 23].includes(date);
         }
         if (month === 7) {
-            return (date >= 1 && date <= 12) || [24, 25].includes(date);
+            return (date >= 1 && date <= 19) || [24, 25].includes(date);
+        }
+        if (month === 8) {
+            return (date >= 23 && date <= 31).includes(date);
         }
         return false; // 8月全開
     }
