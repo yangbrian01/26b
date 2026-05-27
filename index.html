@@ -133,13 +133,22 @@
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">載入資料中，請稍候...</div>
     </div>
 
-    <!-- 個人日曆調查畫面 -->
+    <div id="vote-screen" style="display: none; text-align: center;">
+        <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 20px;">🗳️ 謝師宴地點意願投票</h3>
+        <p style="color: #6c757d; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+            目前大家對分店有不同想法，請投下你寶貴的一票！<br>
+            <span style="color: var(--accent); font-weight: bold;">(此投票只需填寫一次，投完後直接進入時間調查)</span>
+        </p>
+        <button type="button" class="btn-blue" onclick="submitVote('巨城店')" style="padding: 18px; margin-bottom: 15px; font-size: 16px;">🍻 想要：巨城 金色三麥</button>
+        <button type="button" class="btn-green" onclick="submitVote('享平方店')" style="padding: 18px; margin-bottom: 15px; font-size: 16px;">🎬 想要：享平方 金色三麥</button>
+        <div id="vote-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">投票資料儲存中...</div>
+    </div>
+
     <div id="calendar-screen" style="display: none;">
         <div class="restaurant-banner">
             🍻 餐廳確認：金色三麥 🍻
         </div>
 
-        <!-- ⭐ 恢復巨城店地圖與你喜歡的按鈕排版 -->
         <div class="map-container">
             <iframe src="https://maps.google.com/maps?q=金色三麥+新竹巨城店PARK15&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
@@ -152,7 +161,6 @@
             <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請點選你 <span style="color: var(--accent); font-weight: 700;">不行</span> 參加的日期，並註明原因</span>
         </p>
         
-        <!-- 月份日曆容器 -->
         <div id="calendar-container"></div>
 
         <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
@@ -161,7 +169,6 @@
         <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至管理員後台</button>
     </div>
 
-    <!-- 管理員熱力圖後台 -->
     <div id="admin-screen" style="display: none;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計後台</h3>
         
@@ -182,14 +189,12 @@
             <div class="legend-item"><div class="legend-box" style="background: #880e4f;"></div>6+</div>
         </div>
 
-        <!-- 管理員月份日曆容器 -->
         <div id="admin-calendar-container"></div>
         
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 15px;">返回個人調查</button>
     </div>
 </div>
 
-<!-- 原因彈出視窗 -->
 <div id="modal-overlay" class="overlay">
     <div class="modal-content" id="modal-box">
         <span class="close-btn" onclick="dismissModal()">×</span>
@@ -203,7 +208,6 @@
     </div>
 </div>
 
-<!-- 管理員名單視窗 -->
 <div id="admin-modal-overlay" class="overlay">
     <div class="modal-content" id="admin-modal-box">
         <span class="close-btn" onclick="closeAdminModal()">×</span>
@@ -303,7 +307,6 @@
                 
                 document.getElementById('displayName').innerText = currentName;
                 document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('calendar-screen').style.display = 'block';
                 
                 isPastDeadline = checkDeadlineStatus();
                 if (isPastDeadline) {
@@ -321,7 +324,13 @@
 
                 if (data.isAdmin) document.getElementById('adminBtn').style.display = 'block';
                 
-                renderCalendar(); 
+                // ⭐ 新增投票判斷邏輯：如果沒有投票紀錄 (wishlist 為空)，就顯示投票頁面；否則直接進日曆
+                if (!data.wishlist) {
+                    document.getElementById('vote-screen').style.display = 'block';
+                } else {
+                    document.getElementById('calendar-screen').style.display = 'block';
+                    renderCalendar(); 
+                }
             } else {
                 showToast(data.message);
                 resetLoginBtn();
@@ -330,6 +339,37 @@
             showToast('連線失敗，請檢查網路後再試');
             resetLoginBtn();
         });
+    }
+
+    // ⭐ 新增前端投票傳送函式
+    function submitVote(voteChoice) {
+        if (isPastDeadline) return showToast('🚨 調查已截止，無法投票！');
+        
+        document.querySelectorAll('#vote-screen button').forEach(b => b.style.display = 'none');
+        document.getElementById('vote-loading').style.display = 'block';
+
+        fetch(gasURL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'submitVote', name: currentName, vote: voteChoice })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                showToast('✅ 投票成功！');
+                document.getElementById('vote-screen').style.display = 'none';
+                document.getElementById('calendar-screen').style.display = 'block';
+                renderCalendar();
+            } else {
+                showToast(data.message || '投票失敗，請稍後再試');
+                resetVoteBtns();
+            }
+        }).catch(() => {
+            showToast('❌ 連線失敗，請檢查網路');
+            resetVoteBtns();
+        });
+    }
+
+    function resetVoteBtns() {
+        document.querySelectorAll('#vote-screen button').forEach(b => b.style.display = 'block');
+        document.getElementById('vote-loading').style.display = 'none';
     }
 
     function resetLoginBtn() {
