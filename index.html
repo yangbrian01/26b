@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026TCLIPb 謝師宴檔期重調查</title>
     <style>
+        /* ===== 基礎與電腦/平板版樣式 ===== */
         :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
         
         * { box-sizing: border-box; }
@@ -54,16 +55,21 @@
         .admin-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
         .admin-label { font-weight: bold; font-size: 14px; color: var(--primary); display: block; margin-bottom: 8px; }
 
-        /* 日曆與熱力圖樣式 */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 25px; text-align: center; width: 100%; }
-        .cal-header { font-weight: 700; color: #8d99ae; padding: 10px 0; font-size: 14px; }
-        .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 2px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
+        /* 月份分開樣式 */
+        .month-title { color: var(--primary); font-size: 18px; font-weight: bold; border-left: 5px solid var(--primary); padding-left: 8px; margin: 25px 0 10px 0; text-align: left; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 15px; text-align: center; width: 100%; }
+        .cal-header { font-weight: 700; color: #8d99ae; padding: 6px 0; font-size: 14px; }
+        .cal-day { padding: 14px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        
+        /* 徹底反黑反白禁用樣式 */
+        .cal-day.disabled { color: #cbd5e1; background-color: #f1f5f9; border-color: transparent; cursor: not-allowed; }
         .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: #f8fafc; }
+        
         .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
         .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
         
+        /* 管理員邊框標記 */
         .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
         .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
 
@@ -72,8 +78,8 @@
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
         .close-btn:hover { color: var(--accent); }
 
-        .date-chip-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0 15px 0; max-height: 120px; overflow-y: auto; padding-right: 5px; }
-        .date-chip { padding: 8px 4px; background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 8px; font-size: 13px; color: #495057; cursor: pointer; transition: 0.2s; }
+        .date-chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0 15px 0; max-height: 120px; overflow-y: auto; padding-right: 5px; }
+        .date-chip { padding: 6px 2px; background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 8px; font-size: 12px; color: #495057; cursor: pointer; transition: 0.2s; text-align: center;}
         .date-chip:hover { background: #e2eafc; border-color: #bde0fe; }
         .date-chip.selected { background: #e2eafc; border-color: var(--primary); color: var(--primary); font-weight: bold; }
 
@@ -97,17 +103,14 @@
             button { padding: 14px; font-size: 15px; }
             input[type="text"], input[type="datetime-local"] { padding: 12px; font-size: 14px; }
             .restaurant-banner { font-size: 18px; padding: 15px; }
-            .calendar-grid { gap: 4px; margin-bottom: 15px; }
-            .cal-header { font-size: 13px; padding: 5px 0; }
-            .cal-day { padding: 10px 2px; font-size: 13px; border-width: 1px; border-radius: 8px; }
+            .month-title { font-size: 16px; }
+            .calendar-grid { gap: 4px; }
+            .cal-header { font-size: 12px; }
+            .cal-day { padding: 10px 2px; font-size: 13px; border-radius: 8px; }
             .cal-day.admin-blue { box-shadow: inset 0 0 0 2.5px var(--admin-blue) !important; }
             .cal-day.admin-green { box-shadow: inset 0 0 0 2.5px var(--admin-green) !important; }
             .modal-content { padding: 20px 15px; width: 92%; }
-            .date-chip-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
-            .date-chip { padding: 6px 2px; font-size: 12px; }
             .heatmap-legend { gap: 2px; font-size: 11px; }
-            .legend-item { margin: 0 2px; }
-            .legend-box { width: 12px; height: 12px; }
         }
     </style>
 </head>
@@ -125,17 +128,16 @@
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">載入資料中，請稍候...</div>
     </div>
 
-    <!-- 個人日曆調查畫面 -->
     <div id="calendar-screen" style="display: none;">
         <div class="restaurant-banner">
-            🍻 餐廳決選確認：金色三麥 🍻
+            🍻 餐廳確認：金色三麥 🍻
         </div>
 
         <div class="map-container">
-            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹巨城店PARK15&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹&t=&z=13&ie=UTF8&iwloc=&output=embed2" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
         <div class="location-info">
-            📍 巨城 (7F) | <a href="https://www.google.com/maps/search/?api=1&query=金色三麥+新竹巨城店PARK15" target="_blank">一鍵開啟導航</a>
+            📍 享平方店 (1F) | <a href="https://maps.google.com/maps?q=金色三麥+新竹&t=&z=13&ie=UTF8&iwloc=&output=embed3" target="_blank">一鍵開啟導航</a>
         </div>
 
         <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
@@ -143,7 +145,7 @@
             <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請點選你 <span style="color: var(--accent); font-weight: 700;">不行</span> 參加的日期，並註明原因</span>
         </p>
         
-        <div class="calendar-grid" id="calendar"></div>
+        <div id="calendar-container"></div>
 
         <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
         <div id="submit-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">資料同步中...</div>
@@ -151,7 +153,6 @@
         <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至管理員後台</button>
     </div>
 
-    <!-- 管理員熱力圖後台 -->
     <div id="admin-screen" style="display: none;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計後台</h3>
         
@@ -172,16 +173,15 @@
             <div class="legend-item"><div class="legend-box" style="background: #880e4f;"></div>6+</div>
         </div>
 
-        <div class="calendar-grid" id="admin-calendar"></div>
+        <div id="admin-calendar-container"></div>
         
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 15px;">返回個人調查</button>
     </div>
 </div>
 
-<!-- 請假原因彈出視窗 -->
 <div id="modal-overlay" class="overlay">
     <div class="modal-content" id="modal-box">
-        <span class="close-btn" onclick="dismissModal()">&times;</span>
+        <span class="close-btn" onclick="dismissModal()">×</span>
         <h3 style="margin-top: 0; color: var(--primary); font-size: 20px; margin-bottom: 15px;">無法參加的原因</h3>
         <div style="font-size: 13px; color: #8d99ae; margin-bottom: 5px; text-align: left; font-weight: bold;">已選日期：<span id="selected-dates-display" style="color: var(--accent); font-size: 15px;"></span></div>
         <div style="font-size: 12px; color: #adb5bd; text-align: left; margin-bottom: 5px;">點擊下方按鈕可快速套用到其他日期</div>
@@ -192,10 +192,9 @@
     </div>
 </div>
 
-<!-- 管理員查看日曆名單視窗 -->
 <div id="admin-modal-overlay" class="overlay">
     <div class="modal-content" id="admin-modal-box">
-        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <span class="close-btn" onclick="closeAdminModal()">×</span>
         <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
         <div id="admin-modal-list"></div>
         
@@ -221,15 +220,29 @@
     let isPastDeadline = false;
     let selectedAdminDate = '';
 
-    // ⭐ 生成 6/5 到 8/31 的日期
+    // ⭐ 嚴謹判斷特定日期是否反灰封鎖
+    function isDateDisabled(month, date) {
+        if (month === 6) {
+            if (date < 5) return true; // 6/5 以前不開放
+            return [8, 9, 12, 22, 23].includes(date);
+        }
+        if (month === 7) {
+            return (date >= 5 && date <= 12) || [24, 25].includes(date);
+        }
+        return false; // 8月全開
+    }
+
+    // 生成彈窗中可快速批量套用的日期陣列
     function generateValidDates() {
         allValidDates = [];
-        let curr = new Date(2026, 5, 5); // 6/5
-        const endDate = new Date(2026, 7, 31); // 8/31
+        let curr = new Date(2026, 5, 5);
+        const endDate = new Date(2026, 7, 31);
         while(curr <= endDate) {
             const m = curr.getMonth() + 1;
             const d = curr.getDate();
-            allValidDates.push(`${m}/${d}`);
+            if (!isDateDisabled(m, d)) {
+                allValidDates.push(`${m}/${d}`);
+            }
             curr.setDate(curr.getDate() + 1);
         }
     }
@@ -314,80 +327,91 @@
     }
 
     function renderCalendar() {
-        const cal = document.getElementById('calendar');
-        cal.innerHTML = '';
-        generateCalendarGrid(cal, true);
+        const container = document.getElementById('calendar-container');
+        container.innerHTML = '';
+        renderMonths(container, true);
     }
 
-    // ⭐ 繪製涵蓋 6/1 ~ 8/31 的大日曆，但只有 6/5 以後可點擊
-    function generateCalendarGrid(container, isUser) {
-        const days = ['日', '一', '二', '三', '四', '五', '六'];
-        days.forEach(d => {
-            const el = document.createElement('div');
-            el.className = 'cal-header';
-            el.innerText = d;
-            container.appendChild(el);
-        });
+    // ⭐ 核心渲染函數：依 6、7、8 月分割渲染
+    function renderMonths(targetContainer, isUser) {
+        const months = [6, 7, 8];
+        const monthNames = {6: '6 月 June', 7: '7 月 July', 8: '8 月 August'};
+        const daysInMonth = {6: 30, 7: 31, 8: 31};
 
-        const startDate = new Date(2026, 5, 1); // 從 6/1 開始畫確保星期對齊
-        const endDate = new Date(2026, 7, 31);  // 畫到 8/31
-
-        for(let i=0; i<startDate.getDay(); i++) {
-            container.appendChild(document.createElement('div'));
-        }
-
-        let curr = new Date(startDate);
-        while(curr <= endDate) {
-            const month = curr.getMonth() + 1;
-            const date = curr.getDate();
-            const dateStr = `${month}/${date}`;
+        months.forEach(m => {
+            const section = document.createElement('div');
             
-            // 只有 6/5 到 8/31 之間可以點擊
-            const isClickable = curr >= new Date(2026, 5, 5);
-            const dayEl = document.createElement('div');
-            dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
-            dayEl.innerText = dateStr;
+            const title = document.createElement('div');
+            title.className = 'month-title';
+            title.innerText = monthNames[m];
+            section.appendChild(title);
+
+            const grid = document.createElement('div');
+            grid.className = 'calendar-grid';
             
-            if (isUser) {
-                dayEl.id = `day-${dateStr}`;
-                if (unavailableData[dateStr] && isClickable) {
-                    dayEl.classList.add('unavailable');
-                }
-                
-                if (isClickable) {
-                    if (isPastDeadline) {
-                        dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
-                    } else {
-                        dayEl.onclick = () => openModal(dateStr);
-                    }
-                }
-            } 
-            else {
-                const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
-                if (isClickable) {
-                    if (count > 0) {
-                        let bgColor = '#fff', textColor = '#2b2d42';
-                        if (count === 1) { bgColor = '#ffe0b2'; }
-                        else if (count === 2) { bgColor = '#ffb74d'; }
-                        else if (count === 3) { bgColor = '#ff9800'; }
-                        else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
-                        else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
-                        else { bgColor = '#880e4f'; textColor = '#fff'; }
-                        
-                        dayEl.style.backgroundColor = bgColor;
-                        dayEl.style.color = textColor;
-                    }
+            const daysHeader = ['日', '一', '二', '三', '四', '五', '六'];
+            daysHeader.forEach(d => {
+                const el = document.createElement('div');
+                el.className = 'cal-header';
+                el.innerText = d;
+                grid.appendChild(el);
+            });
 
-                    const annColor = globalAnnotations[dateStr];
-                    if (annColor === 'blue') dayEl.classList.add('admin-blue');
-                    if (annColor === 'green') dayEl.classList.add('admin-green');
-
-                    dayEl.onclick = () => openAdminModal(dateStr, count);
-                }
+            // 對齊星期起點
+            const startDay = new Date(2026, m - 1, 1).getDay();
+            for(let i = 0; i < startDay; i++) {
+                grid.appendChild(document.createElement('div'));
             }
-            container.appendChild(dayEl);
-            curr.setDate(curr.getDate() + 1);
-        }
+
+            // 填入日期
+            for(let d = 1; d <= daysInMonth[m]; d++) {
+                const dateStr = `${m}/${d}`;
+                const isDisabled = isDateDisabled(m, d);
+                
+                const dayEl = document.createElement('div');
+                dayEl.className = 'cal-day ' + (!isDisabled ? 'clickable' : 'disabled');
+                dayEl.innerText = d;
+
+                if (isUser) {
+                    dayEl.id = `day-${dateStr}`;
+                    if (unavailableData[dateStr] && !isDisabled) {
+                        dayEl.classList.add('unavailable');
+                    }
+                    if (!isDisabled) {
+                        if (isPastDeadline) {
+                            dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
+                        } else {
+                            dayEl.onclick = () => openModal(dateStr);
+                        }
+                    }
+                } else {
+                    const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
+                    if (!isDisabled) {
+                        if (count > 0) {
+                            let bgColor = '#fff', textColor = '#2b2d42';
+                            if (count === 1) { bgColor = '#ffe0b2'; }
+                            else if (count === 2) { bgColor = '#ffb74d'; }
+                            else if (count === 3) { bgColor = '#ff9800'; }
+                            else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
+                            else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
+                            else { bgColor = '#880e4f'; textColor = '#fff'; }
+                            
+                            dayEl.style.backgroundColor = bgColor;
+                            dayEl.style.color = textColor;
+                        }
+
+                        const annColor = globalAnnotations[dateStr];
+                        if (annColor === 'blue') dayEl.classList.add('admin-blue');
+                        if (annColor === 'green') dayEl.classList.add('admin-green');
+
+                        dayEl.onclick = () => openAdminModal(dateStr, count);
+                    }
+                }
+                grid.appendChild(dayEl);
+            }
+            section.appendChild(grid);
+            targetContainer.appendChild(section);
+        });
     }
 
     function updateSelectedDatesDisplay() {
@@ -508,15 +532,7 @@
                 globalAnnotations = data.annotations || {};
                 
                 if (globalDeadline) {
-                    try {
-                        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-                        const d = new Date(parsedStr);
-                        if (!isNaN(d)) {
-                            const pad = (n) => n < 10 ? '0' + n : n;
-                            const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-                            document.getElementById('admin-deadline-input').value = formatted;
-                        }
-                    } catch(e) {}
+                    document.getElementById('admin-deadline-input').value = globalDeadline;
                 }
 
                 renderAdminScreen(data.data);
@@ -546,9 +562,9 @@
             }
         });
 
-        const cal = document.getElementById('admin-calendar');
+        const cal = document.getElementById('admin-calendar-container');
         cal.innerHTML = '';
-        generateCalendarGrid(cal, false);
+        renderMonths(cal, false);
     }
     
     function saveDeadline() {
@@ -595,9 +611,9 @@
         
         closeAdminModal();
         
-        const cal = document.getElementById('admin-calendar');
+        const cal = document.getElementById('admin-calendar-container');
         cal.innerHTML = '';
-        generateCalendarGrid(cal, false); 
+        renderMonths(cal, false); 
         
         showToast('更新標記中...');
         
