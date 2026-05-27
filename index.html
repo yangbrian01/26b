@@ -246,9 +246,8 @@
             return (date >= 1 && date <= 19) || [24, 25].includes(date);
         }
         if (month === 8) {
-            return (date >= 23 && date <= 31).includes(date);
+            return [23, 24, 25, 26, 27, 28, 29, 30, 31].includes(date);
         }
-        return false; // 8月全開
     }
 
     function generateValidDates() {
