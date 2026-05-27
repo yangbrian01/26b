@@ -46,7 +46,7 @@
         /* 金色三麥大橫幅 */
         .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--gold); letter-spacing: 1px; }
         
-        /* ⭐ 恢復原本好看的地圖區塊樣式 */
+        /* 地圖區塊樣式 */
         .map-container { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .map-container iframe { width: 100%; height: 100%; border: none; }
         .location-info { text-align: center; font-size: 14px; color: #6c757d; margin-bottom: 25px; font-weight: 500; }
@@ -55,6 +55,14 @@
 
         .admin-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
         .admin-label { font-weight: bold; font-size: 14px; color: var(--primary); display: block; margin-bottom: 8px; }
+
+        /* 新增投票結果圖表樣式 */
+        .vote-result-box { background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .vote-result-title { font-size: 16px; font-weight: bold; color: var(--primary); text-align: left; margin-bottom: 15px; border-left: 4px solid var(--admin-blue); padding-left: 8px; }
+        .vote-row { margin-bottom: 15px; }
+        .vote-info { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: #495057; margin-bottom: 6px; }
+        .vote-progress-bar { width: 100%; height: 22px; background: #e9ecef; border-radius: 8px; overflow: hidden; }
+        .vote-progress-fill { height: 100%; background: #3a86ff; width: 0%; transition: width 0.6s cubic-bezier(0.1, 0.8, 0.3, 1); }
 
         /* 月份分開樣式 */
         .month-title { color: var(--primary); font-size: 18px; font-weight: bold; border-left: 5px solid var(--primary); padding-left: 8px; margin: 25px 0 10px 0; text-align: left; }
@@ -172,6 +180,11 @@
     <div id="admin-screen" style="display: none;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計後台</h3>
         
+        <div class="vote-result-box">
+            <div class="vote-result-title">┃ 目前得票統計</div>
+            <div id="vote-results-container"></div>
+        </div>
+
         <div class="admin-section">
             <label class="admin-label">⏳ 設定截止時間</label>
             <input type="datetime-local" id="admin-deadline-input">
@@ -236,18 +249,21 @@
     let isPastDeadline = false;
     let selectedAdminDate = '';
 
-    // ⭐ 確認 7/1 到 7/12 整週連同前面的封鎖日期都處理好了
+    // ⭐ 封鎖日期更新：加入 7/13-19 及 8/24-31 區間
     function isDateDisabled(month, date) {
         if (month === 6) {
-            if (date < 5) return true; // 6/5 以前不開放
+            if (date < 5) return true; 
             return [8, 9, 12, 22, 23].includes(date);
         }
         if (month === 7) {
+            // 原本 1~12 加上新需求 13~19 合併為 1~19 不開放
             return (date >= 1 && date <= 19) || [24, 25].includes(date);
         }
         if (month === 8) {
-            return [23, 24, 25, 26, 27, 28, 29, 30, 31].includes(date);
+            // 新增 8/24-31 不開放
+            return (date >= 24 && date <= 31);
         }
+        return false; 
     }
 
     function generateValidDates() {
@@ -326,7 +342,6 @@
 
                 if (data.isAdmin) document.getElementById('adminBtn').style.display = 'block';
                 
-                // ⭐ 新增投票判斷邏輯：如果沒有投票紀錄 (wishlist 為空)，就顯示投票頁面；否則直接進日曆
                 if (!data.wishlist) {
                     document.getElementById('vote-screen').style.display = 'block';
                 } else {
@@ -343,7 +358,6 @@
         });
     }
 
-    // ⭐ 新增前端投票傳送函式
     function submitVote(voteChoice) {
         if (isPastDeadline) return showToast('🚨 調查已截止，無法投票！');
         
@@ -600,13 +614,21 @@
         }).catch(() => showToast('讀取失敗'));
     }
 
+    // ⭐ 更新管理員後台渲染：整合投票進度統計圖表
     function renderAdminScreen(allData) {
         document.getElementById('calendar-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
         adminParsedData = {};
+        let voteBigCity = 0;
+        let voteSquare = 0;
+        let totalVotes = 0;
 
         allData.forEach(row => {
+            // 累加投票數
+            if (row.vote === '巨城店') voteBigCity++;
+            if (row.vote === '享平方店') voteSquare++;
+
             if(row.reasonString && row.reasonString !== "全部皆可參加") {
                 row.reasonString.split('\n').forEach(line => {
                     const parts = line.split('：');
@@ -619,6 +641,34 @@
                 });
             }
         });
+
+        // 計算投票百分比
+        totalVotes = voteBigCity + voteSquare;
+        const pctBigCity = totalVotes > 0 ? Math.round((voteBigCity / totalVotes) * 100) : 0;
+        const pctSquare = totalVotes > 0 ? Math.round((voteSquare / totalVotes) * 100) : 0;
+
+        // 完美對齊手機圖表排版
+        const voteHtml = `
+            <div class="vote-row">
+                <div class="vote-info">
+                    <span>巨城店 金色三麥</span>
+                    <span>${voteBigCity} 票 (${pctBigCity}%)</span>
+                </div>
+                <div class="vote-progress-bar">
+                    <div class="vote-progress-fill" style="width: ${pctBigCity}%; background: #3a86ff;"></div>
+                </div>
+            </div>
+            <div class="vote-row">
+                <div class="vote-info">
+                    <span>享平方店 金色三麥</span>
+                    <span>${voteSquare} 票 (${pctSquare}%)</span>
+                </div>
+                <div class="vote-progress-bar">
+                    <div class="vote-progress-fill" style="width: ${pctSquare}%; background: #10b981;"></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('vote-results-container').innerHTML = voteHtml;
 
         const cal = document.getElementById('admin-calendar-container');
         cal.innerHTML = '';
