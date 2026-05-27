@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026TCLIPb 謝師宴決選</title>
     <style>
-        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; }
+        /* ===== 基礎與電腦/平板版樣式 ===== */
+        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
         
         * { box-sizing: border-box; }
         
@@ -32,7 +33,11 @@
         button.secondary:hover { background-color: #e2eafc; }
         button.admin-btn { background-color: #4a4e69; margin-top: 10px; }
         button.admin-btn:hover { background-color: #22223b; }
-        .btn-blue { background-color: var(--admin-blue); }
+        
+        .btn-blue { background-color: var(--admin-blue); flex: 1; }
+        .btn-blue:hover { background-color: #266dd3; }
+        .btn-green { background-color: var(--admin-green); flex: 1; }
+        .btn-green:hover { background-color: #21867a; }
 
         @keyframes pulse-btn {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
@@ -51,10 +56,34 @@
         /* 開票進度條 */
         .result-bar-container { background: #edf2f4; border-radius: 8px; height: 28px; width: 100%; margin-top: 8px; position: relative; overflow: hidden; }
         .result-bar { background: var(--admin-blue); height: 100%; width: 0%; transition: width 0.5s ease-out; }
-        .result-text { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: bold; color: #fff; mix-blend-mode: difference; }
-
+        
         .admin-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
         .admin-label { font-weight: bold; font-size: 14px; color: var(--primary); display: block; margin-bottom: 8px; }
+
+        /* 熱力圖日曆樣式 (僅限後台) */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 25px; text-align: center; width: 100%; }
+        .cal-header { font-weight: 700; color: #8d99ae; padding: 10px 0; font-size: 14px; }
+        .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 2px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
+        .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
+        .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
+        .close-btn:hover { color: var(--accent); }
+
+        .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; font-weight: 500; gap: 4px; }
+        .legend-item { display: flex; align-items: center; margin: 0 4px; }
+        .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
+        
+        #admin-modal-list { max-height: 35vh; overflow-y: auto; text-align: left; margin: 15px 0; padding-right: 5px; }
+        .detail-item { padding: 10px 0; border-bottom: 1px solid #edf2f4; display: flex; flex-direction: column; }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-name { font-weight: bold; color: var(--primary); font-size: 15px; }
+        .detail-reason { color: #6c757d; font-size: 13px; margin-top: 4px; line-height: 1.4; }
         
         #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s; backdrop-filter: blur(4px); }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
@@ -67,6 +96,15 @@
             input[type="text"], input[type="datetime-local"] { padding: 12px; font-size: 14px; }
             .restaurant-banner { font-size: 18px; padding: 15px; }
             .vote-card { font-size: 16px; padding: 16px; }
+            .calendar-grid { gap: 4px; margin-bottom: 15px; }
+            .cal-header { font-size: 13px; padding: 5px 0; }
+            .cal-day { padding: 10px 2px; font-size: 13px; border-width: 1px; border-radius: 8px; }
+            .cal-day.admin-blue { box-shadow: inset 0 0 0 2.5px var(--admin-blue) !important; }
+            .cal-day.admin-green { box-shadow: inset 0 0 0 2.5px var(--admin-green) !important; }
+            .modal-content { padding: 20px 15px; width: 92%; }
+            .heatmap-legend { gap: 2px; font-size: 11px; }
+            .legend-item { margin: 0 2px; }
+            .legend-box { width: 12px; height: 12px; }
         }
     </style>
 </head>
@@ -84,6 +122,7 @@
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">載入資料中，請稍候...</div>
     </div>
 
+    <!-- 個人投票畫面 -->
     <div id="vote-screen" style="display: none;">
         <div class="restaurant-banner">
             🍻 餐廳決選確認：金色三麥 🍻
@@ -104,6 +143,7 @@
         <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至開票後台</button>
     </div>
 
+    <!-- 管理員開票後台 -->
     <div id="admin-screen" style="display: none;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 決選開票所</h3>
         
@@ -119,10 +159,42 @@
             <button type="button" class="secondary" onclick="saveDeadline()" style="padding: 10px; font-size: 14px; margin-bottom: 0;">儲存截止時間</button>
         </div>
 
-        <h4 style="color: #495057; margin-bottom: 10px;">目前得票統計</h4>
-        <div id="admin-results-container" style="margin-bottom: 25px;"></div>
+        <!-- 決選開票區塊 -->
+        <h4 style="color: #495057; margin-bottom: 10px; border-left: 4px solid var(--admin-blue); padding-left: 8px;">目前得票統計</h4>
+        <div id="admin-results-container" style="margin-bottom: 30px;"></div>
 
-        <button type="button" class="secondary" onclick="exitAdmin()">返回個人投票</button>
+        <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 30px 0;">
+
+        <!-- 第一階段：熱力圖日曆區塊 -->
+        <h4 style="color: #495057; margin-bottom: 15px; border-left: 4px solid var(--accent); padding-left: 8px;">第一階段：熱力圖與無法參加名單</h4>
+        <div class="heatmap-legend">
+            <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>2</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ff9800;"></div>3</div>
+            <div class="legend-item"><div class="legend-box" style="background: #f44336;"></div>4</div>
+            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>5</div>
+            <div class="legend-item"><div class="legend-box" style="background: #880e4f;"></div>6+</div>
+        </div>
+
+        <div class="calendar-grid" id="admin-calendar"></div>
+        
+        <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 15px;">返回個人投票</button>
+    </div>
+</div>
+
+<!-- 管理員查看日曆名單視窗 -->
+<div id="admin-modal-overlay" class="overlay">
+    <div class="modal-content" id="admin-modal-box">
+        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
+        <div id="admin-modal-list"></div>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 標記不行</button>
+            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 標記有機會</button>
+        </div>
+        <button type="button" class="secondary" onclick="setAnnotation('none')" style="margin-top: 8px; padding: 12px; font-size: 14px;">❌ 清除標記</button>
     </div>
 </div>
 
@@ -131,10 +203,14 @@
 <script>
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = '';
+    let unavailableData = {}; // 暫存第一階段的請假資料，上傳時一併回傳以免覆蓋
+    let adminParsedData = {}; 
+    let globalAnnotations = {}; 
     let globalDeadline = '';
     let globalVotingOptions = [];
-    let currentVote = ''; // 紀錄當下選的日期
+    let currentVote = ''; 
     let isPastDeadline = false;
+    let selectedAdminDate = '';
 
     function showToast(message) {
         const toast = document.getElementById("toast");
@@ -146,10 +222,9 @@
     function checkDeadlineStatus() {
         if (!globalDeadline) return false;
         const now = new Date();
-        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-        const d = new Date(parsedStr); 
-        if (isNaN(d)) return false;
-        return now > d;
+        const pad = (n) => n < 10 ? '0' + n : n;
+        const nowStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        return nowStr > globalDeadline; 
     }
 
     window.onload = function() {
@@ -175,9 +250,11 @@
                 currentName = nameInput;
                 localStorage.setItem('teacherBanquetName', currentName); 
                 
+                unavailableData = data.previousData || {}; // 保留舊的請假資料
                 globalDeadline = data.deadline || '';
                 globalVotingOptions = data.votingOptions || [];
-                currentVote = data.vote || ''; // 讀取之前的投票結果
+                globalAnnotations = data.annotations || {};
+                currentVote = data.vote || ''; 
                 
                 document.getElementById('displayName').innerText = currentName;
                 document.getElementById('login-screen').style.display = 'none';
@@ -199,7 +276,7 @@
 
                 if (data.isAdmin) document.getElementById('adminBtn').style.display = 'block';
                 
-                renderVotingCards(); // 繪製選票
+                renderVotingCards(); 
             } else {
                 showToast(data.message);
                 resetLoginBtn();
@@ -215,7 +292,6 @@
         document.getElementById('loading').style.display = 'none';
     }
 
-    // ⭐ 繪製單選投票卡片
     function renderVotingCards() {
         const container = document.getElementById('vote-options-container');
         container.innerHTML = '';
@@ -233,7 +309,6 @@
             card.className = 'vote-card';
             card.innerText = dateStr;
             
-            // 如果這張卡片是之前投過的，標記起來
             if (currentVote === dateStr) {
                 card.classList.add('selected');
             }
@@ -241,7 +316,6 @@
             card.onclick = () => {
                 if (isPastDeadline) return showToast('🚨 投票已截止囉！');
                 
-                // 單選邏輯：移除其他人的 selected，加給自己
                 document.querySelectorAll('.vote-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
                 currentVote = dateStr;
@@ -263,7 +337,8 @@
         fetch(gasURL, {
             method: 'POST',
             redirect: 'follow',
-            body: JSON.stringify({ action: 'submit', name: currentName, vote: currentVote }) // 傳送 vote 欄位
+            // 同時送出 reasons (保留舊資料) 和 vote (新的投票)
+            body: JSON.stringify({ action: 'submit', name: currentName, reasons: unavailableData, vote: currentVote }) 
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
                 showToast('✅ 投票成功送出！');
@@ -273,15 +348,16 @@
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('submit-loading').style.display = 'none';
         }).catch(err => {
+            console.error(err);
             showToast('❌ 傳送失敗，請稍後再試！');
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('submit-loading').style.display = 'none';
         });
     }
 
-    // --- 管理員開票功能 ---
+    // --- 管理員開票與日曆後台 ---
     function fetchAdminData() {
-        showToast('讀取開票資料中...');
+        showToast('讀取開票與熱力圖資料中...');
         fetch(gasURL, {
             method: 'POST',
             body: JSON.stringify({ action: 'getAdminData', name: currentName })
@@ -289,6 +365,7 @@
             if (data.status === 'success') {
                 globalDeadline = data.deadline || '';
                 globalVotingOptions = data.votingOptions || [];
+                globalAnnotations = data.annotations || {};
                 
                 if (globalDeadline) {
                     try {
@@ -304,60 +381,134 @@
                 
                 document.getElementById('admin-options-input').value = globalVotingOptions.join(', ');
 
-                renderAdminResults(data.data);
+                renderAdminScreen(data.data);
             } else {
                 showToast(data.message);
             }
         }).catch(() => showToast('讀取失敗'));
     }
 
-    function renderAdminResults(allData) {
+    function renderAdminScreen(allData) {
         document.getElementById('vote-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
-        // 統計得票數
+        // 1. 處理決選投票統計
         const voteCounts = {};
         let totalVotes = 0;
+        globalVotingOptions.forEach(opt => voteCounts[opt] = 0); 
         
-        globalVotingOptions.forEach(opt => voteCounts[opt] = 0); // 初始化有在選單裡的
-        
+        // 2. 處理第一階段熱力圖統計
+        adminParsedData = {};
+
         allData.forEach(row => {
+            // 計算投票
             if (row.vote) {
                 if (voteCounts[row.vote] !== undefined) {
                     voteCounts[row.vote]++;
                 } else {
-                    voteCounts[row.vote] = 1; // 防呆：有人投了不在選單上的舊資料
+                    voteCounts[row.vote] = 1; 
                 }
                 totalVotes++;
             }
+
+            // 計算請假原因
+            if(row.reasonString && row.reasonString !== "全部皆可參加") {
+                row.reasonString.split('\n').forEach(line => {
+                    const parts = line.split('：');
+                    if(parts.length >= 2) {
+                        const date = parts[0].trim();
+                        const reason = parts.slice(1).join('：').trim();
+                        if(!adminParsedData[date]) adminParsedData[date] = [];
+                        adminParsedData[date].push({name: row.name, reason: reason});
+                    }
+                });
+            }
         });
 
-        const container = document.getElementById('admin-results-container');
-        container.innerHTML = '';
+        // 繪製投票長條圖
+        const resultsContainer = document.getElementById('admin-results-container');
+        resultsContainer.innerHTML = '';
         
         if (totalVotes === 0) {
-            container.innerHTML = '<p style="color: #8d99ae; font-size: 14px;">目前還沒有人投票喔！</p>';
-            return;
+            resultsContainer.innerHTML = '<p style="color: #8d99ae; font-size: 14px;">目前還沒有人投票喔！</p>';
+        } else {
+            Object.keys(voteCounts).forEach(opt => {
+                const count = voteCounts[opt];
+                const percentage = Math.round((count / totalVotes) * 100) || 0;
+                
+                const item = document.createElement('div');
+                item.style.marginBottom = '15px';
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px;">
+                        <span style="font-weight: bold; color: var(--primary);">${opt}</span>
+                        <span style="color: #6c757d;">${count} 票 (${percentage}%)</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                `;
+                resultsContainer.appendChild(item);
+            });
         }
 
-        // 畫出長條圖
-        Object.keys(voteCounts).forEach(opt => {
-            const count = voteCounts[opt];
-            const percentage = Math.round((count / totalVotes) * 100) || 0;
-            
-            const item = document.createElement('div');
-            item.style.marginBottom = '15px';
-            item.innerHTML = `
-                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px;">
-                    <span style="font-weight: bold; color: var(--primary);">${opt}</span>
-                    <span style="color: #6c757d;">${count} 票 (${percentage}%)</span>
-                </div>
-                <div class="result-bar-container">
-                    <div class="result-bar" style="width: ${percentage}%;"></div>
-                </div>
-            `;
-            container.appendChild(item);
+        // 繪製熱力圖日曆
+        const cal = document.getElementById('admin-calendar');
+        cal.innerHTML = '';
+        generateAdminCalendarGrid(cal);
+    }
+
+    // 專屬於管理員的熱力圖生成邏輯
+    function generateAdminCalendarGrid(container) {
+        const days = ['日', '一', '二', '三', '四', '五', '六'];
+        days.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'cal-header';
+            el.innerText = d;
+            container.appendChild(el);
         });
+
+        const startDate = new Date(2026, 5, 1); 
+        const endDate = new Date(2026, 6, 4);   
+
+        for(let i=0; i<startDate.getDay(); i++) {
+            container.appendChild(document.createElement('div'));
+        }
+
+        let curr = new Date(startDate);
+        while(curr <= endDate) {
+            const month = curr.getMonth() + 1;
+            const date = curr.getDate();
+            const dateStr = `${month}/${date}`;
+            
+            const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && (date === 8 || date === 16));
+            const dayEl = document.createElement('div');
+            dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
+            dayEl.innerText = dateStr;
+            
+            const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
+            if (isClickable) {
+                if (count > 0) {
+                    let bgColor = '#fff', textColor = '#2b2d42';
+                    if (count === 1) { bgColor = '#ffe0b2'; }
+                    else if (count === 2) { bgColor = '#ffb74d'; }
+                    else if (count === 3) { bgColor = '#ff9800'; }
+                    else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
+                    else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
+                    else { bgColor = '#880e4f'; textColor = '#fff'; }
+                    
+                    dayEl.style.backgroundColor = bgColor;
+                    dayEl.style.color = textColor;
+                }
+
+                const annColor = globalAnnotations[dateStr];
+                if (annColor === 'blue') dayEl.classList.add('admin-blue');
+                if (annColor === 'green') dayEl.classList.add('admin-green');
+
+                dayEl.onclick = () => openAdminModal(dateStr, count);
+            }
+            container.appendChild(dayEl);
+            curr.setDate(curr.getDate() + 1);
+        }
     }
 
     function saveVotingOptions() {
@@ -388,6 +539,58 @@
                 showToast('✅ 截止時間設定成功！');
             }
         });
+    }
+
+    function openAdminModal(dateStr, count) {
+        selectedAdminDate = dateStr;
+        document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
+        const listContainer = document.getElementById('admin-modal-list');
+        listContainer.innerHTML = '';
+        
+        if (count === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #8d99ae; margin-top: 20px; font-size: 15px;">這天目前全員都可以參加喔！🎉</p>';
+        } else {
+            const people = adminParsedData[dateStr];
+            people.forEach(p => {
+                listContainer.innerHTML += `<div class="detail-item"><span class="detail-name">${p.name}</span><span class="detail-reason">${p.reason}</span></div>`;
+            });
+        }
+        
+        const overlay = document.getElementById('admin-modal-overlay');
+        const box = document.getElementById('admin-modal-box');
+        overlay.style.display = 'block';
+        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
+    }
+    
+    function setAnnotation(color) {
+        if (color === 'none') {
+            delete globalAnnotations[selectedAdminDate];
+        } else {
+            globalAnnotations[selectedAdminDate] = color;
+        }
+        
+        closeAdminModal();
+        
+        const cal = document.getElementById('admin-calendar');
+        cal.innerHTML = '';
+        generateAdminCalendarGrid(cal); 
+        
+        showToast('更新標記中...');
+        
+        fetch(gasURL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'annotations', value: globalAnnotations })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') showToast('✅ 標記已更新！');
+        });
+    }
+
+    function closeAdminModal() {
+        const overlay = document.getElementById('admin-modal-overlay');
+        const box = document.getElementById('admin-modal-box');
+        overlay.style.opacity = '0';
+        box.style.transform = 'translate(-50%, -45%)';
+        setTimeout(() => overlay.style.display = 'none', 300);
     }
 
     function exitAdmin() {
