@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026TCLIPb 謝師宴調查</title>
+    <title>2026TCLIPb 謝師宴決選</title>
     <style>
-        /* ===== 基礎與電腦/平板版樣式 ===== */
-        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
+        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; }
         
         * { box-sizing: border-box; }
         
@@ -14,12 +13,15 @@
         
         .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); backdrop-filter: blur(10px); margin-bottom: 20px; }
         
+        /* 金色三麥大橫幅 */
+        .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--gold); letter-spacing: 1px; }
+        
         .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; letter-spacing: 1px; }
         .sub-title { text-align: center; color: #8d99ae; font-size: 15px; margin-bottom: 20px; margin-top: 0; font-weight: 500; }
         
         .deadline-banner { background: #ffe3e3; color: var(--accent); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 20px; display: none; border: 2px solid #ffc2d1; }
         
-        input[type="text"], input[type="datetime-local"] { width: 100%; padding: 15px; margin: 10px 0 15px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
+        input[type="text"], input[type="datetime-local"] { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
         input[type="text"]:focus, input[type="datetime-local"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
         input:disabled { background: #e9ecef; cursor: not-allowed; opacity: 0.7; }
         
@@ -30,11 +32,7 @@
         button.secondary:hover { background-color: #e2eafc; }
         button.admin-btn { background-color: #4a4e69; margin-top: 10px; }
         button.admin-btn:hover { background-color: #22223b; }
-        
-        .btn-blue { background-color: var(--admin-blue); flex: 1; }
-        .btn-blue:hover { background-color: #266dd3; }
-        .btn-green { background-color: var(--admin-green); flex: 1; }
-        .btn-green:hover { background-color: #21867a; }
+        .btn-blue { background-color: var(--admin-blue); }
 
         @keyframes pulse-btn {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
@@ -43,71 +41,32 @@
         }
         .pulse-animation { animation: pulse-btn 1.5s infinite; background-color: var(--accent) !important; }
         
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 25px; text-align: center; width: 100%; }
-        .cal-header { font-weight: 700; color: #8d99ae; padding: 10px 0; font-size: 14px; }
-        .cal-day { padding: 16px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 2px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        /* 投票卡片樣式 */
+        .vote-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .vote-card { padding: 20px; border-radius: 12px; background: #fff; border: 2px solid #edf2f4; cursor: pointer; transition: 0.2s; font-size: 18px; font-weight: bold; color: #495057; display: flex; align-items: center; justify-content: space-between; }
+        .vote-card:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-color: #cbd5e1; }
+        .vote-card.selected { background: #f0f7ff; border-color: var(--admin-blue); color: var(--admin-blue); box-shadow: 0 4px 12px rgba(58, 134, 255, 0.15); }
+        .vote-card.selected::after { content: '✓'; font-size: 24px; font-weight: bold; }
         
-        .cal-day.disabled { color: #adb5bd; background-color: #e9ecef; border-color: transparent; }
-        .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        
-        .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
-        .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
-        
-        /* ⭐ 內圈粗邊框標記法：不蓋掉熱力圖底色 */
-        .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
-        .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
+        /* 開票進度條 */
+        .result-bar-container { background: #edf2f4; border-radius: 8px; height: 28px; width: 100%; margin-top: 8px; position: relative; overflow: hidden; }
+        .result-bar { background: var(--admin-blue); height: 100%; width: 0%; transition: width 0.5s ease-out; }
+        .result-text { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: bold; color: #fff; mix-blend-mode: difference; }
 
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
-        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
-        .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
-        .close-btn:hover { color: var(--accent); }
-
-        .date-chip-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0 15px 0; max-height: 120px; overflow-y: auto; padding-right: 5px; }
-        .date-chip { padding: 8px 4px; background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 8px; font-size: 13px; color: #495057; cursor: pointer; transition: 0.2s; }
-        .date-chip:hover { background: #e2eafc; border-color: #bde0fe; }
-        .date-chip.selected { background: #e2eafc; border-color: var(--primary); color: var(--primary); font-weight: bold; }
-
-        .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; font-weight: 500; gap: 4px; }
-        .legend-item { display: flex; align-items: center; margin: 0 4px; }
-        .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
+        .admin-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
+        .admin-label { font-weight: bold; font-size: 14px; color: var(--primary); display: block; margin-bottom: 8px; }
         
-        #admin-modal-list { max-height: 35vh; overflow-y: auto; text-align: left; margin: 15px 0; padding-right: 5px; }
-        .detail-item { padding: 10px 0; border-bottom: 1px solid #edf2f4; display: flex; flex-direction: column; }
-        .detail-item:last-child { border-bottom: none; }
-        .detail-name { font-weight: bold; color: var(--primary); font-size: 15px; }
-        .detail-reason { color: #6c757d; font-size: 13px; margin-top: 4px; line-height: 1.4; }
-        
-        #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(4px); }
+        #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s; backdrop-filter: blur(4px); }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
-        .wishlist-container { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
-        .wishlist-label { font-weight: bold; color: var(--primary); font-size: 14px; display: block; text-align: left; margin-bottom: 5px;}
-
-        /* ===== 針對手機螢幕的 RWD 自動縮放 ===== */
         @media (max-width: 480px) {
             body { padding: 10px; }
             .app-container { padding: 25px 15px; border-radius: 15px; }
             .header-title { font-size: 24px; }
-            .sub-title { font-size: 14px; margin-bottom: 15px; }
-            
-            .calendar-grid { gap: 4px; margin-bottom: 15px; }
-            .cal-header { font-size: 13px; padding: 5px 0; }
-            .cal-day { padding: 10px 2px; font-size: 13px; border-width: 1px; border-radius: 8px; }
-            
-            .cal-day.admin-blue { box-shadow: inset 0 0 0 2.5px var(--admin-blue) !important; }
-            .cal-day.admin-green { box-shadow: inset 0 0 0 2.5px var(--admin-green) !important; }
-            
-            .modal-content { padding: 20px 15px; width: 92%; }
-            .date-chip-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
-            .date-chip { padding: 6px 2px; font-size: 12px; }
-            
             button { padding: 14px; font-size: 15px; }
             input[type="text"], input[type="datetime-local"] { padding: 12px; font-size: 14px; }
-            
-            .heatmap-legend { gap: 2px; font-size: 11px; }
-            .legend-item { margin: 0 2px; }
-            .legend-box { width: 12px; height: 12px; }
+            .restaurant-banner { font-size: 18px; padding: 15px; }
+            .vote-card { font-size: 16px; padding: 16px; }
         }
     </style>
 </head>
@@ -115,83 +74,55 @@
 
 <div class="app-container">
     <h2 class="header-title">2026TCLIPb</h2>
-    <p class="sub-title">謝師宴時間調查</p>
+    <p class="sub-title">謝師宴決選投票</p>
     
     <div id="deadline-banner" class="deadline-banner"></div>
 
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
-        <button type="button" id="loginBtn" onclick="verifyName()">進入調查</button>
+        <button type="button" id="loginBtn" onclick="verifyName()">進入投票</button>
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">載入資料中，請稍候...</div>
     </div>
 
-    <div id="calendar-screen" style="display: none;">
-        <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
-            <strong id="displayName" style="color: var(--primary); font-size: 22px;"></strong><br>
-            <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請點選你 <span style="color: var(--accent); font-weight: 700;">不行</span> 參加的日期，並註明原因</span>
-        </p>
-        
-        <div class="calendar-grid" id="calendar"></div>
-
-        <div class="wishlist-container">
-            <span class="wishlist-label">🍽️ 餐廳許願池 (選填)</span>
-            <input type="text" id="wishlist-input" placeholder="有特別想吃哪家餐廳或種類嗎？" oninput="triggerSaveReminder()">
+    <div id="vote-screen" style="display: none;">
+        <div class="restaurant-banner">
+            🍻 餐廳決選確認：金色三麥 🍻
         </div>
 
-        <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
+        <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
+            <strong id="displayName" style="color: var(--primary); font-size: 22px;"></strong><br>
+            <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請選擇你 <span style="color: var(--admin-blue); font-weight: 700;">最想去</span> 的一天 (單選)</span>
+        </p>
+        
+        <div id="vote-options-container" class="vote-grid">
+            <p style="text-align: center; color: #adb5bd;">管理員尚未設定候選日期</p>
+        </div>
+
+        <button type="button" id="submitBtn" onclick="submitData()">送出選票</button>
         <div id="submit-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">資料同步中...</div>
         
-        <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至管理員後台</button>
+        <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至開票後台</button>
     </div>
 
     <div id="admin-screen" style="display: none;">
-        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計後台</h3>
+        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 決選開票所</h3>
         
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-            <label style="font-weight: bold; font-size: 14px; color: var(--primary);">⏳ 設定截止時間</label>
+        <div class="admin-section">
+            <label class="admin-label">📅 設定候選日期</label>
+            <input type="text" id="admin-options-input" placeholder="請用逗號分隔 (例如: 6/20, 6/27, 7/4)">
+            <button type="button" class="btn-blue" onclick="saveVotingOptions()" style="padding: 10px; font-size: 14px; margin-bottom: 0;">發布投票選項</button>
+        </div>
+
+        <div class="admin-section">
+            <label class="admin-label">⏳ 設定截止時間</label>
             <input type="datetime-local" id="admin-deadline-input">
-            <button type="button" class="btn-blue" onclick="saveDeadline()" style="padding: 10px; font-size: 14px; margin-top: 8px;">儲存截止時間</button>
+            <button type="button" class="secondary" onclick="saveDeadline()" style="padding: 10px; font-size: 14px; margin-bottom: 0;">儲存截止時間</button>
         </div>
 
-        <div class="heatmap-legend">
-            <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>2</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ff9800;"></div>3</div>
-            <div class="legend-item"><div class="legend-box" style="background: #f44336;"></div>4</div>
-            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>5</div>
-            <div class="legend-item"><div class="legend-box" style="background: #880e4f;"></div>6+</div>
-        </div>
+        <h4 style="color: #495057; margin-bottom: 10px;">目前得票統計</h4>
+        <div id="admin-results-container" style="margin-bottom: 25px;"></div>
 
-        <div class="calendar-grid" id="admin-calendar"></div>
-        <button type="button" class="secondary" onclick="exitAdmin()">返回個人調查</button>
-    </div>
-</div>
-
-<div id="modal-overlay" class="overlay">
-    <div class="modal-content" id="modal-box">
-        <span class="close-btn" onclick="dismissModal()">&times;</span>
-        <h3 style="margin-top: 0; color: var(--primary); font-size: 20px; margin-bottom: 15px;">無法參加的原因</h3>
-        <div style="font-size: 13px; color: #8d99ae; margin-bottom: 5px; text-align: left; font-weight: bold;">已選日期：<span id="selected-dates-display" style="color: var(--accent); font-size: 15px;"></span></div>
-        <div style="font-size: 12px; color: #adb5bd; text-align: left; margin-bottom: 5px;">點擊下方按鈕可快速套用到其他日期</div>
-        <div id="multi-select-grid" class="date-chip-grid"></div>
-        <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因 (如: 出國)">
-        <button type="button" onclick="saveReason()">確認紀錄</button>
-        <button type="button" class="secondary" onclick="closeModal()">清除所選日期的紀錄</button>
-    </div>
-</div>
-
-<div id="admin-modal-overlay" class="overlay">
-    <div class="modal-content" id="admin-modal-box">
-        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
-        <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
-        <div id="admin-modal-list"></div>
-        
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 標記不行</button>
-            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 標記有機會</button>
-        </div>
-        <button type="button" class="secondary" onclick="setAnnotation('none')" style="margin-top: 8px; padding: 12px; font-size: 14px;">❌ 清除標記</button>
+        <button type="button" class="secondary" onclick="exitAdmin()">返回個人投票</button>
     </div>
 </div>
 
@@ -200,27 +131,10 @@
 <script>
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = '';
-    let unavailableData = {}; 
-    let adminParsedData = {}; 
-    let allValidDates = []; 
-    let activeMultiDates = []; 
-    let globalAnnotations = {}; 
     let globalDeadline = '';
+    let globalVotingOptions = [];
+    let currentVote = ''; // 紀錄當下選的日期
     let isPastDeadline = false;
-    let selectedAdminDate = '';
-
-    function generateValidDates() {
-        allValidDates = [];
-        let curr = new Date(2026, 5, 6);
-        const endDate = new Date(2026, 6, 4);
-        while(curr <= endDate) {
-            const m = curr.getMonth() + 1;
-            const d = curr.getDate();
-            if (!(m === 6 && (d === 8 || d === 16))) allValidDates.push(`${m}/${d}`);
-            curr.setDate(curr.getDate() + 1);
-        }
-    }
-    generateValidDates();
 
     function showToast(message) {
         const toast = document.getElementById("toast");
@@ -232,9 +146,10 @@
     function checkDeadlineStatus() {
         if (!globalDeadline) return false;
         const now = new Date();
-        const pad = (n) => n < 10 ? '0' + n : n;
-        const nowStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
-        return nowStr > globalDeadline; 
+        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+        const d = new Date(parsedStr); 
+        if (isNaN(d)) return false;
+        return now > d;
     }
 
     window.onload = function() {
@@ -259,14 +174,14 @@
             if (data.status === 'success') {
                 currentName = nameInput;
                 localStorage.setItem('teacherBanquetName', currentName); 
-                unavailableData = data.previousData || {}; 
-                globalAnnotations = data.annotations || {};
-                globalDeadline = data.deadline || '';
                 
-                document.getElementById('wishlist-input').value = data.wishlist || '';
+                globalDeadline = data.deadline || '';
+                globalVotingOptions = data.votingOptions || [];
+                currentVote = data.vote || ''; // 讀取之前的投票結果
+                
                 document.getElementById('displayName').innerText = currentName;
                 document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('calendar-screen').style.display = 'block';
+                document.getElementById('vote-screen').style.display = 'block';
                 
                 isPastDeadline = checkDeadlineStatus();
                 if (isPastDeadline) {
@@ -274,17 +189,17 @@
                     if (globalDeadline.includes('T')) {
                         const [pDate, pTime] = globalDeadline.split('T');
                         const [y, m, d] = pDate.split('-');
-                        banner.innerText = `🚨 調查已於 ${m}/${d} ${pTime} 截止，系統鎖定無法再更改。`;
+                        banner.innerText = `🚨 投票已於 ${m}/${d} ${pTime} 截止。`;
                     } else {
-                        banner.innerText = `🚨 調查已截止，系統鎖定無法再更改。`;
+                        banner.innerText = `🚨 投票已截止。`;
                     }
                     banner.style.display = 'block';
                     document.getElementById('submitBtn').style.display = 'none';
-                    document.getElementById('wishlist-input').disabled = true;
                 }
 
                 if (data.isAdmin) document.getElementById('adminBtn').style.display = 'block';
-                renderCalendar(); 
+                
+                renderVotingCards(); // 繪製選票
             } else {
                 showToast(data.message);
                 resetLoginBtn();
@@ -300,234 +215,165 @@
         document.getElementById('loading').style.display = 'none';
     }
 
-    function renderCalendar() {
-        const cal = document.getElementById('calendar');
-        cal.innerHTML = '';
-        generateCalendarGrid(cal, true);
-    }
-
-    function generateCalendarGrid(container, isUser) {
-        const days = ['日', '一', '二', '三', '四', '五', '六'];
-        days.forEach(d => {
-            const el = document.createElement('div');
-            el.className = 'cal-header';
-            el.innerText = d;
-            container.appendChild(el);
-        });
-
-        const startDate = new Date(2026, 5, 1); 
-        const endDate = new Date(2026, 6, 4);   
-
-        for(let i=0; i<startDate.getDay(); i++) {
-            container.appendChild(document.createElement('div'));
+    // ⭐ 繪製單選投票卡片
+    function renderVotingCards() {
+        const container = document.getElementById('vote-options-container');
+        container.innerHTML = '';
+        
+        if (globalVotingOptions.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #adb5bd;">管理員尚未設定候選日期，請稍候再回來看喔！</p>';
+            document.getElementById('submitBtn').style.display = 'none';
+            return;
         }
+        
+        if (!isPastDeadline) document.getElementById('submitBtn').style.display = 'block';
 
-        let curr = new Date(startDate);
-        while(curr <= endDate) {
-            const month = curr.getMonth() + 1;
-            const date = curr.getDate();
-            const dateStr = `${month}/${date}`;
+        globalVotingOptions.forEach(dateStr => {
+            const card = document.createElement('div');
+            card.className = 'vote-card';
+            card.innerText = dateStr;
             
-            const isClickable = curr >= new Date(2026, 5, 6) && !(month === 6 && (date === 8 || date === 16));
-            const dayEl = document.createElement('div');
-            dayEl.className = 'cal-day ' + (isClickable ? 'clickable' : 'disabled');
-            dayEl.innerText = dateStr;
-            
-            if (isUser) {
-                dayEl.id = `day-${dateStr}`;
-                if (unavailableData[dateStr] && isClickable) {
-                    dayEl.classList.add('unavailable');
-                }
-                
-                if (isClickable) {
-                    if (isPastDeadline) {
-                        dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
-                    } else {
-                        dayEl.onclick = () => openModal(dateStr);
-                    }
-                }
-            } 
-            else {
-                const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
-                if (isClickable) {
-                    if (count > 0) {
-                        let bgColor = '#fff', textColor = '#2b2d42';
-                        if (count === 1) { bgColor = '#ffe0b2'; }
-                        else if (count === 2) { bgColor = '#ffb74d'; }
-                        else if (count === 3) { bgColor = '#ff9800'; }
-                        else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
-                        else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
-                        else { bgColor = '#880e4f'; textColor = '#fff'; }
-                        
-                        dayEl.style.backgroundColor = bgColor;
-                        dayEl.style.color = textColor;
-                    }
-
-                    const annColor = globalAnnotations[dateStr];
-                    if (annColor === 'blue') dayEl.classList.add('admin-blue');
-                    if (annColor === 'green') dayEl.classList.add('admin-green');
-
-                    dayEl.onclick = () => openAdminModal(dateStr, count);
-                }
+            // 如果這張卡片是之前投過的，標記起來
+            if (currentVote === dateStr) {
+                card.classList.add('selected');
             }
-            container.appendChild(dayEl);
-            curr.setDate(curr.getDate() + 1);
-        }
-    }
-
-    function updateSelectedDatesDisplay() {
-        const sorted = [...activeMultiDates].sort((a,b) => {
-            const [mA, dA] = a.split('/').map(Number);
-            const [mB, dB] = b.split('/').map(Number);
-            return (mA*100+dA) - (mB*100+dB);
-        });
-        document.getElementById('selected-dates-display').innerText = sorted.join(', ');
-    }
-
-    function openModal(dateStr) {
-        if (isPastDeadline) return showToast('🚨 調查已截止，無法修改！'); 
-        
-        activeMultiDates = [dateStr]; 
-        updateSelectedDatesDisplay();
-        document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
-        
-        const grid = document.getElementById('multi-select-grid');
-        grid.innerHTML = '';
-        allValidDates.forEach(d => {
-            if (d === dateStr) return; 
-            const chip = document.createElement('div');
-            chip.className = 'date-chip';
-            chip.innerText = d;
-            chip.onclick = () => {
-                if (chip.classList.contains('selected')) {
-                    chip.classList.remove('selected');
-                    activeMultiDates = activeMultiDates.filter(x => x !== d);
-                } else {
-                    chip.classList.add('selected');
-                    activeMultiDates.push(d);
-                }
-                updateSelectedDatesDisplay();
+            
+            card.onclick = () => {
+                if (isPastDeadline) return showToast('🚨 投票已截止囉！');
+                
+                // 單選邏輯：移除其他人的 selected，加給自己
+                document.querySelectorAll('.vote-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                currentVote = dateStr;
+                
+                document.getElementById('submitBtn').classList.add('pulse-animation');
             };
-            grid.appendChild(chip);
+            container.appendChild(card);
         });
-        
-        const overlay = document.getElementById('modal-overlay');
-        const box = document.getElementById('modal-box');
-        overlay.style.display = 'block';
-        setTimeout(() => {
-            overlay.style.opacity = '1';
-            box.style.transform = 'translate(-50%, -50%)';
-            document.getElementById('reasonInput').focus();
-        }, 10);
-    }
-
-    function dismissModal() { hideModal(); }
-
-    function closeModal() {
-        if (isPastDeadline) return;
-        activeMultiDates.forEach(d => { delete unavailableData[d]; });
-        renderCalendar();
-        hideModal();
-        triggerSaveReminder();
-    }
-
-    function saveReason() {
-        if (isPastDeadline) return;
-        const reason = document.getElementById('reasonInput').value.trim();
-        if (!reason) return showToast('請填寫原因！若可參加請點選取消');
-        
-        activeMultiDates.forEach(d => { unavailableData[d] = reason; });
-        renderCalendar();
-        hideModal();
-        triggerSaveReminder();
-    }
-
-    function triggerSaveReminder() {
-        if (isPastDeadline) return;
-        document.getElementById('submitBtn').classList.add('pulse-animation');
-    }
-
-    function hideModal() {
-        const overlay = document.getElementById('modal-overlay');
-        const box = document.getElementById('modal-box');
-        overlay.style.opacity = '0';
-        box.style.transform = 'translate(-50%, -45%)';
-        setTimeout(() => overlay.style.display = 'none', 300);
     }
 
     function submitData() {
-        if (isPastDeadline) return showToast('🚨 已過截止時間，無法儲存');
+        if (isPastDeadline) return showToast('🚨 投票已截止，無法送出');
+        if (!currentVote) return showToast('請先選擇一天喔！');
         
         document.getElementById('submitBtn').classList.remove('pulse-animation');
         document.getElementById('submitBtn').style.display = 'none';
         document.getElementById('submit-loading').style.display = 'block';
 
-        const wishlistVal = document.getElementById('wishlist-input').value.trim();
-
         fetch(gasURL, {
             method: 'POST',
-            redirect: 'follow', // ✅ 解決 GAS 轉址引發的 CORS 錯誤
-            body: JSON.stringify({ action: 'submit', name: currentName, reasons: unavailableData, wishlist: wishlistVal })
+            redirect: 'follow',
+            body: JSON.stringify({ action: 'submit', name: currentName, vote: currentVote }) // 傳送 vote 欄位
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
-                showToast('✅ 資料已安全儲存！');
+                showToast('✅ 投票成功送出！');
             } else {
                 showToast(data.message); 
             }
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('submit-loading').style.display = 'none';
         }).catch(err => {
-            // ✅ 正確捕捉真實錯誤
-            console.error('Fetch Error:', err);
-            showToast('❌ 傳送失敗，請檢查網路連線或稍後再試！');
+            showToast('❌ 傳送失敗，請稍後再試！');
             document.getElementById('submitBtn').style.display = 'block';
             document.getElementById('submit-loading').style.display = 'none';
         });
     }
 
+    // --- 管理員開票功能 ---
     function fetchAdminData() {
-        showToast('讀取統計資料中...');
+        showToast('讀取開票資料中...');
         fetch(gasURL, {
             method: 'POST',
             body: JSON.stringify({ action: 'getAdminData', name: currentName })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
                 globalDeadline = data.deadline || '';
-                globalAnnotations = data.annotations || {};
+                globalVotingOptions = data.votingOptions || [];
                 
                 if (globalDeadline) {
-                    document.getElementById('admin-deadline-input').value = globalDeadline;
+                    try {
+                        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+                        const d = new Date(parsedStr);
+                        if (!isNaN(d)) {
+                            const pad = (n) => n < 10 ? '0' + n : n;
+                            const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                            document.getElementById('admin-deadline-input').value = formatted;
+                        }
+                    } catch(e) {}
                 }
+                
+                document.getElementById('admin-options-input').value = globalVotingOptions.join(', ');
 
-                renderAdminScreen(data.data);
+                renderAdminResults(data.data);
             } else {
                 showToast(data.message);
             }
         }).catch(() => showToast('讀取失敗'));
     }
 
-    function renderAdminScreen(allData) {
-        document.getElementById('calendar-screen').style.display = 'none';
+    function renderAdminResults(allData) {
+        document.getElementById('vote-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
-        adminParsedData = {};
+        // 統計得票數
+        const voteCounts = {};
+        let totalVotes = 0;
+        
+        globalVotingOptions.forEach(opt => voteCounts[opt] = 0); // 初始化有在選單裡的
+        
         allData.forEach(row => {
-            if(row.reasonString && row.reasonString !== "全部皆可參加") {
-                row.reasonString.split('\n').forEach(line => {
-                    const parts = line.split('：');
-                    if(parts.length >= 2) {
-                        const date = parts[0].trim();
-                        const reason = parts.slice(1).join('：').trim();
-                        if(!adminParsedData[date]) adminParsedData[date] = [];
-                        adminParsedData[date].push({name: row.name, reason: reason});
-                    }
-                });
+            if (row.vote) {
+                if (voteCounts[row.vote] !== undefined) {
+                    voteCounts[row.vote]++;
+                } else {
+                    voteCounts[row.vote] = 1; // 防呆：有人投了不在選單上的舊資料
+                }
+                totalVotes++;
             }
         });
 
-        const cal = document.getElementById('admin-calendar');
-        cal.innerHTML = '';
-        generateCalendarGrid(cal, false);
+        const container = document.getElementById('admin-results-container');
+        container.innerHTML = '';
+        
+        if (totalVotes === 0) {
+            container.innerHTML = '<p style="color: #8d99ae; font-size: 14px;">目前還沒有人投票喔！</p>';
+            return;
+        }
+
+        // 畫出長條圖
+        Object.keys(voteCounts).forEach(opt => {
+            const count = voteCounts[opt];
+            const percentage = Math.round((count / totalVotes) * 100) || 0;
+            
+            const item = document.createElement('div');
+            item.style.marginBottom = '15px';
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px;">
+                    <span style="font-weight: bold; color: var(--primary);">${opt}</span>
+                    <span style="color: #6c757d;">${count} 票 (${percentage}%)</span>
+                </div>
+                <div class="result-bar-container">
+                    <div class="result-bar" style="width: ${percentage}%;"></div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function saveVotingOptions() {
+        const valStr = document.getElementById('admin-options-input').value;
+        const optsArray = valStr.split(',').map(s => s.trim()).filter(String);
+        
+        showToast('發布選項中...');
+        fetch(gasURL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'votingOptions', value: optsArray })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                globalVotingOptions = optsArray;
+                showToast('✅ 投票選項已發布！');
+            }
+        });
     }
     
     function saveDeadline() {
@@ -544,80 +390,22 @@
         });
     }
 
-    function openAdminModal(dateStr, count) {
-        selectedAdminDate = dateStr;
-        document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
-        const listContainer = document.getElementById('admin-modal-list');
-        listContainer.innerHTML = '';
-        
-        if (count === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: #8d99ae; margin-top: 20px; font-size: 15px;">這天目前全員都可以參加喔！🎉</p>';
-        } else {
-            const people = adminParsedData[dateStr];
-            people.forEach(p => {
-                listContainer.innerHTML += `<div class="detail-item"><span class="detail-name">${p.name}</span><span class="detail-reason">${p.reason}</span></div>`;
-            });
-        }
-        
-        const overlay = document.getElementById('admin-modal-overlay');
-        const box = document.getElementById('admin-modal-box');
-        overlay.style.display = 'block';
-        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
-    }
-    
-    function setAnnotation(color) {
-        if (color === 'none') {
-            delete globalAnnotations[selectedAdminDate];
-        } else {
-            globalAnnotations[selectedAdminDate] = color;
-        }
-        
-        closeAdminModal();
-        
-        const cal = document.getElementById('admin-calendar');
-        cal.innerHTML = '';
-        generateCalendarGrid(cal, false); 
-        
-        showToast('更新標記中...');
-        
-        fetch(gasURL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'annotations', value: globalAnnotations })
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success') showToast('✅ 標記已更新！');
-        });
-    }
-
-    function closeAdminModal() {
-        const overlay = document.getElementById('admin-modal-overlay');
-        const box = document.getElementById('admin-modal-box');
-        overlay.style.opacity = '0';
-        box.style.transform = 'translate(-50%, -45%)';
-        setTimeout(() => overlay.style.display = 'none', 300);
-    }
-
     function exitAdmin() {
         document.getElementById('admin-screen').style.display = 'none';
         isPastDeadline = checkDeadlineStatus();
         if (isPastDeadline) {
             const banner = document.getElementById('deadline-banner');
-            if (globalDeadline.includes('T')) {
-                const [pDate, pTime] = globalDeadline.split('T');
-                const [y, m, d] = pDate.split('-');
-                banner.innerText = `🚨 調查已於 ${m}/${d} ${pTime} 截止，系統鎖定無法再更改。`;
-            } else {
-                banner.innerText = `🚨 調查已截止，系統鎖定無法再更改。`;
-            }
+            const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+            const d = new Date(parsedStr);
+            banner.innerText = `🚨 投票已於 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes()} 截止。`;
             banner.style.display = 'block';
             document.getElementById('submitBtn').style.display = 'none';
-            document.getElementById('wishlist-input').disabled = true;
         } else {
             document.getElementById('deadline-banner').style.display = 'none';
-            document.getElementById('submitBtn').style.display = 'block';
-            document.getElementById('wishlist-input').disabled = false;
+            if (globalVotingOptions.length > 0) document.getElementById('submitBtn').style.display = 'block';
         }
-        renderCalendar(); 
-        document.getElementById('calendar-screen').style.display = 'block';
+        renderVotingCards(); 
+        document.getElementById('vote-screen').style.display = 'block';
     }
 </script>
 </body>
