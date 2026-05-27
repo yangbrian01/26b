@@ -14,9 +14,6 @@
         
         .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); backdrop-filter: blur(10px); margin-bottom: 20px; }
         
-        /* 金色三麥大橫幅 */
-        .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--gold); letter-spacing: 1px; }
-        
         .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; letter-spacing: 1px; }
         .sub-title { text-align: center; color: #8d99ae; font-size: 15px; margin-bottom: 20px; margin-top: 0; font-weight: 500; }
         
@@ -46,6 +43,16 @@
         }
         .pulse-animation { animation: pulse-btn 1.5s infinite; background-color: var(--accent) !important; }
         
+        /* 金色三麥大橫幅 */
+        .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--gold); letter-spacing: 1px; }
+        
+        /* ⭐ 地圖區塊樣式 */
+        .map-container { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .map-container iframe { width: 100%; height: 100%; border: none; }
+        .location-info { text-align: center; font-size: 14px; color: #6c757d; margin-bottom: 25px; font-weight: 500; }
+        .location-info a { color: var(--admin-blue); text-decoration: none; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #e0f2fe; transition: 0.2s; }
+        .location-info a:hover { background: #bde0fe; }
+
         /* 投票卡片樣式 */
         .vote-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         .vote-card { padding: 20px; border-radius: 12px; background: #fff; border: 2px solid #edf2f4; cursor: pointer; transition: 0.2s; font-size: 18px; font-weight: bold; color: #495057; display: flex; align-items: center; justify-content: space-between; }
@@ -128,6 +135,14 @@
             🍻 餐廳決選確認：金色三麥 🍻
         </div>
 
+        <!-- ⭐ 新增的地圖與導航區塊 -->
+        <div class="map-container">
+            <iframe src="https://maps.google.com/maps?q=金色三麥+竹北遠百店&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div class="location-info">
+            📍 竹北遠百店 (7F) | <a href="https://maps.app.goo.gl/B9U1EByUEdy3dG887" target="_blank">一鍵開啟導航</a>
+        </div>
+
         <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
             <strong id="displayName" style="color: var(--primary); font-size: 22px;"></strong><br>
             <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請選擇你 <span style="color: var(--admin-blue); font-weight: 700;">最想去</span> 的一天 (單選)</span>
@@ -203,7 +218,7 @@
 <script>
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = '';
-    let unavailableData = {}; // 暫存第一階段的請假資料，上傳時一併回傳以免覆蓋
+    let unavailableData = {}; 
     let adminParsedData = {}; 
     let globalAnnotations = {}; 
     let globalDeadline = '';
@@ -250,7 +265,7 @@
                 currentName = nameInput;
                 localStorage.setItem('teacherBanquetName', currentName); 
                 
-                unavailableData = data.previousData || {}; // 保留舊的請假資料
+                unavailableData = data.previousData || {}; 
                 globalDeadline = data.deadline || '';
                 globalVotingOptions = data.votingOptions || [];
                 globalAnnotations = data.annotations || {};
@@ -337,7 +352,6 @@
         fetch(gasURL, {
             method: 'POST',
             redirect: 'follow',
-            // 同時送出 reasons (保留舊資料) 和 vote (新的投票)
             body: JSON.stringify({ action: 'submit', name: currentName, reasons: unavailableData, vote: currentVote }) 
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
@@ -392,16 +406,13 @@
         document.getElementById('vote-screen').style.display = 'none';
         document.getElementById('admin-screen').style.display = 'block';
         
-        // 1. 處理決選投票統計
         const voteCounts = {};
         let totalVotes = 0;
         globalVotingOptions.forEach(opt => voteCounts[opt] = 0); 
         
-        // 2. 處理第一階段熱力圖統計
         adminParsedData = {};
 
         allData.forEach(row => {
-            // 計算投票
             if (row.vote) {
                 if (voteCounts[row.vote] !== undefined) {
                     voteCounts[row.vote]++;
@@ -411,7 +422,6 @@
                 totalVotes++;
             }
 
-            // 計算請假原因
             if(row.reasonString && row.reasonString !== "全部皆可參加") {
                 row.reasonString.split('\n').forEach(line => {
                     const parts = line.split('：');
@@ -425,7 +435,6 @@
             }
         });
 
-        // 繪製投票長條圖
         const resultsContainer = document.getElementById('admin-results-container');
         resultsContainer.innerHTML = '';
         
@@ -451,13 +460,11 @@
             });
         }
 
-        // 繪製熱力圖日曆
         const cal = document.getElementById('admin-calendar');
         cal.innerHTML = '';
         generateAdminCalendarGrid(cal);
     }
 
-    // 專屬於管理員的熱力圖生成邏輯
     function generateAdminCalendarGrid(container) {
         const days = ['日', '一', '二', '三', '四', '五', '六'];
         days.forEach(d => {
