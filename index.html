@@ -19,7 +19,7 @@
         
         .deadline-banner { background: #ffe3e3; color: var(--accent); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 20px; display: none; border: 2px solid #ffc2d1; }
         
-        input[type="text"], input[type="datetime-local"] { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
+        input[type="text"], input[type="datetime-local"] { width: 100%; padding: 15px; margin: 10px 0 15px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
         input[type="text"]:focus, input[type="datetime-local"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
         input:disabled { background: #e9ecef; cursor: not-allowed; opacity: 0.7; }
         
@@ -46,11 +46,12 @@
         /* 金色三麥大橫幅 */
         .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--gold); letter-spacing: 1px; }
         
-        .map-container { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        /* 地圖區塊樣式 */
+        .map-container { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background-color: #e9ecef; }
         .map-container iframe { width: 100%; height: 100%; border: none; }
         .location-info { text-align: center; font-size: 14px; color: #6c757d; margin-bottom: 25px; font-weight: 500; }
-        .location-info a { color: var(--admin-blue); text-decoration: none; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #e0f2fe; transition: 0.2s; }
-        .location-info a:hover { background: #bde0fe; }
+        .location-info a { color: var(--admin-blue); text-decoration: none; font-weight: 700; padding: 6px 12px; border-radius: 8px; background: #e0f2fe; transition: 0.2s; display: inline-block; margin-top: 5px; }
+        .location-info a:hover { background: #bde0fe; transform: translateY(-1px); }
 
         .admin-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
         .admin-label { font-weight: bold; font-size: 14px; color: var(--primary); display: block; margin-bottom: 8px; }
@@ -134,10 +135,11 @@
         </div>
 
         <div class="map-container">
-            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹&t=&z=13&ie=UTF8&iwloc=&output=embed2" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <iframe src="https://maps.google.com/maps?q=金色三麥%20新竹竹北店&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
         <div class="location-info">
-            📍 享平方店 (1F) | <a href="https://maps.google.com/maps?q=金色三麥+新竹&t=&z=13&ie=UTF8&iwloc=&output=embed3" target="_blank">一鍵開啟導航</a>
+            📍 享平方店 (1F) <br>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">🚗 一鍵開啟路線導航</a>
         </div>
 
         <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
@@ -220,19 +222,19 @@
     let isPastDeadline = false;
     let selectedAdminDate = '';
 
-    // ⭐ 嚴謹判斷特定日期是否反灰封鎖
+    // ⭐ 更新反黑封鎖的日期：加入 7/1 到 7/4
     function isDateDisabled(month, date) {
         if (month === 6) {
             if (date < 5) return true; // 6/5 以前不開放
             return [8, 9, 12, 22, 23].includes(date);
         }
         if (month === 7) {
-            return (date >= 5 && date <= 12) || [24, 25].includes(date);
+            // 7/1 - 7/12 (包含了原本的 7/5-7/12，現在從 7/1 開始)
+            return (date >= 1 && date <= 12) || [24, 25].includes(date);
         }
         return false; // 8月全開
     }
 
-    // 生成彈窗中可快速批量套用的日期陣列
     function generateValidDates() {
         allValidDates = [];
         let curr = new Date(2026, 5, 5);
@@ -332,7 +334,6 @@
         renderMonths(container, true);
     }
 
-    // ⭐ 核心渲染函數：依 6、7、8 月分割渲染
     function renderMonths(targetContainer, isUser) {
         const months = [6, 7, 8];
         const monthNames = {6: '6 月 June', 7: '7 月 July', 8: '8 月 August'};
@@ -357,13 +358,11 @@
                 grid.appendChild(el);
             });
 
-            // 對齊星期起點
             const startDay = new Date(2026, m - 1, 1).getDay();
             for(let i = 0; i < startDay; i++) {
                 grid.appendChild(document.createElement('div'));
             }
 
-            // 填入日期
             for(let d = 1; d <= daysInMonth[m]; d++) {
                 const dateStr = `${m}/${d}`;
                 const isDisabled = isDateDisabled(m, d);
@@ -532,7 +531,15 @@
                 globalAnnotations = data.annotations || {};
                 
                 if (globalDeadline) {
-                    document.getElementById('admin-deadline-input').value = globalDeadline;
+                    try {
+                        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
+                        const d = new Date(parsedStr);
+                        if (!isNaN(d)) {
+                            const pad = (n) => n < 10 ? '0' + n : n;
+                            const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                            document.getElementById('admin-deadline-input').value = formatted;
+                        }
+                    } catch(e) {}
                 }
 
                 renderAdminScreen(data.data);
