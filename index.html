@@ -257,7 +257,7 @@
         }
         if (month === 7) {
             // 原本 1~12 加上新需求 13~19 合併為 1~19 不開放
-            return (date >= 1 && date <= 19) || [24, 25].includes(date);
+            return (date >= 1 && date <= 10) || [24, 25].includes(date);
         }
         if (month === 8) {
             // 新增 8/24-31 不開放
