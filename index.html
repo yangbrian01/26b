@@ -38,8 +38,17 @@
         .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 380px; overflow-y: auto; }
         .panel.active { display: block; }
         
-        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
-        .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
+        /* 折疊菜單樣式 */
+        .category-header { background: #f8f9fa; padding: 12px 15px; border-radius: 8px; font-weight: bold; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid #edf2f4; margin-bottom: 8px; transition: 0.2s; }
+        .category-header:hover { background: #e2eafc; border-color: #bde0fe; }
+        .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
+        .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
+        .category-content.open { display: block; }
+        .toggle-icon { font-size: 12px; transition: transform 0.3s; }
+        .category-header.open .toggle-icon { transform: rotate(180deg); }
+
+        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #f1f3f5; }
+        .menu-btn { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
         .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: left; }
 
         .chat-box { height: 280px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; }
@@ -77,6 +86,7 @@
     <h2 class="header-title">2026TCLIPb</h2>
     <p class="sub-title">謝師宴座位與點餐系統</p>
 
+    <!-- 🌐 享平方店 (1F) -->
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
@@ -85,12 +95,14 @@
         <div class="location-info">📍 享平方店 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a></div>
     </div>
 
+    <!-- 1. 登入畫面 -->
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
         <button type="button" id="loginBtn" onclick="verifyName()">進入系統</button>
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">正在連線，請稍候...</div>
     </div>
 
+    <!-- 2. 大廳畫面 -->
     <div id="lobby-screen" style="display: none;">
         <h3 style="color: var(--admin-blue); margin-top: 0; text-align: left;">👋 歡迎，<span id="lobby-name"></span>！</h3>
         <p style="font-size: 14px; color: #6c757d; text-align: left;">每桌上限 15 人。你可以加入現有小組，或建立新小組。</p>
@@ -109,6 +121,7 @@
         <button type="button" id="adminBtn" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至管理員統計後台</button>
     </div>
 
+    <!-- 3. 包廂畫面 -->
     <div id="room-screen" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
@@ -119,7 +132,9 @@
             <div class="tab-btn" onclick="switchTab('chat')">💬 組內討論版</div>
         </div>
         <div id="tab-menu" class="panel active">
+            <!-- 展開式菜單容器 -->
             <div id="menu-list"></div>
+            
             <div class="cart-box">
                 <strong style="color: #b08d00;">🛒 本組已點餐點：</strong>
                 <ul id="cart-list" style="margin: 5px 0 0 0; padding-left: 20px; font-size: 14px; color: #495057; line-height: 1.6;"></ul>
@@ -136,6 +151,7 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至管理員統計後台</button>
     </div>
 
+    <!-- 4. 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召統計後台</h3>
         
@@ -175,17 +191,101 @@
 </div>
 
 <script>
-    // ⭐ 菜單全面綁定真實價格
-    const menuItems = [
-        { name: "金色三麥經典大拼盤", price: 1250 },
-        { name: "酥炸椒麻雞", price: 380 },
-        { name: "德國豬腳", price: 520 },
-        { name: "德式香腸披薩", price: 380 },
-        { name: "松露窯烤野菇燉飯", price: 480 },
-        { name: "西班牙海鮮飯", price: 480 },
-        { name: "現釀蜜蜂啤酒 (350ml)", price: 170 },
-        { name: "無酒精黑麥汁", price: 120 }
+    // ⭐ 分類折疊式菜單架構
+    const menuCategories = [
+        {
+            category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
+            items: [
+                { name: "海鮮水果沙拉 (M)", price: 280 }, { name: "海鮮水果沙拉 (L)", price: 380 },
+                { name: "經典尼斯沙拉 (M)", price: 250 }, { name: "經典尼斯沙拉 (L)", price: 350 },
+                { name: "握握手小農溫沙拉 (M)", price: 280 }, { name: "握握手小農溫沙拉 (L)", price: 380 },
+                { name: "凱薩沙拉 (M)", price: 250 }, { name: "凱薩沙拉 (L)", price: 350 },
+                { name: "海鮮濃湯", price: 200 }, { name: "南瓜濃湯 (蛋奶素)", price: 180 }
+            ]
+        },
+        {
+            category: "👑 SIGNATURE DISHES 主廚推薦",
+            items: [
+                { name: "金色三麥經典大拼盤", price: 1380 }, { name: "德式豬腳", price: 550 },
+                { name: "獨享拼盤", price: 480 }, { name: "黃金蝦餅", price: 450 },
+                { name: "墨魚醉嗆烏魚子", price: 380 }, { name: "現釀啤酒蝦 🌶️", price: 380 },
+                { name: "墨西哥濃香玉米片", price: 250 }, { name: "北海道鹽昆布透抽", price: 280 },
+                { name: "椒香滿天飛 🌶️🌶️", price: 280 }, { name: "蜜香滿天飛", price: 280 },
+                { name: "涼拌墨魚 🌶️ (M)", price: 250 }, { name: "涼拌墨魚 🌶️ (L)", price: 350 },
+                { name: "墨西哥雞肉餅 🌶️🌶️ (M)", price: 280 }, { name: "墨西哥雞肉餅 🌶️🌶️ (L)", price: 480 },
+                { name: "德式綜合香腸 (M)", price: 280 }, { name: "德式綜合香腸 (L)", price: 550 },
+                { name: "酥炸薯條", price: 170 }, { name: "酥炸椒麻雞 (M)", price: 220 },
+                { name: "酥炸椒麻雞 (L)", price: 320 }, { name: "咔滋蟹舞明太子", price: 450 }
+            ]
+        },
+        {
+            category: "🍝 RICE & SPAGHETTI 飯 & 麵",
+            items: [
+                { name: "鮭魚什香拌飯 (2人)", price: 550 }, { name: "鮭魚什香拌飯 (4人)", price: 980 },
+                { name: "西班牙海鮮燉飯 🌶️ (2人)", price: 480 }, { name: "西班牙海鮮燉飯 🌶️ (4人)", price: 820 },
+                { name: "松露野菇燉飯 (2人)", price: 480 }, { name: "松露野菇燉飯 (4人)", price: 820 },
+                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️ (2人)", price: 480 }, { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️ (4人)", price: 820 },
+                { name: "紐奧良什錦飯 🌶️ (2人)", price: 480 }, { name: "義大利海鮮麵", price: 350 },
+                { name: "義式番茄海鮮麵", price: 350 }, { name: "奶油雙菇雞肉麵", price: 350 },
+                { name: "海鮮義大利麵 (兒童餐)", price: 350 }, { name: "烤鮭魚拌飯 (兒童餐)", price: 380 }
+            ]
+        },
+        {
+            category: "🍕 PIZZA 披薩",
+            items: [
+                { name: "蝦仁鮭魚披薩 (6吋)", price: 280 }, { name: "蝦仁鮭魚披薩 (8吋)", price: 380 },
+                { name: "德式香腸披薩 (6吋)", price: 280 }, { name: "德式香腸披薩 (8吋)", price: 380 },
+                { name: "絲綢白乳酪披薩 (8吋)", price: 350 }, { name: "陽光鳳梨披薩 (8吋)", price: 380 }
+            ]
+        },
+        {
+            category: "🍮 DESSERT 甜點",
+            items: [
+                { name: "焦糖葡萄塔 (8顆)", price: 250 }, { name: "黑巧提拉米蘇 (含酒精)", price: 150 },
+                { name: "波士頓派", price: 150 }, { name: "黑麥霜淇淋", price: 150 },
+                { name: "金色三麥經典蛋糕 (6吋)", price: 790 }
+            ]
+        },
+        {
+            category: "🍺 ALCOHOLIC BEVERAGES 酒精飲品",
+            items: [
+                { name: "琥珀啤酒 (350ml)", price: 180 }, { name: "琥珀啤酒 (500ml)", price: 250 }, { name: "琥珀啤酒 (3L)", price: 1500 }, { name: "琥珀啤酒 (10L)", price: 4800 },
+                { name: "蜂蜜啤酒 (350ml)", price: 180 }, { name: "蜂蜜啤酒 (500ml)", price: 250 }, { name: "蜂蜜啤酒 (3L)", price: 1500 }, { name: "蜂蜜啤酒 (10L)", price: 4800 },
+                { name: "黑麥啤酒 (350ml)", price: 180 }, { name: "黑麥啤酒 (500ml)", price: 250 }, { name: "黑麥啤酒 (3L)", price: 1500 }, { name: "黑麥啤酒 (10L)", price: 4800 },
+                { name: "德式小麥啤酒 (350ml)", price: 180 }, { name: "德式小麥啤酒 (500ml)", price: 250 }, { name: "德式小麥啤酒 (3L)", price: 1500 }, { name: "德式小麥啤酒 (10L)", price: 4800 },
+                { name: "季節啤酒 (350ml)", price: 180 }, { name: "季節啤酒 (500ml)", price: 250 }, { name: "季節啤酒 (3L)", price: 1500 }, { name: "季節啤酒 (10L)", price: 4800 },
+                { name: "三麥啤酒組合 (200ml x3)", price: 320 }, { name: "MISSS 蜂蜜氣泡酒 (500ml)", price: 680 }
+            ]
+        },
+        {
+            category: "🍹 DRINK 飲料",
+            items: [
+                { name: "SUNMAI 紅烏龍康普茶 (330ml)", price: 90 }, { name: "蜂蜜啤酒芒果冰沙", price: 220 },
+                { name: "桃氣破冰船", price: 220 }, { name: "桂花奶霜氣泡烏龍", price: 180 },
+                { name: "華麗芭洛克果茶", price: 180 }, { name: "鮮果好夢茶", price: 180 },
+                { name: "彩虹珊瑚鮮果汁", price: 150 }, { name: "豔夏紅寶石", price: 150 },
+                { name: "芭莉仙女下凡來", price: 150 }, { name: "美式咖啡", price: 120 },
+                { name: "拿鐵咖啡", price: 150 }, { name: "莫西多氣泡咖啡", price: 220 }
+            ]
+        },
+        {
+            category: "🥗 VEGETARIAN 蔬食",
+            items: [
+                { name: "纖主義涼涮秋葵 (素食)", price: 180 }, { name: "握握手小農溫沙拉 (素食)", price: 250 },
+                { name: "凱薩沙拉 (蛋奶素)", price: 220 }, { name: "酥炸香濃起司條 (蛋奶素)", price: 180 },
+                { name: "酥炸山藥 (素食)", price: 220 }, { name: "植想麻辣蔬食雞 🌶️🌶️ (素食)", price: 250 },
+                { name: "蔬食椒麻雞 🌶️ (素食)", price: 260 }, { name: "純蔬彈力蝦肉餅 (素食)", price: 280 },
+                { name: "炸鮮菇降落傘 (素食)", price: 280 }, { name: "BBQ美腿燒 🌶️ (五辛素)", price: 150 },
+                { name: "帕瑪森南瓜打滾 (蛋奶素)", price: 250 }, { name: "南瓜濃湯 (蛋奶素)", price: 180 },
+                { name: "冠軍蜂蜜啤酒麥芽麵包 (蛋奶素)", price: 180 }, { name: "辣味義式蔬菜麵 🌶️🌶️ (素食)", price: 350 },
+                { name: "聞香起舞野菇飯 (素食)", price: 280 }, { name: "花心蔬脆披薩 (6吋)", price: 250 },
+                { name: "榴槤忘返甜披薩 (蛋奶素) (6吋)", price: 280 }, { name: "陽光鳳梨披薩 (蛋奶素) (6吋)", price: 250 }
+            ]
+        }
     ];
+
+    // 展開出一個平坦的陣列方便計算
+    const allMenuItems = menuCategories.flatMap(c => c.items);
 
     function isDateDisabled(month, date) {
         if (month === 6) { if (date < 5) return true; return [8, 9, 12, 22, 23].includes(date); }
@@ -227,7 +327,6 @@
                 currentName = name;
                 document.getElementById('map-block').style.display = 'block'; 
                 
-                // ⭐ 修復核心：直接拿 verify 回傳的權限判定，管理員按鈕秒開！
                 if (data.isAdmin) {
                     document.getElementById('adminBtn').style.display = 'block';
                     document.getElementById('adminBtnRoom').style.display = 'block';
@@ -313,34 +412,54 @@
         startPolling(); 
     }
 
-    // ⭐ 菜單列表顯示價格
+    // ⭐ 渲染折疊式菜單
     function renderMenuListUI() {
-        const list = document.getElementById('menu-list'); list.innerHTML = '';
-        menuItems.forEach(item => {
-            localCart[item.name] = 0;
+        const list = document.getElementById('menu-list'); 
+        list.innerHTML = '';
+        
+        menuCategories.forEach((cat, index) => {
+            let itemsHtml = '';
+            cat.items.forEach(item => {
+                localCart[item.name] = 0;
+                itemsHtml += `
+                <div class="menu-item">
+                    <div style="text-align:left;">
+                        <span style="font-weight: bold; font-size: 14px; display:block;">${item.name}</span>
+                        <span style="font-size: 13px; color: #8d99ae; font-weight:600;">$${item.price}</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
+                        <span id="qty-${item.name}" style="width: 25px; text-align: center; font-weight: bold; color:var(--admin-blue);">0</span>
+                        <button class="menu-btn" onclick="modCart('${item.name}', 1)">+</button>
+                    </div>
+                </div>`;
+            });
+
             list.innerHTML += `
-            <div class="menu-item">
-                <div style="text-align:left;">
-                    <span style="font-weight: bold; font-size: 14px; display:block;">${item.name}</span>
-                    <span style="font-size: 13px; color: #8d99ae; font-weight:600;">$${item.price}</span>
+            <div>
+                <div class="category-header" onclick="toggleCategory(${index})" id="cat-head-${index}">
+                    ${cat.category}
+                    <span class="toggle-icon">▼</span>
                 </div>
-                <div style="display: flex; align-items: center;">
-                    <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
-                    <span id="qty-${item.name}" style="width: 25px; text-align: center; font-weight: bold; color:var(--admin-blue);">0</span>
-                    <button class="menu-btn" onclick="modCart('${item.name}', 1)">+</button>
+                <div class="category-content" id="cat-content-${index}">
+                    ${itemsHtml}
                 </div>
             </div>`;
         });
     }
 
-    // ⭐ 點餐瞬間同步更新黃色購物車，並計算總額
+    function toggleCategory(index) {
+        document.getElementById(`cat-content-${index}`).classList.toggle('open');
+        document.getElementById(`cat-head-${index}`).classList.toggle('open');
+    }
+
     function modCart(itemName, delta) {
         let currentQty = localCart[itemName] || 0;
         let newQty = Math.max(0, currentQty + delta);
         localCart[itemName] = newQty;
         document.getElementById(`qty-${itemName}`).innerText = newQty;
 
-        syncCartUI(localCart); // 樂觀UI更新
+        syncCartUI(localCart); 
 
         fetch(gasURL, {
             method: 'POST',
@@ -349,14 +468,13 @@
         });
     }
 
-    // ⭐ 購物車加入詳細金額計算與總計
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); list.innerHTML = '';
         let hasItem = false;
         let totalSum = 0;
 
-        menuItems.forEach(item => {
+        allMenuItems.forEach(item => {
             const qty = localCart[item.name] || 0;
             const qtyEl = document.getElementById(`qty-${item.name}`);
             if (qtyEl) qtyEl.innerText = qty; 
@@ -365,7 +483,7 @@
                 hasItem = true;
                 const subTotal = item.price * qty;
                 totalSum += subTotal;
-                list.innerHTML += `<li><strong>${item.name}</strong> <span style="color:#8d99ae; font-size:12px;">($${item.price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}份</span> = <span style="font-weight:bold;">$${subTotal}</span></li>`;
+                list.innerHTML += `<li><strong>${item.name}</strong> <span style="color:#8d99ae; font-size:12px;">($${item.price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <span style="font-weight:bold;">$${subTotal}</span></li>`;
             }
         });
         if(hasItem) {
@@ -456,10 +574,9 @@
         });
     }
 
-    // ⭐ 後台總金額統計與精準算錢
     function renderAdminOrderSummaryUI(groupStatus) {
         let summaryObj = {};
-        menuItems.forEach(item => summaryObj[item.name] = 0);
+        allMenuItems.forEach(item => summaryObj[item.name] = 0);
 
         ['table1', 'table2'].forEach(tKey => {
             let tGroups = groupStatus[tKey].groups;
@@ -476,7 +593,7 @@
         let hasOrder = false;
         let totalClassCost = 0;
         
-        menuItems.forEach(item => {
+        allMenuItems.forEach(item => {
             const totalQty = summaryObj[item.name] || 0;
             if(totalQty > 0) {
                 hasOrder = true;
