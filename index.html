@@ -9,7 +9,7 @@
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
         
-        .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); margin-bottom: 20px; position: relative; }
         .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; }
         .sub-title { text-align: center; color: #8d99ae; font-size: 15px; margin-bottom: 20px; margin-top: 0; }
         
@@ -53,42 +53,40 @@
         .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: left; }
 
         /* ⭐ 聊天室升級 UI */
-        .chat-box { flex: 1; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; position: relative; }
-        .msg-bubble { position: relative; background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 12px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; user-select: none; -webkit-user-select: none; }
+        .chat-box { flex: 1; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; overflow-x: hidden; }
+        .msg-bubble { position: relative; background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 12px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); user-select: none; -webkit-user-select: none; will-change: transform; }
         .msg-bubble.mine { background: #dbeafe; margin-left: auto; border-radius: 15px; border-bottom-right-radius: 0; }
         .msg-sender { font-size: 11px; color: #adb5bd; margin-bottom: 2px; }
         .msg-text { word-break: break-all; }
         
-        .chat-input-row { display: flex; gap: 8px; flex-shrink: 0; }
+        .chat-input-row { display: flex; gap: 8px; flex-shrink: 0; position: relative; }
         .chat-input-row input { margin: 0; flex: 1; }
         .chat-input-row button { width: auto; margin: 0; padding: 0 20px; }
         
         /* 引用回覆區塊 */
-        .reply-preview-bar { display: none; background: #e0f2fe; padding: 8px 12px; border-radius: 8px 8px 0 0; border-left: 4px solid var(--admin-blue); font-size: 12px; justify-content: space-between; align-items: center; margin-bottom: -5px; }
-        .reply-quote-box { background: rgba(0,0,0,0.05); padding: 6px 10px; border-radius: 6px; font-size: 11px; color: #6c757d; margin-bottom: 6px; border-left: 3px solid #adb5bd; }
+        .reply-preview-bar { display: none; background: #e0f2fe; padding: 8px 12px; border-radius: 8px 8px 0 0; border-left: 4px solid var(--admin-blue); font-size: 12px; justify-content: space-between; align-items: center; margin-bottom: -5px; z-index: 5; }
+        .reply-quote-box { background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 6px; font-size: 11px; color: #6c757d; margin-bottom: 6px; border-left: 3px solid #adb5bd; }
         
         /* 表情反應區塊 */
         .reactions-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-        .reaction-pill { background: #f1f3f5; border: 1px solid #e9ecef; border-radius: 12px; padding: 2px 6px; font-size: 11px; display: inline-flex; align-items: center; }
-        .reaction-pill.active { background: #e0f2fe; border-color: #bae6fd; font-weight: bold; }
+        .reaction-pill { background: #f1f3f5; border: 1px solid #e9ecef; border-radius: 12px; padding: 2px 6px; font-size: 11px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .reaction-pill.active { background: #e0f2fe; border-color: #bae6fd; font-weight: bold; color: var(--admin-blue); }
 
         /* 長按彈出選單 */
         .context-menu { position: fixed; background: #fff; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; overflow: hidden; border: 1px solid #edf2f4; }
         .context-menu .emoji-row { display: flex; gap: 8px; padding: 10px 15px; border-bottom: 1px solid #edf2f4; font-size: 22px; }
-        .context-menu .emoji-row span { cursor: pointer; transition: transform 0.2s; display: inline-block; }
+        .context-menu .emoji-row span { cursor: pointer; transition: transform 0.2s; display: inline-block; padding: 2px; }
         .context-menu .emoji-row span:hover { transform: scale(1.3); }
         .context-menu .action-row { padding: 12px 15px; font-size: 14px; font-weight: bold; color: var(--admin-blue); text-align: center; cursor: pointer; }
         .context-menu .action-row:hover { background: #f8f9fa; }
 
-        /* 其他雜項 */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         #toast { visibility: hidden; min-width: 200px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 12px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
     </style>
 </head>
 <body>
 
-<!-- 浮動右鍵長按選單 -->
+<!-- 浮動長按選單 -->
 <div id="chat-context-menu" class="context-menu">
     <div class="emoji-row">
         <span onclick="triggerReaction('👍')">👍</span>
@@ -104,6 +102,7 @@
     <h2 class="header-title">2026TCLIPb</h2>
     <p class="sub-title">謝師宴座位與點餐系統</p>
 
+    <!-- 定位：享平方店 -->
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
@@ -170,7 +169,7 @@
         </div>
         <div id="tab-chat" class="panel">
             <div class="chat-box" id="chat-history"></div>
-            <!-- ⭐ 回覆預覽區塊 -->
+            <!-- ⭐ 引用回覆顯示列 -->
             <div class="reply-preview-bar" id="reply-preview-bar">
                 <div>回覆給 <strong id="reply-target-name" style="color:var(--primary);"></strong>：<span id="reply-target-text" style="color:#6c757d;"></span></div>
                 <span style="cursor:pointer; font-size:20px; color:#adb5bd; line-height:1;" onclick="cancelReply()">×</span>
@@ -180,18 +179,22 @@
                 <button type="button" onclick="sendChat()">傳送</button>
             </div>
         </div>
+        
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 4. 管理員後台 -->
+    <!-- 4. 管理員雙功能後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
+        
         <div class="tab-nav">
             <div class="tab-btn active" id="admin-tab-summary" onclick="switchAdminSubTab('summary')">📋 叫菜總計</div>
             <div class="tab-btn" id="admin-tab-breakdown" onclick="switchAdminSubTab('breakdown')">💰 各組拆帳</div>
         </div>
+
         <div id="admin-panel-summary" style="display: block; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
         <div id="admin-panel-breakdown" style="display: none; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
+
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回大廳</button>
     </div>
 </div>
@@ -331,8 +334,9 @@
     let localCart = {}; let localChatHistory = [];
     let isUpdatingCart = false, isUpdatingChat = false;
     
-    let replyingToObj = null; // 儲存回覆目標 {id, sender, text}
-    let targetMsgForContext = null; // 儲存長按的訊息 ID
+    // ⭐ LINE 級別輔助變數
+    let replyingToObj = null; 
+    let targetMsgForContext = null; 
 
     window.onload = function() {
         const savedName = localStorage.getItem('teacherBanquetName');
@@ -380,6 +384,7 @@
             } else { showToast(data.message); }
         }).catch(() => { 
             document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block';
+            showToast('❌ 網路不穩，請重新嘗試'); 
         });
     }
 
@@ -462,10 +467,10 @@
             const tKey = myGroupData.table == 1 ? 'table1' : 'table2';
             const groupStatus = statusObj[tKey].groups[myGroupData.groupName];
             if (groupStatus) {
-                // 給新舊紀錄補上隨機 ID 防呆
-                localChatHistory = groupStatus.chat || [];
-                localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
                 syncCartUI(groupStatus.cart || {});
+                localChatHistory = groupStatus.chat || [];
+                // 防呆，賦予舊訊息 ID 以支援滑動
+                localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
                 syncChatUI(localChatHistory);
             }
         }
@@ -590,7 +595,7 @@
         else list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
     }
 
-    // ⭐ LINE 級別功能：回覆與表情貼
+    // ⭐ LINE 級別互動功能區塊
     function triggerReply(msgId, sender, text) {
         replyingToObj = { id: msgId, sender: sender, text: text };
         document.getElementById('reply-preview-bar').style.display = 'flex';
@@ -646,6 +651,7 @@
         
         isUpdatingChat = true;
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: newMsg }) })
+        .catch(() => showToast('⚠️ 網路不穩，訊息可能未送達'))
         .finally(() => { setTimeout(() => { isUpdatingChat = false; }, 1000); });
     }
 
@@ -656,7 +662,7 @@
         
         chatArray.forEach(msg => {
             const isMe = msg.sender === currentName;
-            const msgId = msg.id || 'sys';
+            const msgId = msg.id || ('sys_' + Math.random());
             let replyHtml = '';
             if (msg.replyTo) replyHtml = `<div class="reply-quote-box"><strong>${msg.replyTo.sender}</strong>: ${msg.replyTo.text}</div>`;
             
@@ -670,7 +676,6 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            
             const cleanText = (msg.text || '').replace(/"/g, '&quot;');
             
             box.innerHTML += `
@@ -685,14 +690,20 @@
         if(isAtBottom) box.scrollTop = box.scrollHeight;
     }
 
-    // ⭐ 長按 & 左右滑動觸發事件綁定
+    // ⭐ 物理滑動回饋與長按偵測核心
     const chatBox = document.getElementById('chat-history');
     let touchStartX = 0, touchStartY = 0, touchTimer = null;
+    let swipingBubble = null;
 
     chatBox.addEventListener('touchstart', (e) => {
         const bubble = e.target.closest('.msg-bubble');
         if (!bubble) return;
-        touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+        
+        touchStartX = e.touches[0].clientX; 
+        touchStartY = e.touches[0].clientY;
+        swipingBubble = bubble;
+
+        // 長按 500ms 觸發
         touchTimer = setTimeout(() => {
             targetMsgForContext = bubble.dataset.id;
             const menu = document.getElementById('chat-context-menu');
@@ -700,25 +711,45 @@
             menu.style.left = Math.min(e.touches[0].clientX, window.innerWidth - 180) + 'px';
             menu.style.top = Math.max(10, e.touches[0].clientY - 80) + 'px';
             if(navigator.vibrate) navigator.vibrate(50);
+            swipingBubble = null; // 長按就取消滑動
         }, 500); 
     }, {passive: true});
 
     chatBox.addEventListener('touchmove', (e) => {
-        if (!touchStartX) return;
+        if (!touchStartX || !swipingBubble) return;
         let cx = e.touches[0].clientX; let cy = e.touches[0].clientY;
-        if (Math.abs(cx - touchStartX) > 10 || Math.abs(cy - touchStartY) > 10) clearTimeout(touchTimer);
+        let diffX = cx - touchStartX;
+        let diffY = cy - touchStartY;
+        
+        // 防手抖：移動超過 10px 視為滑動，取消長按選單
+        if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) clearTimeout(touchTimer);
+
+        // 水平滑動時讓氣泡跟著手指動 (物理回饋)
+        if (Math.abs(diffX) > Math.abs(diffY)) { 
+            let moveX = diffX;
+            if (moveX > 80) moveX = 80; // 限制滑動距離
+            if (moveX < -80) moveX = -80;
+            swipingBubble.style.transform = `translateX(${moveX}px)`;
+            swipingBubble.style.transition = 'none'; // 拔掉動畫讓他跟手
+        }
     }, {passive: true});
 
     chatBox.addEventListener('touchend', (e) => {
         clearTimeout(touchTimer);
-        const bubble = e.target.closest('.msg-bubble');
-        if (!bubble || !touchStartX) return;
+        if (!swipingBubble || !touchStartX) return;
         
         let diffX = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(diffX) > 60 && bubble.dataset.sender !== '系統') {
-            triggerReply(bubble.dataset.id, bubble.dataset.sender, bubble.dataset.text);
+        
+        // 手指放開後，彈回原位
+        swipingBubble.style.transition = 'transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1)';
+        swipingBubble.style.transform = 'translateX(0)';
+
+        // 滑動超過 50px 觸發回覆
+        if (Math.abs(diffX) > 50 && swipingBubble.dataset.sender !== '系統') {
+            triggerReply(swipingBubble.dataset.id, swipingBubble.dataset.sender, swipingBubble.dataset.text);
         }
-        touchStartX = 0; 
+        
+        touchStartX = 0; swipingBubble = null;
     });
 
     document.addEventListener('click', (e) => {
@@ -757,6 +788,7 @@
         event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
     }
 
+    // ===== 📊 管理員後台 =====
     function switchAdminSubTab(subId) {
         document.getElementById('admin-tab-summary').classList.remove('active'); document.getElementById('admin-tab-breakdown').classList.remove('active');
         document.getElementById('admin-panel-summary').style.display = 'none'; document.getElementById('admin-panel-breakdown').style.display = 'none';
@@ -772,7 +804,7 @@
                 document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('room-screen').style.display = 'none'; 
                 document.getElementById('admin-screen').style.display = 'block';
             } else { showToast(data.message); }
-        });
+        }).catch(()=>{ showToast('連線異常'); });
     }
 
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
@@ -782,37 +814,30 @@
             if (item.type === 'single') globalSummary[item.name] = 0;
             else item.options.forEach(o => globalSummary[`${item.name} (${o.n})`] = 0);
         });
-        
         let totalClassCost = 0;
-        const summaryPanel = document.getElementById('admin-panel-summary');
-        const breakdownPanel = document.getElementById('admin-panel-breakdown');
+        const summaryPanel = document.getElementById('admin-panel-summary'); const breakdownPanel = document.getElementById('admin-panel-breakdown');
         summaryPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">📋 餐廳叫菜匯總統計</h3>';
         breakdownPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">💰 各組座位拆帳明細</h3>';
 
         ['table1', 'table2'].forEach(tKey => {
             const tableNum = tKey === 'table1' ? 1 : 2;
             let tGroups = groupStatus[tKey].groups;
-            
             for(let groupIdentifier in tGroups) {
                 const groupObj = tGroups[groupIdentifier];
                 const parts = groupIdentifier.split('#');
-                const cleanName = parts[0]; const code = parts[1];
-
                 let groupTotal = 0; let groupItemsHtml = '';
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
                         const price = itemPriceMap[key] || 0; const cost = price * qty;
-                        groupTotal += cost; totalClassCost += cost;
-                        globalSummary[key] = (globalSummary[key] || 0) + qty;
+                        groupTotal += cost; totalClassCost += cost; globalSummary[key] += qty;
                         groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${key} x ${qty} = $${cost}</div>`;
                     }
                 }
                 if(groupItemsHtml === '') groupItemsHtml = '<div style="padding-left:15px; color:#adb5bd; font-style:italic;">該組尚未點餐</div>';
-
                 breakdownPanel.innerHTML += `
                 <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #edf2f4;">
-                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">[第 ${tableNum} 桌] ${cleanName} (密碼: ${code})</div>
+                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">[第 ${tableNum} 桌] ${parts[0]} (密碼: ${parts[1]})</div>
                     <div style="font-size:12px; color:#6c757d; padding-left:5px;">組員: ${groupObj.members.join(', ')}</div>
                     ${groupItemsHtml}
                     <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">組開銷小計: $${groupTotal}</div>
