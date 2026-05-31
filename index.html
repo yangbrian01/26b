@@ -87,7 +87,7 @@
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
-            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹竹北店&output=embed" allowfullscreen="" loading="lazy"></iframe>
+            <iframe src="https://maps.google.com/maps?q=金色三麥%20新竹竹北店&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
         </div>
         <div class="location-info">📍 享平方店 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a></div>
     </div>
@@ -130,7 +130,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="text-align: left;">
                 <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
-                <span id="room-code-display" style="font-size:13px; font-weight:bold; color:var(--admin-blue); background:#e0f2fe; padding:2px 6px; border-radius:4px; margin-top:4px; display:inline-block;"></span>
+                <span id="room-code-display" style="font-size:13px; font-weight:bold; margin-top:4px; display:inline-block;"></span>
             </div>
             <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出 / 更換小組</button>
         </div>
@@ -165,12 +165,14 @@
         </div>
 
         <div id="admin-panel-summary" style="display: block; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
-        
         <div id="admin-panel-breakdown" style="display: none; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
 
-        <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
-        <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段請假熱力圖</h4>
-        <div id="admin-calendar-container"></div>
+        <div id="admin-heatmap-section" style="display: none;">
+            <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
+            <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段請假熱力圖</h4>
+            <div id="admin-calendar-container"></div>
+        </div>
+        
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回大廳</button>
     </div>
 </div>
@@ -191,7 +193,6 @@
 </div>
 
 <script>
-    // ⭐ 完全整合規格化之精簡選單架構
     const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
@@ -313,7 +314,6 @@
         }
     ];
 
-    // 快取地圖對應字典方便算錢
     const itemPriceMap = {};
     menuData.forEach(c => {
         c.items.forEach(i => {
@@ -329,10 +329,17 @@
         return false; 
     }
 
-    const governorAccess = false;
-    const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = ''; let myGroupData = null; let syncTimer = null;
     let localCart = {}; let adminParsedData = {}; let globalAnnotations = {}; let selectedAdminDate = '';
+
+    // ⭐ 修正版自動登入載入器
+    window.onload = function() {
+        const savedName = localStorage.getItem('teacherBanquetName');
+        if (savedName) {
+            document.getElementById('studentName').value = savedName;
+            verifyName();
+        }
+    }
 
     function showToast(msg) {
         const toast = document.getElementById("toast"); toast.innerText = msg; toast.className = "show";
@@ -342,7 +349,9 @@
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
-        document.getElementById('loginBtn').style.display = 'none'; document.getElementById('loading').style.display = 'block';
+
+        document.getElementById('loginBtn').style.display = 'none'; 
+        document.getElementById('loading').style.display = 'block';
 
         fetch(gasURL, {
             method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'verify', name: name })
@@ -351,6 +360,8 @@
 
             if (data.status === 'success') {
                 currentName = name;
+                localStorage.setItem('teacherBanquetName', currentName); // ⭐ 修正：確認成功登入後，確實寫入快取啟用自動登入
+                
                 document.getElementById('map-block').style.display = 'block'; 
                 
                 if (data.isAdmin) {
@@ -368,7 +379,7 @@
             } else { showToast(data.message); }
         }).catch(() => {
             document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block';
-            showToast('❌ 網路錯誤');
+            showToast('❌ 網路連線錯誤');
         });
     }
 
@@ -389,7 +400,6 @@
 
     function submitLobbyAction(mode) {
         let payload = { action: 'joinGroup', name: currentName, mode: mode };
-        
         if (mode === 'create') {
             const gName = document.getElementById('create-group-name').value.trim();
             const tNum = document.getElementById('create-group-table').value;
@@ -418,13 +428,25 @@
         
         const parts = myGroupData.groupName.split('#');
         document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${parts[0]}】`;
-        document.getElementById('room-code-display').innerText = `🔑 小組密碼：${parts[1]}`;
+        
+        // ⭐ 修正版：密碼代碼區塊，點擊文字即可自動複製
+        document.getElementById('room-code-display').innerHTML = `🔑 小組密碼：<strong id="my-code-val" style="color:var(--primary); font-size:14px; background:#fff; padding:2px 6px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="copyRoomCode()">${parts[1]}</strong> <span style="font-size:12px; color:var(--admin-blue); cursor:pointer; font-weight:bold; margin-left:4px;" onclick="copyRoomCode()">[點擊複製]</span>`;
         
         renderMenuListUI();
         startPolling(); 
     }
 
-    // ⭐ 建立規格下拉式手風琴菜單
+    // ⭐ 修正版：點擊自動複製代碼
+    function copyRoomCode() {
+        const parts = myGroupData.groupName.split('#');
+        const code = parts[1];
+        navigator.clipboard.writeText(code).then(() => {
+            showToast('📋 房號代碼已成功複製到剪貼簿！');
+        }).catch(() => {
+            showToast('❌ 複製失敗，請手動圈選複製。');
+        });
+    }
+
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
         
@@ -446,7 +468,6 @@
                         </div>
                     </div>`;
                 } else {
-                    // 規格下拉模式
                     let optionsHtml = '';
                     item.options.forEach(o => { optionsHtml += `<option value="${o.n}">規格: ${o.n} ($${o.p})</option>`; });
                     
@@ -482,7 +503,6 @@
         document.getElementById(`cat-head-${idx}`).classList.toggle('open');
     }
 
-    // 下拉選單連動數量顯示
     function updateSpecQtyUI(baseName, cIdx, iIdx) {
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${baseName} (${specName})`;
@@ -520,12 +540,12 @@
         });
     }
 
+    const allMenuItems = menuData.flatMap(c => c.items);
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); list.innerHTML = '';
         let hasItem = false; let totalSum = 0;
 
-        // 刷動態選單與靜態選單的所有連動
         for(let key in localCart) {
             const qty = localCart[key] || 0;
             if(qty > 0) {
@@ -537,7 +557,6 @@
             }
         }
 
-        // 回填當前畫面上的數值
         menuData.forEach((cat, cIdx) => {
             cat.items.forEach((item, iIdx) => {
                 if(item.type === 'single') {
@@ -599,7 +618,10 @@
         if (!confirm('確定要離開此秘密小組嗎？')) return;
         clearInterval(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
-        .then(() => location.reload());
+        .then(() => {
+            localStorage.removeItem('teacherBanquetName'); // 登出時清空
+            location.reload();
+        });
     }
 
     function switchTab(tabId) {
@@ -608,7 +630,7 @@
         event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    // ===== 📊 管理員後台核心邏輯 =====
+    // ===== 管理員後台 =====
     function switchAdminSubTab(subId) {
         document.getElementById('admin-tab-summary').classList.remove('active');
         document.getElementById('admin-tab-breakdown').classList.remove('active');
@@ -651,12 +673,8 @@
         });
     }
 
-    // ⭐ 核心渲染：叫菜總計（分頁A）與分組拆帳（分頁B）
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
-        let globalSummary = {};
-        let totalClassCost = 0;
-
-        // 分頁 A、B 容器清空
+        let globalSummary = {}; let totalClassCost = 0;
         const summaryPanel = document.getElementById('admin-panel-summary');
         const breakdownPanel = document.getElementById('admin-panel-breakdown');
         summaryPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">📋 餐廳叫菜匯總統計</h3>';
@@ -669,36 +687,25 @@
             for(let groupIdentifier in tGroups) {
                 const groupObj = tGroups[groupIdentifier];
                 const parts = groupIdentifier.split('#');
-                const cleanName = parts[0];
-                const code = parts[1];
+                const cleanName = parts[0]; const code = parts[1];
 
-                let groupTotal = 0;
-                let groupItemsHtml = '';
+                let groupTotal = 0; let groupItemsHtml = '';
 
-                // 統計該組餐點
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
-                        const price = itemPriceMap[key] || 0;
-                        const cost = price * qty;
-                        groupTotal += cost;
-                        totalClassCost += cost;
-
-                        // 累加到全班叫菜總計
+                        const price = itemPriceMap[key] || 0; const cost = price * qty;
+                        groupTotal += cost; totalClassCost += cost;
                         globalSummary[key] = (globalSummary[key] || 0) + qty;
-
                         groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${key} x ${qty} = $${cost}</div>`;
                     }
                 }
 
                 if(groupItemsHtml === '') groupItemsHtml = '<div style="padding-left:15px; color:#adb5bd; font-style:italic;">該組尚未點餐</div>';
 
-                // 渲染分頁 B (各組拆帳)
                 breakdownPanel.innerHTML += `
                 <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #edf2f4;">
-                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">
-                        [第 ${tableNum} 桌] ${cleanName} (密碼: ${code})
-                    </div>
+                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">[第 ${tableNum} 桌] ${cleanName} (密碼: ${code})</div>
                     <div style="font-size:12px; color:#6c757d; padding-left:5px;">組員: ${groupObj.members.join(', ')}</div>
                     ${groupItemsHtml}
                     <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">組開銷小計: $${groupTotal}</div>
@@ -706,12 +713,10 @@
             }
         });
 
-        // 渲染分頁 A (全班總計)
         let hasOrder = false;
         for(let key in globalSummary) {
             hasOrder = true;
-            const price = itemPriceMap[key] || 0;
-            const cost = price * globalSummary[key];
+            const price = itemPriceMap[key] || 0; const cost = price * globalSummary[key];
             summaryPanel.innerHTML += `<div>• <strong>${key}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${globalSummary[key]}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
         }
         
