@@ -7,7 +7,7 @@
     <style>
         :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
         
         .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); margin-bottom: 20px; }
         .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; }
@@ -21,7 +21,6 @@
         
         input[type="text"], select { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; background: #f8f9fa; }
         button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
-        button:hover { background-color: #0f1923; transform: translateY(-2px); }
         button.secondary { background-color: #edf2f4; color: #457b9d; }
         button.danger { background-color: #ffe3e3; color: var(--accent); }
         
@@ -41,49 +40,65 @@
         .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; }
         .tab-btn.active { background: var(--primary); color: #fff; }
-        .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 380px; overflow-y: auto; }
-        .panel.active { display: block; }
+        .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 420px; overflow-y: auto; position: relative; }
+        .panel.active { display: flex; flex-direction: column; }
         
         .category-header { background: #f8f9fa; padding: 12px 15px; border-radius: 8px; font-weight: bold; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid #edf2f4; margin-bottom: 8px; }
         .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
         .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
         .category-content.open { display: block; }
-        .toggle-icon { font-size: 12px; }
 
         .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #f1f3f5; }
         .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
         .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: left; }
 
-        .chat-box { height: 240px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; }
-        .msg-bubble { background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 8px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        /* ⭐ 聊天室升級 UI */
+        .chat-box { flex: 1; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; position: relative; }
+        .msg-bubble { position: relative; background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 12px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; user-select: none; -webkit-user-select: none; }
         .msg-bubble.mine { background: #dbeafe; margin-left: auto; border-radius: 15px; border-bottom-right-radius: 0; }
         .msg-sender { font-size: 11px; color: #adb5bd; margin-bottom: 2px; }
-        .chat-input-row { display: flex; gap: 8px; }
+        .msg-text { word-break: break-all; }
+        
+        .chat-input-row { display: flex; gap: 8px; flex-shrink: 0; }
         .chat-input-row input { margin: 0; flex: 1; }
         .chat-input-row button { width: auto; margin: 0; padding: 0 20px; }
+        
+        /* 引用回覆區塊 */
+        .reply-preview-bar { display: none; background: #e0f2fe; padding: 8px 12px; border-radius: 8px 8px 0 0; border-left: 4px solid var(--admin-blue); font-size: 12px; justify-content: space-between; align-items: center; margin-bottom: -5px; }
+        .reply-quote-box { background: rgba(0,0,0,0.05); padding: 6px 10px; border-radius: 6px; font-size: 11px; color: #6c757d; margin-bottom: 6px; border-left: 3px solid #adb5bd; }
+        
+        /* 表情反應區塊 */
+        .reactions-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .reaction-pill { background: #f1f3f5; border: 1px solid #e9ecef; border-radius: 12px; padding: 2px 6px; font-size: 11px; display: inline-flex; align-items: center; }
+        .reaction-pill.active { background: #e0f2fe; border-color: #bae6fd; font-weight: bold; }
 
-        .month-title { color: var(--primary); font-size: 18px; font-weight: bold; border-left: 5px solid var(--primary); padding-left: 8px; margin: 25px 0 10px 0; text-align: left; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 15px; text-align: center; width: 100%; }
-        .cal-header { font-weight: 700; color: #8d99ae; padding: 6px 0; font-size: 14px; }
-        .cal-day { padding: 14px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; display: flex; align-items: center; justify-content: center; }
-        .cal-day.disabled { color: #cbd5e1; background-color: #f1f5f9; border-color: transparent; }
-        .cal-day.clickable { cursor: pointer; }
-        .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
-        .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
-        .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; gap: 4px; }
-        .legend-item { display: flex; align-items: center; margin: 0 4px; }
-        .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
+        /* 長按彈出選單 */
+        .context-menu { position: fixed; background: #fff; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; overflow: hidden; border: 1px solid #edf2f4; }
+        .context-menu .emoji-row { display: flex; gap: 8px; padding: 10px 15px; border-bottom: 1px solid #edf2f4; font-size: 22px; }
+        .context-menu .emoji-row span { cursor: pointer; transition: transform 0.2s; display: inline-block; }
+        .context-menu .emoji-row span:hover { transform: scale(1.3); }
+        .context-menu .action-row { padding: 12px 15px; font-size: 14px; font-weight: bold; color: var(--admin-blue); text-align: center; cursor: pointer; }
+        .context-menu .action-row:hover { background: #f8f9fa; }
 
+        /* 其他雜項 */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
-        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
-        .close-btn:hover { color: var(--accent); }
-
         #toast { visibility: hidden; min-width: 200px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 12px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
     </style>
 </head>
 <body>
+
+<!-- 浮動右鍵長按選單 -->
+<div id="chat-context-menu" class="context-menu">
+    <div class="emoji-row">
+        <span onclick="triggerReaction('👍')">👍</span>
+        <span onclick="triggerReaction('❤️')">❤️</span>
+        <span onclick="triggerReaction('😂')">😂</span>
+        <span onclick="triggerReaction('🙏')">🙏</span>
+        <span onclick="triggerReaction('🥺')">🥺</span>
+    </div>
+    <div class="action-row" onclick="triggerReplyFromMenu()">↩️ 回覆此訊息</div>
+</div>
 
 <div class="app-container">
     <h2 class="header-title">2026TCLIPb</h2>
@@ -155,52 +170,33 @@
         </div>
         <div id="tab-chat" class="panel">
             <div class="chat-box" id="chat-history"></div>
+            <!-- ⭐ 回覆預覽區塊 -->
+            <div class="reply-preview-bar" id="reply-preview-bar">
+                <div>回覆給 <strong id="reply-target-name" style="color:var(--primary);"></strong>：<span id="reply-target-text" style="color:#6c757d;"></span></div>
+                <span style="cursor:pointer; font-size:20px; color:#adb5bd; line-height:1;" onclick="cancelReply()">×</span>
+            </div>
             <div class="chat-input-row">
-                <input type="text" id="chat-input" placeholder="傳送訊息給組員..." onkeypress="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chat-input" placeholder="左滑/右滑/長按訊息可回覆..." onkeypress="if(event.key==='Enter') sendChat()">
                 <button type="button" onclick="sendChat()">傳送</button>
             </div>
         </div>
-        
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 4. 管理員雙功能後台 -->
+    <!-- 4. 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
-        
         <div class="tab-nav">
             <div class="tab-btn active" id="admin-tab-summary" onclick="switchAdminSubTab('summary')">📋 叫菜總計</div>
             <div class="tab-btn" id="admin-tab-breakdown" onclick="switchAdminSubTab('breakdown')">💰 各組拆帳</div>
         </div>
-
         <div id="admin-panel-summary" style="display: block; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
         <div id="admin-panel-breakdown" style="display: none; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
-
-        <div id="admin-heatmap-section" style="display: none;">
-            <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
-            <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段請假熱力圖</h4>
-            <div id="admin-calendar-container"></div>
-        </div>
-        
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回大廳</button>
     </div>
 </div>
 
 <div id="toast"></div>
-
-<!-- 彈窗區塊 -->
-<div id="admin-modal-overlay" class="overlay">
-    <div class="modal-content" id="admin-modal-box">
-        <span class="close-btn" onclick="closeAdminModal()">×</span>
-        <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
-        <div id="admin-modal-list"></div>
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 標記不行</button>
-            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 標記有機會</button>
-        </div>
-        <button type="button" class="secondary" onclick="setAnnotation('none')" style="margin-top: 8px; padding: 12px; font-size: 14px;">❌ 清除標記</button>
-    </div>
-</div>
 
 <script>
     const menuData = [
@@ -325,19 +321,18 @@
     ];
 
     const itemPriceMap = {};
-    menuData.forEach(c => {
-        c.items.forEach(i => {
-            if (i.type === 'single') { itemPriceMap[i.name] = i.price; } 
-            else { i.options.forEach(o => { itemPriceMap[`${i.name} (${o.n})`] = o.p; }); }
-        });
-    });
+    menuData.forEach(c => c.items.forEach(i => {
+        if (i.type === 'single') { itemPriceMap[i.name] = i.price; } 
+        else { i.options.forEach(o => itemPriceMap[`${i.name} (${o.n})`] = o.p); }
+    }));
 
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = ''; let myGroupData = null; let syncTimer = null;
     let localCart = {}; let localChatHistory = [];
+    let isUpdatingCart = false, isUpdatingChat = false;
     
-    let isUpdatingCart = false;
-    let isUpdatingChat = false;
+    let replyingToObj = null; // 儲存回覆目標 {id, sender, text}
+    let targetMsgForContext = null; // 儲存長按的訊息 ID
 
     window.onload = function() {
         const savedName = localStorage.getItem('teacherBanquetName');
@@ -352,7 +347,6 @@
         setTimeout(() => toast.className = "", 3000);
     }
 
-    // ⭐ 完美登入：無 15 秒報錯，拿完全部資料再一次畫出
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
@@ -369,7 +363,6 @@
             if (data.status === 'success') {
                 currentName = name;
                 localStorage.setItem('teacherBanquetName', currentName);
-                
                 document.getElementById('map-block').style.display = 'block'; 
                 
                 if (data.isAdmin) {
@@ -380,18 +373,13 @@
                 const myInfo = data.groupStatus.users[name];
                 if (myInfo) {
                     myGroupData = myInfo;
-                    // ⭐ 將後端取得的完整狀態送進去，進房瞬間渲染完成
                     enterRoom(data.groupStatus);
                 } else {
                     renderLobby(data.groupStatus);
                 }
-            } else {
-                showToast(data.message);
-            }
+            } else { showToast(data.message); }
         }).catch(() => { 
-            document.getElementById('loading').style.display = 'none'; 
-            document.getElementById('loginBtn').style.display = 'block';
-            showToast('❌ 網路不穩，請重新整理'); 
+            document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block';
         });
     }
 
@@ -459,43 +447,38 @@
         }).catch(() => showToast('網路異常'));
     }
 
-    // ⭐ 完美零秒渲染：利用登入時抓到的資料直接灌進畫面
     function enterRoom(statusObj) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('lobby-screen').style.display = 'none';
+        document.getElementById('room-screen').style.display = 'block';
+        
         const parts = myGroupData.groupName.split('#');
         document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${parts[0]}】`;
         document.getElementById('room-code-display').innerHTML = `🔑 小組密碼：<strong style="color:var(--primary); font-size:14px; background:#fff; padding:2px 6px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="copyRoomCode()">${parts[1]}</strong> <span style="font-size:12px; color:var(--admin-blue); cursor:pointer; font-weight:bold; margin-left:4px;" onclick="copyRoomCode()">[點擊複製]</span>`;
         
         renderMenuListUI();
 
-        // 必須先顯示包廂，瀏覽器才能幫聊天室算滾動高度
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('lobby-screen').style.display = 'none';
-        document.getElementById('room-screen').style.display = 'block';
-
         if (statusObj) {
             const tKey = myGroupData.table == 1 ? 'table1' : 'table2';
             const groupStatus = statusObj[tKey].groups[myGroupData.groupName];
             if (groupStatus) {
-                // 瞬間渲染不用等
-                syncCartUI(groupStatus.cart || {});
+                // 給新舊紀錄補上隨機 ID 防呆
                 localChatHistory = groupStatus.chat || [];
+                localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
+                syncCartUI(groupStatus.cart || {});
                 syncChatUI(localChatHistory);
             }
         }
-
         startPolling(); 
     }
 
     function copyRoomCode() {
         const parts = myGroupData.groupName.split('#');
-        navigator.clipboard.writeText(parts[1]).then(() => {
-            showToast('📋 房號代碼已複製到剪貼簿！');
-        }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
+        navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
-        
         menuData.forEach((cat, cIdx) => {
             let itemsHtml = '';
             cat.items.forEach((item, iIdx) => {
@@ -505,7 +488,6 @@
                         <div style="text-align:left;">
                             <span style="font-weight:bold; font-size:14px; display:block;">${item.name}</span>
                             <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
-                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block;">${item.desc}</span>`:''}
                         </div>
                         <div style="display:flex; align-items:center;">
                             <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
@@ -516,7 +498,6 @@
                 } else {
                     let optionsHtml = '';
                     item.options.forEach(o => { optionsHtml += `<option value="${o.n}">規格: ${o.n} ($${o.p})</option>`; });
-                    
                     itemsHtml += `
                     <div class="menu-item">
                         <div style="text-align:left; flex:1; padding-right:10px;">
@@ -533,7 +514,6 @@
                     </div>`;
                 }
             });
-
             list.innerHTML += `
             <div>
                 <div class="category-header" onclick="toggleCategory(${cIdx})" id="cat-head-${cIdx}">
@@ -559,30 +539,21 @@
         const itemObj = menuData[cIdx].items[iIdx];
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${itemObj.name} (${specName})`;
-        
         let currentQty = localCart[fullKey] || 0;
         localCart[fullKey] = Math.max(0, currentQty + delta);
-        
-        syncCartUI(localCart); 
-        uploadCart();
+        syncCartUI(localCart); uploadCart();
     }
 
     function modCart(itemName, delta) {
         let currentQty = localCart[itemName] || 0;
         localCart[itemName] = Math.max(0, currentQty + delta);
-        
-        syncCartUI(localCart); 
-        uploadCart();
+        syncCartUI(localCart); uploadCart();
     }
 
     function uploadCart() {
         isUpdatingCart = true;
-        fetch(gasURL, {
-            method: 'POST', redirect: 'follow',
-            body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart })
-        }).catch(() => {}).finally(() => {
-            setTimeout(() => { isUpdatingCart = false; }, 1000);
-        });
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart }) })
+        .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 1000); });
     }
 
     function syncCartUI(serverCartObj) {
@@ -594,9 +565,7 @@
             const qty = localCart[key] || 0;
             if(qty > 0) {
                 hasItem = true;
-                const price = itemPriceMap[key] || 0;
-                const subTotal = price * qty;
-                totalSum += subTotal;
+                const price = itemPriceMap[key] || 0; const subTotal = price * qty; totalSum += subTotal;
                 list.innerHTML += `<li><strong>${key}</strong> <span style="color:#8d99ae; font-size:12px;">($${price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <strong>$${subTotal}</strong></li>`;
             }
         }
@@ -617,42 +586,146 @@
             });
         });
 
-        if(hasItem) {
-            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費金額：$${totalSum}</div>`;
-        } else {
-            list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
-        }
+        if(hasItem) list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費金額：$${totalSum}</div>`;
+        else list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
+    }
+
+    // ⭐ LINE 級別功能：回覆與表情貼
+    function triggerReply(msgId, sender, text) {
+        replyingToObj = { id: msgId, sender: sender, text: text };
+        document.getElementById('reply-preview-bar').style.display = 'flex';
+        document.getElementById('reply-target-name').innerText = sender;
+        document.getElementById('reply-target-text').innerText = text.length > 15 ? text.substring(0, 15) + '...' : text;
+        document.getElementById('chat-input').focus();
+    }
+
+    function triggerReplyFromMenu() {
+        document.getElementById('chat-context-menu').style.display = 'none';
+        if (!targetMsgForContext) return;
+        const msg = localChatHistory.find(m => m.id === targetMsgForContext);
+        if (msg) triggerReply(msg.id, msg.sender, msg.text);
+    }
+
+    function cancelReply() {
+        replyingToObj = null;
+        document.getElementById('reply-preview-bar').style.display = 'none';
+    }
+
+    function triggerReaction(emoji) {
+        document.getElementById('chat-context-menu').style.display = 'none';
+        if (!targetMsgForContext) return;
+        
+        let msg = localChatHistory.find(m => m.id === targetMsgForContext);
+        if (!msg) return;
+        
+        if (!msg.reactions) msg.reactions = {};
+        if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
+        
+        const uIdx = msg.reactions[emoji].indexOf(currentName);
+        if (uIdx > -1) msg.reactions[emoji].splice(uIdx, 1); 
+        else msg.reactions[emoji].push(currentName); 
+        
+        syncChatUI(localChatHistory);
+        isUpdatingChat = true;
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat_replace', name: currentName, payload: localChatHistory }) })
+        .finally(() => { setTimeout(() => { isUpdatingChat = false; }, 1000); });
     }
 
     function sendChat() {
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
-        
         const nowStr = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
-        localChatHistory.push({ sender: currentName, text: text, time: "剛剛 " + nowStr });
+        
+        const newMsg = {
+            id: 'msg_' + Date.now() + Math.floor(Math.random()*1000),
+            sender: currentName, text: text, time: "剛剛 " + nowStr, reactions: {}
+        };
+        if (replyingToObj) { newMsg.replyTo = replyingToObj; cancelReply(); }
+
+        localChatHistory.push(newMsg);
         syncChatUI(localChatHistory);
         
         isUpdatingChat = true;
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text }) })
-        .catch(() => showToast('⚠️ 網路不穩，訊息可能未送達'))
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: newMsg }) })
         .finally(() => { setTimeout(() => { isUpdatingChat = false; }, 1000); });
     }
 
     function syncChatUI(chatArray) {
         const box = document.getElementById('chat-history'); 
-        const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 30;
+        const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 40;
         box.innerHTML = '';
         
         chatArray.forEach(msg => {
             const isMe = msg.sender === currentName;
+            const msgId = msg.id || 'sys';
+            let replyHtml = '';
+            if (msg.replyTo) replyHtml = `<div class="reply-quote-box"><strong>${msg.replyTo.sender}</strong>: ${msg.replyTo.text}</div>`;
+            
+            let reactionsHtml = '';
+            if (msg.reactions) {
+                for(let emoji in msg.reactions) {
+                    if (msg.reactions[emoji].length > 0) {
+                        const hasMe = msg.reactions[emoji].includes(currentName);
+                        reactionsHtml += `<div class="reaction-pill ${hasMe ? 'active' : ''}">${emoji} ${msg.reactions[emoji].length}</div>`;
+                    }
+                }
+            }
+            if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
+            
+            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
+            
             box.innerHTML += `
-            <div class="msg-bubble ${isMe ? 'mine' : ''}">
-                <div class="msg-sender">${msg.sender} <span style="font-size: 9px; color:#ced4da;">${msg.time.substring(11,16)}</span></div>
-                <div style="word-break:break-all;">${msg.text}</div>
+            <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
+                <div class="msg-sender">${msg.sender} <span style="font-size: 9px; color:#ced4da;">${msg.time ? msg.time.substring(11,16) : ''}</span></div>
+                ${replyHtml}
+                <div class="msg-text">${msg.text}</div>
+                ${reactionsHtml}
             </div>`;
         });
         
         if(isAtBottom) box.scrollTop = box.scrollHeight;
     }
+
+    // ⭐ 長按 & 左右滑動觸發事件綁定
+    const chatBox = document.getElementById('chat-history');
+    let touchStartX = 0, touchStartY = 0, touchTimer = null;
+
+    chatBox.addEventListener('touchstart', (e) => {
+        const bubble = e.target.closest('.msg-bubble');
+        if (!bubble) return;
+        touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+        touchTimer = setTimeout(() => {
+            targetMsgForContext = bubble.dataset.id;
+            const menu = document.getElementById('chat-context-menu');
+            menu.style.display = 'flex';
+            menu.style.left = Math.min(e.touches[0].clientX, window.innerWidth - 180) + 'px';
+            menu.style.top = Math.max(10, e.touches[0].clientY - 80) + 'px';
+            if(navigator.vibrate) navigator.vibrate(50);
+        }, 500); 
+    }, {passive: true});
+
+    chatBox.addEventListener('touchmove', (e) => {
+        if (!touchStartX) return;
+        let cx = e.touches[0].clientX; let cy = e.touches[0].clientY;
+        if (Math.abs(cx - touchStartX) > 10 || Math.abs(cy - touchStartY) > 10) clearTimeout(touchTimer);
+    }, {passive: true});
+
+    chatBox.addEventListener('touchend', (e) => {
+        clearTimeout(touchTimer);
+        const bubble = e.target.closest('.msg-bubble');
+        if (!bubble || !touchStartX) return;
+        
+        let diffX = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(diffX) > 60 && bubble.dataset.sender !== '系統') {
+            triggerReply(bubble.dataset.id, bubble.dataset.sender, bubble.dataset.text);
+        }
+        touchStartX = 0; 
+    });
+
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('#chat-context-menu') && !e.target.closest('.msg-bubble')) {
+            document.getElementById('chat-context-menu').style.display = 'none';
+        }
+    });
 
     function startPolling() {
         if(syncTimer) clearInterval(syncTimer);
@@ -660,16 +733,13 @@
             fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
-                    if(!isUpdatingCart && document.activeElement.tagName !== 'SELECT') { 
-                        syncCartUI(data.cart || {}); 
-                    }
+                    if(!isUpdatingCart && document.activeElement.tagName !== 'SELECT') { syncCartUI(data.cart || {}); }
                     if(!isUpdatingChat) {
                         localChatHistory = data.chat || [];
+                        localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
                         syncChatUI(localChatHistory); 
                     }
-                } else if(data.status === 'kicked') { 
-                    clearInterval(syncTimer); location.reload(); 
-                }
+                } else if(data.status === 'kicked') { clearInterval(syncTimer); location.reload(); }
             }).catch(()=>{});
         }, 3000);
     }
@@ -678,10 +748,7 @@
         if (!confirm('確定要離開此秘密小組嗎？')) return;
         clearInterval(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
-        .then(() => {
-            localStorage.removeItem('teacherBanquetName'); 
-            location.reload();
-        });
+        .then(() => { localStorage.removeItem('teacherBanquetName'); location.reload(); });
     }
 
     function switchTab(tabId) {
@@ -690,15 +757,10 @@
         event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    // ===== 📊 管理員後台 =====
     function switchAdminSubTab(subId) {
-        document.getElementById('admin-tab-summary').classList.remove('active');
-        document.getElementById('admin-tab-breakdown').classList.remove('active');
-        document.getElementById('admin-panel-summary').style.display = 'none';
-        document.getElementById('admin-panel-breakdown').style.display = 'none';
-        
-        document.getElementById('admin-tab-' + subId).classList.add('active');
-        document.getElementById('admin-panel-' + subId).style.display = 'block';
+        document.getElementById('admin-tab-summary').classList.remove('active'); document.getElementById('admin-tab-breakdown').classList.remove('active');
+        document.getElementById('admin-panel-summary').style.display = 'none'; document.getElementById('admin-panel-breakdown').style.display = 'none';
+        document.getElementById('admin-tab-' + subId).classList.add('active'); document.getElementById('admin-panel-' + subId).style.display = 'block';
     }
 
     function fetchAdminData() {
@@ -707,12 +769,10 @@
         .then(res => res.json()).then(data => {
             if (data.status === 'success') {
                 renderAdminSummaryAndBreakdownUI(data.groupStatus);
-
-                document.getElementById('lobby-screen').style.display = 'none';
-                document.getElementById('room-screen').style.display = 'none'; 
+                document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('room-screen').style.display = 'none'; 
                 document.getElementById('admin-screen').style.display = 'block';
             } else { showToast(data.message); }
-        }).catch(()=>{ showToast('連線異常'); });
+        });
     }
 
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
@@ -724,7 +784,6 @@
         });
         
         let totalClassCost = 0;
-
         const summaryPanel = document.getElementById('admin-panel-summary');
         const breakdownPanel = document.getElementById('admin-panel-breakdown');
         summaryPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">📋 餐廳叫菜匯總統計</h3>';
@@ -737,32 +796,23 @@
             for(let groupIdentifier in tGroups) {
                 const groupObj = tGroups[groupIdentifier];
                 const parts = groupIdentifier.split('#');
-                const cleanName = parts[0];
-                const code = parts[1];
+                const cleanName = parts[0]; const code = parts[1];
 
-                let groupTotal = 0;
-                let groupItemsHtml = '';
-
+                let groupTotal = 0; let groupItemsHtml = '';
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
-                        const price = itemPriceMap[key] || 0;
-                        const cost = price * qty;
-                        groupTotal += cost;
-                        totalClassCost += cost;
-
+                        const price = itemPriceMap[key] || 0; const cost = price * qty;
+                        groupTotal += cost; totalClassCost += cost;
                         globalSummary[key] = (globalSummary[key] || 0) + qty;
                         groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${key} x ${qty} = $${cost}</div>`;
                     }
                 }
-
                 if(groupItemsHtml === '') groupItemsHtml = '<div style="padding-left:15px; color:#adb5bd; font-style:italic;">該組尚未點餐</div>';
 
                 breakdownPanel.innerHTML += `
                 <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #edf2f4;">
-                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">
-                        [第 ${tableNum} 桌] ${cleanName} (密碼: ${code})
-                    </div>
+                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">[第 ${tableNum} 桌] ${cleanName} (密碼: ${code})</div>
                     <div style="font-size:12px; color:#6c757d; padding-left:5px;">組員: ${groupObj.members.join(', ')}</div>
                     ${groupItemsHtml}
                     <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">組開銷小計: $${groupTotal}</div>
@@ -775,8 +825,7 @@
             const qty = globalSummary[key];
             if(qty > 0) {
                 hasOrder = true;
-                const price = itemPriceMap[key] || 0;
-                const cost = price * qty;
+                const price = itemPriceMap[key] || 0; const cost = price * qty;
                 summaryPanel.innerHTML += `<div>• <strong>${key}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${qty}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
             }
         }
