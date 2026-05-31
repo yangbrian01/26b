@@ -62,6 +62,12 @@
         .legend-item { display: flex; align-items: center; margin: 0 4px; }
         .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
 
+        /* ⭐ 找回遺失的遮罩與彈窗 CSS 語法 */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
+        .close-btn:hover { color: var(--accent); }
+
         #toast { visibility: hidden; min-width: 200px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 12px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
     </style>
@@ -127,6 +133,8 @@
                 <button type="button" onclick="sendChat()">傳送</button>
             </div>
         </div>
+        
+        <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至管理員統計後台</button>
     </div>
 
     <div id="admin-screen" style="display: none; text-align: left;">
@@ -194,32 +202,39 @@
         setTimeout(() => toast.className = "", 3000);
     }
 
-    // ⭐ 完美修正版 Login
+    // 負責確認是否為管理員
+    function checkAdminAccess() {
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
+        .then(res => res.json()).then(d => { 
+            if(d.status === 'success') {
+                document.getElementById('adminBtn').style.display = 'block'; // 大廳的按鈕
+                document.getElementById('adminBtnRoom').style.display = 'block'; // 包廂的按鈕
+            }
+        });
+    }
+
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
 
-        document.getElementById('loginBtn').style.display = 'none'; // 正確隱藏按鈕
+        document.getElementById('loginBtn').style.display = 'none'; 
         document.getElementById('loading').style.display = 'block';
 
         fetch(gasURL, {
             method: 'POST',
-            redirect: 'follow', // ⭐ 加入防護
+            redirect: 'follow',
             body: JSON.stringify({ action: 'verify', name: name })
         }).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('loginBtn').style.display = 'block'; // 復原狀態
+            document.getElementById('loginBtn').style.display = 'block'; 
 
             if (data.status === 'success') {
-                // ⭐ 防呆檢查：如果後端沒回傳 groupStatus，代表 GAS 沒有發布新版本
-                if (!data.groupStatus) {
-                    return showToast('🚨 系統錯誤：請確認後端是否已「部署為新版本」！');
-                }
-
                 currentName = name;
-                document.getElementById('map-block').style.display = 'block'; // 秀地圖
+                document.getElementById('map-block').style.display = 'block'; 
+                
+                checkAdminAccess(); // 觸發管理員權限檢查
+                
                 const myInfo = data.groupStatus.users[name];
-
                 if (myInfo) {
                     myGroupData = myInfo;
                     enterRoom();
@@ -230,10 +245,9 @@
                 showToast(data.message);
             }
         }).catch(err => { 
-            console.error("Fetch Error:", err);
             document.getElementById('loading').style.display = 'none'; 
             document.getElementById('loginBtn').style.display = 'block';
-            showToast('❌ 網路錯誤或 CORS 被阻擋'); 
+            showToast('❌ 網路連線失敗，請檢查網路'); 
         });
     }
 
@@ -242,9 +256,6 @@
         document.getElementById('lobby-screen').style.display = 'block';
         document.getElementById('room-screen').style.display = 'none';
         document.getElementById('lobby-name').innerText = currentName;
-
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
-        .then(res => res.json()).then(d => { if(d.status === 'success') document.getElementById('adminBtn').style.display = 'block'; });
 
         const container = document.getElementById('tables-container');
         container.innerHTML = '';
@@ -284,7 +295,7 @@
         showToast('加入小組中...');
         fetch(gasURL, {
             method: 'POST',
-            redirect: 'follow', // ⭐ 加入防護
+            redirect: 'follow', 
             body: JSON.stringify({ action: 'joinGroup', name: currentName, table: tNum, groupName: gName })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
@@ -320,15 +331,18 @@
         });
     }
 
+    // ⭐ 完美修正：點擊加減號瞬間更新購物車黃色區塊，不等後端
     function modCart(item, delta) {
         let currentQty = localCart[item] || 0;
         let newQty = Math.max(0, currentQty + delta);
         localCart[item] = newQty;
         document.getElementById(`qty-${item}`).innerText = newQty;
 
+        syncCartUI(localCart); // 立即更新下方顯示的購物車清單
+
         fetch(gasURL, {
             method: 'POST',
-            redirect: 'follow', // ⭐ 加入防護
+            redirect: 'follow',
             body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart })
         }).then(res => res.json()).then(data => { if(data.status !== 'success') showToast('同步失敗'); });
     }
@@ -353,6 +367,12 @@
 
     function sendChat() {
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
+        
+        // 樂觀 UI：先印出來再送出，讓使用者覺得沒有延遲
+        const box = document.getElementById('chat-history');
+        box.innerHTML += `<div class="msg-bubble mine"><div class="msg-sender">我</div><div style="word-break:break-all;">${text}</div></div>`;
+        box.scrollTop = box.scrollHeight;
+
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text }) });
     }
 
@@ -421,6 +441,7 @@
                 }
 
                 document.getElementById('lobby-screen').style.display = 'none';
+                document.getElementById('room-screen').style.display = 'none'; // 隱藏包廂畫面
                 document.getElementById('admin-screen').style.display = 'block';
                 const calContainer = document.getElementById('admin-calendar-container'); calContainer.innerHTML = '';
                 renderMonthsGrid(calContainer); 
@@ -527,7 +548,14 @@
         overlay.style.opacity = '0'; box.style.transform = 'translate(-50%, -45%)'; setTimeout(() => overlay.style.display = 'none', 300);
     }
 
-    function exitAdmin() { document.getElementById('admin-screen').style.display = 'none'; document.getElementById('lobby-screen').style.display = 'block'; }
+    function exitAdmin() { 
+        document.getElementById('admin-screen').style.display = 'none'; 
+        if (myGroupData) {
+            document.getElementById('room-screen').style.display = 'block'; // 如果在群組裡，回包廂
+        } else {
+            document.getElementById('lobby-screen').style.display = 'block'; // 如果不在，回大廳
+        }
+    }
 </script>
 </body>
 </html>
