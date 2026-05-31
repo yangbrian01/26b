@@ -25,12 +25,12 @@
         button.secondary { background-color: #edf2f4; color: #457b9d; }
         button.danger { background-color: #ffe3e3; color: var(--accent); }
         
-        .table-box { background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
-        .table-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: var(--primary); margin-bottom: 10px; border-bottom: 2px dashed #edf2f4; padding-bottom: 10px;}
-        .group-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .group-name { font-weight: bold; color: var(--admin-blue); font-size: 16px; }
-        .group-members { font-size: 13px; color: #6c757d; margin-top: 4px; }
-        .join-btn { width: auto; padding: 6px 14px; font-size: 13px; margin: 0; border-radius: 6px; }
+        /* 大廳多功能面板 */
+        .lobby-panel-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .lobby-p-btn { flex: 1; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; background: #edf2f4; color: #6c757d; cursor: pointer; border: 2px solid transparent; }
+        .lobby-p-btn.active { background: #fff; color: var(--admin-blue); border-color: var(--admin-blue); box-shadow: 0 4px 12px rgba(58,134,255,0.1); }
+        .lobby-content { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 20px; text-align: left; }
+        .lobby-content.active { display: block; }
 
         .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; }
@@ -38,20 +38,18 @@
         .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 380px; overflow-y: auto; }
         .panel.active { display: block; }
         
-        /* 折疊菜單樣式 */
-        .category-header { background: #f8f9fa; padding: 12px 15px; border-radius: 8px; font-weight: bold; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid #edf2f4; margin-bottom: 8px; transition: 0.2s; }
-        .category-header:hover { background: #e2eafc; border-color: #bde0fe; }
+        /* 手風琴菜單樣式 */
+        .category-header { background: #f8f9fa; padding: 12px 15px; border-radius: 8px; font-weight: bold; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid #edf2f4; margin-bottom: 8px; }
         .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
         .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
         .category-content.open { display: block; }
-        .toggle-icon { font-size: 12px; transition: transform 0.3s; }
-        .category-header.open .toggle-icon { transform: rotate(180deg); }
+        .toggle-icon { font-size: 12px; }
 
-        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #f1f3f5; }
-        .menu-btn { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
+        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #f1f3f5; }
+        .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
         .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: left; }
 
-        .chat-box { height: 280px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; }
+        .chat-box { height: 240px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; }
         .msg-bubble { background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 8px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .msg-bubble.mine { background: #dbeafe; margin-left: auto; border-radius: 15px; border-bottom-right-radius: 0; }
         .msg-sender { font-size: 11px; color: #adb5bd; margin-bottom: 2px; }
@@ -86,7 +84,6 @@
     <h2 class="header-title">2026TCLIPb</h2>
     <p class="sub-title">謝師宴座位與點餐系統</p>
 
-    <!-- 🌐 享平方店 (1F) -->
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
@@ -95,48 +92,56 @@
         <div class="location-info">📍 享平方店 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a></div>
     </div>
 
-    <!-- 1. 登入畫面 -->
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
         <button type="button" id="loginBtn" onclick="verifyName()">進入系統</button>
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">正在連線，請稍候...</div>
     </div>
 
-    <!-- 2. 大廳畫面 -->
     <div id="lobby-screen" style="display: none;">
         <h3 style="color: var(--admin-blue); margin-top: 0; text-align: left;">👋 歡迎，<span id="lobby-name"></span>！</h3>
-        <p style="font-size: 14px; color: #6c757d; text-align: left;">每桌上限 15 人。你可以加入現有小組，或建立新小組。</p>
-        <div id="tables-container"></div>
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #edf2f4; text-align: left;">
-            <strong style="font-size: 14px; color: var(--primary);">✨ 建立新小組</strong>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <select id="new-group-table" style="margin:0; width:90px; padding:10px;">
-                    <option value="1">第一桌</option>
-                    <option value="2">第二桌</option>
-                </select>
-                <input type="text" id="new-group-name" placeholder="輸入組名 (例: 樂團風暴)" style="margin: 0; flex: 1; padding: 10px;">
-            </div>
-            <button type="button" onclick="createGroup()" style="margin-top: 10px; padding: 12px; font-size:14px;">建立並加入</button>
+        <p style="font-size: 14px; color: #6c757d; text-align: left;" id="lobby-table-count"></p>
+        
+        <div class="lobby-panel-box">
+            <div class="lobby-p-btn active" id="p-btn-join" onclick="switchLobbyPanel('join')">🔑 輸入代碼加入</div>
+            <div class="lobby-p-btn" id="p-btn-create" onclick="switchLobbyPanel('create')">✨ 創建全新小組</div>
         </div>
-        <button type="button" id="adminBtn" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至管理員統計後台</button>
+
+        <div id="lobby-panel-join" class="lobby-content active">
+            <input type="text" id="join-group-code" placeholder="請輸入 5 碼小組代碼 (不分大小寫)">
+            <button type="button" onclick="submitLobbyAction('join')" style="margin-top:10px;">立即進入小組</button>
+        </div>
+
+        <div id="lobby-panel-create" class="lobby-content">
+            <label style="font-weight: bold; font-size:14px;">1. 選擇配置桌號 (每桌限 15 人)</label>
+            <select id="create-group-table">
+                <option value="1">第一桌</option>
+                <option value="2">第二桌</option>
+            </select>
+            <label style="font-weight: bold; font-size:14px; margin-top:10px; display:block;">2. 輸入小組自訂名稱</label>
+            <input type="text" id="create-group-name" placeholder="小組名稱 (例: 薩克斯風狂熱)">
+            <button type="button" onclick="submitLobbyAction('create')" style="margin-top:15px; background-color: var(--admin-green);">建組並取得邀請碼</button>
+        </div>
+
+        <button type="button" id="adminBtn" class="admin-btn" style="display: none; margin-top:30px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 3. 包廂畫面 -->
     <div id="room-screen" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
-            <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">換位置 / 退出組</button>
+            <div style="text-align: left;">
+                <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
+                <span id="room-code-display" style="font-size:13px; font-weight:bold; color:var(--admin-blue); background:#e0f2fe; padding:2px 6px; border-radius:4px; margin-top:4px; display:inline-block;"></span>
+            </div>
+            <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出 / 更換小組</button>
         </div>
         <div class="tab-nav">
             <div class="tab-btn active" onclick="switchTab('menu')">🍔 點餐</div>
-            <div class="tab-btn" onclick="switchTab('chat')">💬 組內討論版</div>
+            <div class="tab-btn" onclick="switchTab('chat')">💬 討論版</div>
         </div>
         <div id="tab-menu" class="panel active">
-            <!-- 展開式菜單容器 -->
             <div id="menu-list"></div>
-            
             <div class="cart-box">
-                <strong style="color: #b08d00;">🛒 本組已點餐點：</strong>
+                <strong style="color: #b08d00;">🛒 本組已點餐點明細：</strong>
                 <ul id="cart-list" style="margin: 5px 0 0 0; padding-left: 20px; font-size: 14px; color: #495057; line-height: 1.6;"></ul>
             </div>
         </div>
@@ -148,30 +153,25 @@
             </div>
         </div>
         
-        <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至管理員統計後台</button>
+        <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 4. 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
-        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召統計後台</h3>
+        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         
-        <h4 style="color: var(--admin-blue); margin-bottom: 5px;">📋 全班點餐總計與金額 (總分帳參考)</h4>
-        <div id="admin-order-summary" style="background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
+        <div class="tab-nav">
+            <div class="tab-btn active" id="admin-tab-summary" onclick="switchAdminSubTab('summary')">📋 叫菜總計</div>
+            <div class="tab-btn" id="admin-tab-breakdown" onclick="switchAdminSubTab('breakdown')">💰 各組拆帳</div>
+        </div>
+
+        <div id="admin-panel-summary" style="display: block; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
+        
+        <div id="admin-panel-breakdown" style="display: none; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
 
         <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
-        
-        <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段：6/5 - 8/31 檔期熱力圖與請假原因</h4>
-        <div class="heatmap-legend">
-            <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>2</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ff9800;"></div>3</div>
-            <div class="legend-item"><div class="legend-box" style="background: #f44336;"></div>4</div>
-            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>5+</div>
-        </div>
+        <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段請假熱力圖</h4>
         <div id="admin-calendar-container"></div>
-        
-        <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回分組大廳</button>
+        <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回大廳</button>
     </div>
 </div>
 
@@ -191,101 +191,136 @@
 </div>
 
 <script>
-    // ⭐ 分類折疊式菜單架構
-    const menuCategories = [
+    // ⭐ 完全整合規格化之精簡選單架構
+    const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
             items: [
-                { name: "海鮮水果沙拉 (M)", price: 280 }, { name: "海鮮水果沙拉 (L)", price: 380 },
-                { name: "經典尼斯沙拉 (M)", price: 250 }, { name: "經典尼斯沙拉 (L)", price: 350 },
-                { name: "握握手小農溫沙拉 (M)", price: 280 }, { name: "握握手小農溫沙拉 (L)", price: 380 },
-                { name: "凱薩沙拉 (M)", price: 250 }, { name: "凱薩沙拉 (L)", price: 350 },
-                { name: "海鮮濃湯", price: 200 }, { name: "南瓜濃湯 (蛋奶素)", price: 180 }
+                { name: "海鮮水果沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }] },
+                { name: "經典尼斯沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }] },
+                { name: "握握手小農溫沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }] },
+                { name: "凱薩沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }] },
+                { name: "海鮮濃湯", type: "single", price: 200 },
+                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180 }
             ]
         },
         {
             category: "👑 SIGNATURE DISHES 主廚推薦",
             items: [
-                { name: "金色三麥經典大拼盤", price: 1380 }, { name: "德式豬腳", price: 550 },
-                { name: "獨享拼盤", price: 480 }, { name: "黃金蝦餅", price: 450 },
-                { name: "墨魚醉嗆烏魚子", price: 380 }, { name: "現釀啤酒蝦 🌶️", price: 380 },
-                { name: "墨西哥濃香玉米片", price: 250 }, { name: "北海道鹽昆布透抽", price: 280 },
-                { name: "椒香滿天飛 🌶️🌶️", price: 280 }, { name: "蜜香滿天飛", price: 280 },
-                { name: "涼拌墨魚 🌶️ (M)", price: 250 }, { name: "涼拌墨魚 🌶️ (L)", price: 350 },
-                { name: "墨西哥雞肉餅 🌶️🌶️ (M)", price: 280 }, { name: "墨西哥雞肉餅 🌶️🌶️ (L)", price: 480 },
-                { name: "德式綜合香腸 (M)", price: 280 }, { name: "德式綜合香腸 (L)", price: 550 },
-                { name: "酥炸薯條", price: 170 }, { name: "酥炸椒麻雞 (M)", price: 220 },
-                { name: "酥炸椒麻雞 (L)", price: 320 }, { name: "咔滋蟹舞明太子", price: 450 }
+                { name: "金色三麥經典大拼盤", type: "single", price: 1380, desc: "炸椒麻雞/德式豬腳/薯條/綜合香腸" },
+                { name: "德式豬腳", type: "single", price: 550 },
+                { name: "獨享拼盤", type: "single", price: 480, desc: "炸椒麻雞/薯條/墨魚酢辣椒魚子" },
+                { name: "黃金蝦餅", type: "single", price: 450 },
+                { name: "墨魚醉嗆烏魚子", type: "single", price: 380 },
+                { name: "現釀啤酒蝦 🌶️", type: "single", price: 380 },
+                { name: "墨西哥濃香玉米片", type: "single", price: 250 },
+                { name: "北海道鹽昆布透抽", type: "single", price: 280 },
+                { name: "椒香滿天飛 🌶️🌶️", type: "single", price: 280 },
+                { name: "蜜香滿天飛", type: "single", price: 280 },
+                { name: "涼拌墨魚 🌶️", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }] },
+                { name: "墨西哥雞肉餅 🌶️🌶️", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 480 }] },
+                { name: "德式綜合香腸", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 550 }] },
+                { name: "酥炸薯條", type: "single", price: 170 },
+                { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }] },
+                { name: "咔滋蟹舞明太子", type: "single", price: 450 }
             ]
         },
         {
             category: "🍝 RICE & SPAGHETTI 飯 & 麵",
             items: [
-                { name: "鮭魚什香拌飯 (2人)", price: 550 }, { name: "鮭魚什香拌飯 (4人)", price: 980 },
-                { name: "西班牙海鮮燉飯 🌶️ (2人)", price: 480 }, { name: "西班牙海鮮燉飯 🌶️ (4人)", price: 820 },
-                { name: "松露野菇燉飯 (2人)", price: 480 }, { name: "松露野菇燉飯 (4人)", price: 820 },
-                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️ (2人)", price: 480 }, { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️ (4人)", price: 820 },
-                { name: "紐奧良什錦飯 🌶️ (2人)", price: 480 }, { name: "義大利海鮮麵", price: 350 },
-                { name: "義式番茄海鮮麵", price: 350 }, { name: "奶油雙菇雞肉麵", price: 350 },
-                { name: "海鮮義大利麵 (兒童餐)", price: 350 }, { name: "烤鮭魚拌飯 (兒童餐)", price: 380 }
+                { name: "鮭魚什香拌飯", type: "select", options: [{ n: "2人", p: 550 }, { n: "4人", p: 980 }] },
+                { name: "西班牙海鮮燉飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }] },
+                { name: "松露野菇燉飯", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }] },
+                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }] },
+                { name: "紐奧良什錦飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }] },
+                { name: "義大利海鮮麵", type: "single", price: 350 },
+                { name: "義式番茄海鮮麵", type: "single", price: 350 },
+                { name: "奶油雙菇雞肉麵", type: "single", price: 350 },
+                { name: "海鮮義大利麵 (兒童餐)", type: "single", price: 350, desc: "附蔬菜、經典炸物" },
+                { name: "烤鮭魚拌飯 (兒童餐)", type: "single", price: 380, desc: "附蔬菜、經典炸物" }
             ]
         },
         {
             category: "🍕 PIZZA 披薩",
             items: [
-                { name: "蝦仁鮭魚披薩 (6吋)", price: 280 }, { name: "蝦仁鮭魚披薩 (8吋)", price: 380 },
-                { name: "德式香腸披薩 (6吋)", price: 280 }, { name: "德式香腸披薩 (8吋)", price: 380 },
-                { name: "絲綢白乳酪披薩 (8吋)", price: 350 }, { name: "陽光鳳梨披薩 (8吋)", price: 380 }
+                { name: "蝦仁鮭魚披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }] },
+                { name: "德式香腸披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }] },
+                { name: "絲綢白乳酪披薩", type: "select", options: [{ n: "8吋", p: 350 }] },
+                { name: "陽光鳳梨披薩", type: "select", options: [{ n: "8吋", p: 380 }] }
             ]
         },
         {
             category: "🍮 DESSERT 甜點",
             items: [
-                { name: "焦糖葡萄塔 (8顆)", price: 250 }, { name: "黑巧提拉米蘇 (含酒精)", price: 150 },
-                { name: "波士頓派", price: 150 }, { name: "黑麥霜淇淋", price: 150 },
-                { name: "金色三麥經典蛋糕 (6吋)", price: 790 }
+                { name: "焦糖葡萄塔 (蛋奶素)", type: "select", options: [{ n: "8顆", p: 250 }] },
+                { name: "黑巧提拉米蘇 (含酒精)", type: "single", price: 150 },
+                { name: "波士頓派 (蛋奶素)", type: "single", price: 150 },
+                { name: "黑麥霜淇淋 (蛋奶素)", type: "single", price: 150 },
+                { name: "金色三麥經典蛋糕", type: "select", options: [{ n: "6吋", p: 790 }] }
             ]
         },
         {
             category: "🍺 ALCOHOLIC BEVERAGES 酒精飲品",
             items: [
-                { name: "琥珀啤酒 (350ml)", price: 180 }, { name: "琥珀啤酒 (500ml)", price: 250 }, { name: "琥珀啤酒 (3L)", price: 1500 }, { name: "琥珀啤酒 (10L)", price: 4800 },
-                { name: "蜂蜜啤酒 (350ml)", price: 180 }, { name: "蜂蜜啤酒 (500ml)", price: 250 }, { name: "蜂蜜啤酒 (3L)", price: 1500 }, { name: "蜂蜜啤酒 (10L)", price: 4800 },
-                { name: "黑麥啤酒 (350ml)", price: 180 }, { name: "黑麥啤酒 (500ml)", price: 250 }, { name: "黑麥啤酒 (3L)", price: 1500 }, { name: "黑麥啤酒 (10L)", price: 4800 },
-                { name: "德式小麥啤酒 (350ml)", price: 180 }, { name: "德式小麥啤酒 (500ml)", price: 250 }, { name: "德式小麥啤酒 (3L)", price: 1500 }, { name: "德式小麥啤酒 (10L)", price: 4800 },
-                { name: "季節啤酒 (350ml)", price: 180 }, { name: "季節啤酒 (500ml)", price: 250 }, { name: "季節啤酒 (3L)", price: 1500 }, { name: "季節啤酒 (10L)", price: 4800 },
-                { name: "三麥啤酒組合 (200ml x3)", price: 320 }, { name: "MISSS 蜂蜜氣泡酒 (500ml)", price: 680 }
+                { name: "琥珀啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
+                { name: "蜂蜜啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
+                { name: "黑麥啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
+                { name: "德式小麥啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
+                { name: "季節啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
+                { name: "三麥啤酒組合 (200ml x3)", type: "single", price: 320 },
+                { name: "MISSS 蜂蜜氣泡酒 (500ml)", type: "single", price: 680 }
             ]
         },
         {
             category: "🍹 DRINK 飲料",
             items: [
-                { name: "SUNMAI 紅烏龍康普茶 (330ml)", price: 90 }, { name: "蜂蜜啤酒芒果冰沙", price: 220 },
-                { name: "桃氣破冰船", price: 220 }, { name: "桂花奶霜氣泡烏龍", price: 180 },
-                { name: "華麗芭洛克果茶", price: 180 }, { name: "鮮果好夢茶", price: 180 },
-                { name: "彩虹珊瑚鮮果汁", price: 150 }, { name: "豔夏紅寶石", price: 150 },
-                { name: "芭莉仙女下凡來", price: 150 }, { name: "美式咖啡", price: 120 },
-                { name: "拿鐵咖啡", price: 150 }, { name: "莫西多氣泡咖啡", price: 220 }
+                { name: "SUNMAI 紅烏龍康普茶 (330ml)", type: "single", price: 90 },
+                { name: "蜂蜜啤酒芒果冰沙", type: "single", price: 220 },
+                { name: "桃氣破冰船", type: "single", price: 220 },
+                { name: "桂花奶霜氣泡烏龍", type: "single", price: 180 },
+                { name: "華麗芭洛克果茶 (熱)", type: "single", price: 180 },
+                { name: "鮮果好夢茶 (熱)", type: "single", price: 180 },
+                { name: "彩虹珊瑚鮮果汁", type: "single", price: 150 },
+                { name: "豔夏紅寶石", type: "single", price: 150 },
+                { name: "芭莉仙女下凡來", type: "single", price: 150 },
+                { name: "美式咖啡 (冰/熱)", type: "single", price: 120 },
+                { name: "拿鐵咖啡 (冰/熱)", type: "single", price: 150 },
+                { name: "莫西多氣泡咖啡", type: "single", price: 220 }
             ]
         },
         {
             category: "🥗 VEGETARIAN 蔬食",
             items: [
-                { name: "纖主義涼涮秋葵 (素食)", price: 180 }, { name: "握握手小農溫沙拉 (素食)", price: 250 },
-                { name: "凱薩沙拉 (蛋奶素)", price: 220 }, { name: "酥炸香濃起司條 (蛋奶素)", price: 180 },
-                { name: "酥炸山藥 (素食)", price: 220 }, { name: "植想麻辣蔬食雞 🌶️🌶️ (素食)", price: 250 },
-                { name: "蔬食椒麻雞 🌶️ (素食)", price: 260 }, { name: "純蔬彈力蝦肉餅 (素食)", price: 280 },
-                { name: "炸鮮菇降落傘 (素食)", price: 280 }, { name: "BBQ美腿燒 🌶️ (五辛素)", price: 150 },
-                { name: "帕瑪森南瓜打滾 (蛋奶素)", price: 250 }, { name: "南瓜濃湯 (蛋奶素)", price: 180 },
-                { name: "冠軍蜂蜜啤酒麥芽麵包 (蛋奶素)", price: 180 }, { name: "辣味義式蔬菜麵 🌶️🌶️ (素食)", price: 350 },
-                { name: "聞香起舞野菇飯 (素食)", price: 280 }, { name: "花心蔬脆披薩 (6吋)", price: 250 },
-                { name: "榴槤忘返甜披薩 (蛋奶素) (6吋)", price: 280 }, { name: "陽光鳳梨披薩 (蛋奶素) (6吋)", price: 250 }
+                { name: "纖主義涼涮秋葵 (素)", type: "single", price: 180 },
+                { name: "握握手小農溫沙拉 (素)", type: "single", price: 250 },
+                { name: "凱薩沙拉 (蛋奶素)", type: "single", price: 220 },
+                { name: "酥炸香濃起司條 (蛋奶素)", type: "single", price: 180 },
+                { name: "酥炸山藥 (素)", type: "single", price: 220 },
+                { name: "植想麻辣蔬食雞 🌶️🌶️ (素)", type: "single", price: 250 },
+                { name: "蔬食椒麻雞 🌶️ (素)", type: "single", price: 260 },
+                { name: "純蔬彈力蝦肉餅 (素)", type: "single", price: 280 },
+                { name: "炸鮮菇降落傘 (素)", type: "single", price: 280 },
+                { name: "BBQ美腿燒 🌶️ (五辛素)", type: "single", price: 150 },
+                { name: "帕瑪森南瓜打滾 (蛋奶素)", type: "single", price: 250 },
+                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180 },
+                { name: "冠軍蜂蜜啤酒麥芽麵包 (蛋奶素)", type: "single", price: 180 },
+                { name: "辣味義式蔬菜麵 🌶️🌶️ (素)", type: "single", price: 350 },
+                { name: "聞香起舞野菇飯 (素)", type: "single", price: 280 },
+                { name: "花心蔬脆披薩", type: "select", options: [{ n: "6吋", p: 250 }] },
+                { name: "榴槤忘返甜披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 280 }] },
+                { name: "陽光鳳梨披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 250 }] }
             ]
         }
     ];
 
-    // 展開出一個平坦的陣列方便計算
-    const allMenuItems = menuCategories.flatMap(c => c.items);
+    // 快取地圖對應字典方便算錢
+    const itemPriceMap = {};
+    menuData.forEach(c => {
+        c.items.forEach(i => {
+            if (i.type === 'single') { itemPriceMap[i.name] = i.price; } 
+            else { i.options.forEach(o => { itemPriceMap[`${i.name} (${o.n})`] = o.p; }); }
+        });
+    });
 
     function isDateDisabled(month, date) {
         if (month === 6) { if (date < 5) return true; return [8, 9, 12, 22, 23].includes(date); }
@@ -294,14 +329,10 @@
         return false; 
     }
 
+    const governorAccess = false;
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
-    let currentName = '';
-    let myGroupData = null; 
-    let syncTimer = null;
-    let localCart = {}; 
-    let adminParsedData = {}; 
-    let globalAnnotations = {};
-    let selectedAdminDate = '';
+    let currentName = ''; let myGroupData = null; let syncTimer = null;
+    let localCart = {}; let adminParsedData = {}; let globalAnnotations = {}; let selectedAdminDate = '';
 
     function showToast(msg) {
         const toast = document.getElementById("toast"); toast.innerText = msg; toast.className = "show";
@@ -311,17 +342,12 @@
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
-
-        document.getElementById('loginBtn').style.display = 'none'; 
-        document.getElementById('loading').style.display = 'block';
+        document.getElementById('loginBtn').style.display = 'none'; document.getElementById('loading').style.display = 'block';
 
         fetch(gasURL, {
-            method: 'POST',
-            redirect: 'follow',
-            body: JSON.stringify({ action: 'verify', name: name })
+            method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'verify', name: name })
         }).then(res => res.json()).then(data => {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('loginBtn').style.display = 'block'; 
+            document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block'; 
 
             if (data.status === 'success') {
                 currentName = name;
@@ -339,13 +365,10 @@
                 } else {
                     renderLobby(data.groupStatus);
                 }
-            } else {
-                showToast(data.message);
-            }
-        }).catch(err => { 
-            document.getElementById('loading').style.display = 'none'; 
-            document.getElementById('loginBtn').style.display = 'block';
-            showToast('❌ 連線伺服器失敗'); 
+            } else { showToast(data.message); }
+        }).catch(() => {
+            document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block';
+            showToast('❌ 網路錯誤');
         });
     }
 
@@ -354,49 +377,35 @@
         document.getElementById('lobby-screen').style.display = 'block';
         document.getElementById('room-screen').style.display = 'none';
         document.getElementById('lobby-name').innerText = currentName;
-
-        const container = document.getElementById('tables-container');
-        container.innerHTML = '';
-
-        [1, 2].forEach(tNum => {
-            const tKey = tNum === 1 ? 'table1' : 'table2';
-            const tData = status[tKey];
-            let html = `<div class="table-box"><div class="table-header"><span>第 ${tNum} 桌</span><span>${tData.count} / 15 人</span></div>`;
-            
-            if (Object.keys(tData.groups).length === 0) {
-                html += `<div style="font-size: 13px; color: #adb5bd; text-align: center; padding:10px;">目前沒有小組，搶先建立吧！</div>`;
-            } else {
-                for (let gName in tData.groups) {
-                    const members = tData.groups[gName].members.join(', ');
-                    html += `
-                    <div class="group-card">
-                        <div style="flex:1; text-align:left;">
-                            <div class="group-name">${gName}</div>
-                            <div class="group-members">成員 (${tData.groups[gName].members.length}人): ${members}</div>
-                        </div>
-                        <button class="join-btn" onclick="joinGroup(${tNum}, '${gName}')">加入</button>
-                    </div>`;
-                }
-            }
-            html += `</div>`; container.innerHTML += html;
-        });
+        document.getElementById('lobby-table-count').innerText = `目前座位概量：第一桌 ${status.table1.count}/15人，第二桌 ${status.table2.count}/15人。`;
     }
 
-    function createGroup() {
-        const tNum = document.getElementById('new-group-table').value;
-        const gName = document.getElementById('new-group-name').value.trim();
-        if (!gName) return showToast('請輸入小組名稱！');
-        joinGroup(tNum, gName);
+    function switchLobbyPanel(panelId) {
+        document.querySelectorAll('.lobby-p-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.lobby-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('p-btn-' + panelId).classList.add('active');
+        document.getElementById('lobby-panel-' + panelId).classList.add('active');
     }
 
-    function joinGroup(tNum, gName) {
-        fetch(gasURL, {
-            method: 'POST',
-            redirect: 'follow', 
-            body: JSON.stringify({ action: 'joinGroup', name: currentName, table: tNum, groupName: gName })
-        }).then(res => res.json()).then(data => {
+    function submitLobbyAction(mode) {
+        let payload = { action: 'joinGroup', name: currentName, mode: mode };
+        
+        if (mode === 'create') {
+            const gName = document.getElementById('create-group-name').value.trim();
+            const tNum = document.getElementById('create-group-table').value;
+            if (!gName) return showToast('請填寫小組名稱！');
+            payload.groupName = gName; payload.table = tNum;
+        } else {
+            const code = document.getElementById('join-group-code').value.trim();
+            if (!code) return showToast('請輸入 5 碼邀請碼！');
+            payload.groupCode = code;
+        }
+
+        showToast('小組通訊中...');
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload) })
+        .then(res => res.json()).then(data => {
             if (data.status === 'success') {
-                myGroupData = { table: tNum, groupName: gName };
+                myGroupData = data.groupStatus.users[currentName];
                 enterRoom();
             } else { showToast(data.message); }
         });
@@ -406,51 +415,92 @@
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('lobby-screen').style.display = 'none';
         document.getElementById('room-screen').style.display = 'block';
-        document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${myGroupData.groupName}】`;
+        
+        const parts = myGroupData.groupName.split('#');
+        document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${parts[0]}】`;
+        document.getElementById('room-code-display').innerText = `🔑 小組密碼：${parts[1]}`;
         
         renderMenuListUI();
         startPolling(); 
     }
 
-    // ⭐ 渲染折疊式菜單
+    // ⭐ 建立規格下拉式手風琴菜單
     function renderMenuListUI() {
-        const list = document.getElementById('menu-list'); 
-        list.innerHTML = '';
+        const list = document.getElementById('menu-list'); list.innerHTML = '';
         
-        menuCategories.forEach((cat, index) => {
+        menuData.forEach((cat, cIdx) => {
             let itemsHtml = '';
-            cat.items.forEach(item => {
-                localCart[item.name] = 0;
-                itemsHtml += `
-                <div class="menu-item">
-                    <div style="text-align:left;">
-                        <span style="font-weight: bold; font-size: 14px; display:block;">${item.name}</span>
-                        <span style="font-size: 13px; color: #8d99ae; font-weight:600;">$${item.price}</span>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
-                        <span id="qty-${item.name}" style="width: 25px; text-align: center; font-weight: bold; color:var(--admin-blue);">0</span>
-                        <button class="menu-btn" onclick="modCart('${item.name}', 1)">+</button>
-                    </div>
-                </div>`;
+            cat.items.forEach((item, iIdx) => {
+                if (item.type === 'single') {
+                    itemsHtml += `
+                    <div class="menu-item">
+                        <div style="text-align:left;">
+                            <span style="font-weight:bold; font-size:14px; display:block;">${item.name}</span>
+                            <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
+                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block;">${item.desc}</span>`:''}
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
+                            <span id="qty-${item.name}" style="width:25px; text-align:center; font-weight:bold;">0</span>
+                            <button class="menu-btn" onclick="modCart('${item.name}', 1)">+</button>
+                        </div>
+                    </div>`;
+                } else {
+                    // 規格下拉模式
+                    let optionsHtml = '';
+                    item.options.forEach(o => { optionsHtml += `<option value="${o.n}">規格: ${o.n} ($${o.p})</option>`; });
+                    
+                    itemsHtml += `
+                    <div class="menu-item">
+                        <div style="text-align:left; flex:1; padding-right:10px;">
+                            <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name}</span>
+                            <select id="sel-${cIdx}-${iIdx}" style="padding:4px 8px; font-size:12px; margin:0; border-radius:6px; height:auto; width:auto;" onchange="updateSpecQtyUI('${item.name}', ${cIdx}, ${iIdx})">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <button class="menu-btn secondary" onclick="modSpecCart(${cIdx}, ${iIdx}, -1)">-</button>
+                            <span id="qty-spec-${cIdx}-${iIdx}" style="width:25px; text-align:center; font-weight:bold;">0</span>
+                            <button class="menu-btn" onclick="modSpecCart(${cIdx}, ${iIdx}, 1)">+</button>
+                        </div>
+                    </div>`;
+                }
             });
 
             list.innerHTML += `
             <div>
-                <div class="category-header" onclick="toggleCategory(${index})" id="cat-head-${index}">
-                    ${cat.category}
-                    <span class="toggle-icon">▼</span>
+                <div class="category-header" onclick="toggleCategory(${cIdx})" id="cat-head-${cIdx}">
+                    <span>${cat.category}</span><span class="toggle-icon">▼</span>
                 </div>
-                <div class="category-content" id="cat-content-${index}">
-                    ${itemsHtml}
-                </div>
+                <div class="category-content" id="cat-content-${cIdx}">${itemsHtml}</div>
             </div>`;
         });
     }
 
-    function toggleCategory(index) {
-        document.getElementById(`cat-content-${index}`).classList.toggle('open');
-        document.getElementById(`cat-head-${index}`).classList.toggle('open');
+    function toggleCategory(idx) {
+        document.getElementById(`cat-content-${idx}`).classList.toggle('open');
+        document.getElementById(`cat-head-${idx}`).classList.toggle('open');
+    }
+
+    // 下拉選單連動數量顯示
+    function updateSpecQtyUI(baseName, cIdx, iIdx) {
+        const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
+        const fullKey = `${baseName} (${specName})`;
+        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[fullKey] || 0;
+    }
+
+    function modSpecCart(cIdx, iIdx, delta) {
+        const itemObj = menuData[cIdx].items[iIdx];
+        const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
+        const fullKey = `${itemObj.name} (${specName})`;
+        
+        let currentQty = localCart[fullKey] || 0;
+        let newQty = Math.max(0, currentQty + delta);
+        localCart[fullKey] = newQty;
+        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = newQty;
+
+        syncCartUI(localCart);
+        uploadCart();
     }
 
     function modCart(itemName, delta) {
@@ -459,11 +509,13 @@
         localCart[itemName] = newQty;
         document.getElementById(`qty-${itemName}`).innerText = newQty;
 
-        syncCartUI(localCart); 
+        syncCartUI(localCart);
+        uploadCart();
+    }
 
+    function uploadCart() {
         fetch(gasURL, {
-            method: 'POST',
-            redirect: 'follow',
+            method: 'POST', redirect: 'follow',
             body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart })
         });
     }
@@ -471,23 +523,38 @@
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); list.innerHTML = '';
-        let hasItem = false;
-        let totalSum = 0;
+        let hasItem = false; let totalSum = 0;
 
-        allMenuItems.forEach(item => {
-            const qty = localCart[item.name] || 0;
-            const qtyEl = document.getElementById(`qty-${item.name}`);
-            if (qtyEl) qtyEl.innerText = qty; 
-
-            if (qty > 0) {
+        // 刷動態選單與靜態選單的所有連動
+        for(let key in localCart) {
+            const qty = localCart[key] || 0;
+            if(qty > 0) {
                 hasItem = true;
-                const subTotal = item.price * qty;
+                const price = itemPriceMap[key] || 0;
+                const subTotal = price * qty;
                 totalSum += subTotal;
-                list.innerHTML += `<li><strong>${item.name}</strong> <span style="color:#8d99ae; font-size:12px;">($${item.price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <span style="font-weight:bold;">$${subTotal}</span></li>`;
+                list.innerHTML += `<li><strong>${key}</strong> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <strong>$${subTotal}</strong></li>`;
             }
+        }
+
+        // 回填當前畫面上的數值
+        menuData.forEach((cat, cIdx) => {
+            cat.items.forEach((item, iIdx) => {
+                if(item.type === 'single') {
+                    const qtyEl = document.getElementById(`qty-${item.name}`);
+                    if(qtyEl) qtyEl.innerText = localCart[item.name] || 0;
+                } else {
+                    const selectEl = document.getElementById(`sel-${cIdx}-${iIdx}`);
+                    if(selectEl) {
+                        const fullKey = `${item.name} (${selectEl.value})`;
+                        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[fullKey] || 0;
+                    }
+                }
+            });
         });
+
         if(hasItem) {
-            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費總額：$${totalSum}</div>`;
+            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費金額：$${totalSum}</div>`;
         } else {
             list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
         }
@@ -521,7 +588,7 @@
             fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
-                    if(document.activeElement.tagName !== 'BUTTON') { syncCartUI(data.cart || {}); }
+                    if(document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'SELECT') { syncCartUI(data.cart || {}); }
                     syncChatUI(data.chat || []);
                 } else if(data.status === 'kicked') { clearInterval(syncTimer); location.reload(); }
             }).catch(()=>{});
@@ -529,25 +596,35 @@
     }
 
     function leaveGroup() {
-        if (!confirm('確定要退出此小組或換位子嗎？')) return;
+        if (!confirm('確定要離開此秘密小組嗎？')) return;
         clearInterval(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
         .then(() => location.reload());
     }
 
     function switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
     }
 
+    // ===== 📊 管理員後台核心邏輯 =====
+    function switchAdminSubTab(subId) {
+        document.getElementById('admin-tab-summary').classList.remove('active');
+        document.getElementById('admin-tab-breakdown').classList.remove('active');
+        document.getElementById('admin-panel-summary').style.display = 'none';
+        document.getElementById('admin-panel-breakdown').style.display = 'none';
+        
+        document.getElementById('admin-tab-' + subId).classList.add('active');
+        document.getElementById('admin-panel-' + subId).style.display = 'block';
+    }
+
     function fetchAdminData() {
-        showToast('讀取後台綜合大數據中...');
+        showToast('綜合大數據載入中...');
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
         .then(res => res.json()).then(data => {
             if (data.status === 'success') {
-                globalAnnotations = data.annotations || {};
-                renderAdminOrderSummaryUI(data.groupStatus);
+                renderAdminSummaryAndBreakdownUI(data.groupStatus);
 
                 adminParsedData = {};
                 if(data.data) {
@@ -574,38 +651,76 @@
         });
     }
 
-    function renderAdminOrderSummaryUI(groupStatus) {
-        let summaryObj = {};
-        allMenuItems.forEach(item => summaryObj[item.name] = 0);
+    // ⭐ 核心渲染：叫菜總計（分頁A）與分組拆帳（分頁B）
+    function renderAdminSummaryAndBreakdownUI(groupStatus) {
+        let globalSummary = {};
+        let totalClassCost = 0;
+
+        // 分頁 A、B 容器清空
+        const summaryPanel = document.getElementById('admin-panel-summary');
+        const breakdownPanel = document.getElementById('admin-panel-breakdown');
+        summaryPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">📋 餐廳叫菜匯總統計</h3>';
+        breakdownPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">💰 各組座位拆帳明細</h3>';
 
         ['table1', 'table2'].forEach(tKey => {
+            const tableNum = tKey === 'table1' ? 1 : 2;
             let tGroups = groupStatus[tKey].groups;
-            for(let gName in tGroups) {
-                let cart = tGroups[gName].cart || {};
-                for(let itemName in cart) {
-                    if(summaryObj[itemName] !== undefined) summaryObj[itemName] += (cart[itemName] || 0);
+            
+            for(let groupIdentifier in tGroups) {
+                const groupObj = tGroups[groupIdentifier];
+                const parts = groupIdentifier.split('#');
+                const cleanName = parts[0];
+                const code = parts[1];
+
+                let groupTotal = 0;
+                let groupItemsHtml = '';
+
+                // 統計該組餐點
+                for(let key in groupObj.cart) {
+                    const qty = groupObj.cart[key] || 0;
+                    if(qty > 0) {
+                        const price = itemPriceMap[key] || 0;
+                        const cost = price * qty;
+                        groupTotal += cost;
+                        totalClassCost += cost;
+
+                        // 累加到全班叫菜總計
+                        globalSummary[key] = (globalSummary[key] || 0) + qty;
+
+                        groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${key} x ${qty} = $${cost}</div>`;
+                    }
                 }
+
+                if(groupItemsHtml === '') groupItemsHtml = '<div style="padding-left:15px; color:#adb5bd; font-style:italic;">該組尚未點餐</div>';
+
+                // 渲染分頁 B (各組拆帳)
+                breakdownPanel.innerHTML += `
+                <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #edf2f4;">
+                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">
+                        [第 ${tableNum} 桌] ${cleanName} (密碼: ${code})
+                    </div>
+                    <div style="font-size:12px; color:#6c757d; padding-left:5px;">組員: ${groupObj.members.join(', ')}</div>
+                    ${groupItemsHtml}
+                    <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">組開銷小計: $${groupTotal}</div>
+                </div>`;
             }
         });
 
-        const summaryDiv = document.getElementById('admin-order-summary');
-        summaryDiv.innerHTML = '';
+        // 渲染分頁 A (全班總計)
         let hasOrder = false;
-        let totalClassCost = 0;
+        for(let key in globalSummary) {
+            hasOrder = true;
+            const price = itemPriceMap[key] || 0;
+            const cost = price * globalSummary[key];
+            summaryPanel.innerHTML += `<div>• <strong>${key}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${globalSummary[key]}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
+        }
         
-        allMenuItems.forEach(item => {
-            const totalQty = summaryObj[item.name] || 0;
-            if(totalQty > 0) {
-                hasOrder = true;
-                const cost = item.price * totalQty;
-                totalClassCost += cost;
-                summaryDiv.innerHTML += `<div>• <strong>${item.name}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${totalQty}</span> 份 <span style="color:#8d99ae;">(小計: $${cost})</span></div>`;
-            }
-        });
         if(hasOrder) {
-            summaryDiv.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;"><div style="text-align:right; font-weight:bold; font-size:17px; color:var(--accent);">🔥 全班消費大總計：$${totalClassCost} 元</div>`;
+            summaryPanel.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;"><div style="text-align:right; font-weight:bold; font-size:16px; color:var(--accent);">🔥 全班消費大結算：$${totalClassCost} 元</div>`;
+            breakdownPanel.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;"><div style="text-align:right; font-weight:bold; font-size:16px; color:var(--accent);">🔥 全班總金額：$${totalClassCost} 元</div>`;
         } else {
-            summaryDiv.innerHTML = '<span style="color:#adb5bd;">目前尚無任何小組點餐。</span>';
+            summaryPanel.innerHTML += '<span style="color:#adb5bd;">目前全班尚無點餐資料。</span>';
+            breakdownPanel.innerHTML += '<span style="color:#adb5bd;">目前全班尚無點餐資料。</span>';
         }
     }
 
