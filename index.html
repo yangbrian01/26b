@@ -25,7 +25,13 @@
         button.secondary { background-color: #edf2f4; color: #457b9d; }
         button.danger { background-color: #ffe3e3; color: var(--accent); }
         
-        /* 大廳多功能面板 */
+        .table-box { background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        .table-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: var(--primary); margin-bottom: 10px; border-bottom: 2px dashed #edf2f4; padding-bottom: 10px;}
+        .group-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .group-name { font-weight: bold; color: var(--admin-blue); font-size: 16px; }
+        .group-members { font-size: 13px; color: #6c757d; margin-top: 4px; }
+        .join-btn { width: auto; padding: 6px 14px; font-size: 13px; margin: 0; border-radius: 6px; }
+
         .lobby-panel-box { display: flex; gap: 10px; margin-bottom: 20px; }
         .lobby-p-btn { flex: 1; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; background: #edf2f4; color: #6c757d; cursor: pointer; border: 2px solid transparent; }
         .lobby-p-btn.active { background: #fff; color: var(--admin-blue); border-color: var(--admin-blue); box-shadow: 0 4px 12px rgba(58,134,255,0.1); }
@@ -38,7 +44,6 @@
         .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 380px; overflow-y: auto; }
         .panel.active { display: block; }
         
-        /* 手風琴菜單樣式 */
         .category-header { background: #f8f9fa; padding: 12px 15px; border-radius: 8px; font-weight: bold; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid #edf2f4; margin-bottom: 8px; }
         .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
         .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
@@ -84,20 +89,23 @@
     <h2 class="header-title">2026TCLIPb</h2>
     <p class="sub-title">謝師宴座位與點餐系統</p>
 
+    <!-- 定位：享平方店 -->
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
-            <iframe src="https://maps.google.com/maps?q=金色三麥%20新竹竹北店&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹竹北店&output=embed" allowfullscreen="" loading="lazy"></iframe>
         </div>
         <div class="location-info">📍 享平方店 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a></div>
     </div>
 
+    <!-- 1. 登入畫面 -->
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
         <button type="button" id="loginBtn" onclick="verifyName()">進入系統</button>
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">正在連線，請稍候...</div>
     </div>
 
+    <!-- 2. 私密大廳畫面 -->
     <div id="lobby-screen" style="display: none;">
         <h3 style="color: var(--admin-blue); margin-top: 0; text-align: left;">👋 歡迎，<span id="lobby-name"></span>！</h3>
         <p style="font-size: 14px; color: #6c757d; text-align: left;" id="lobby-table-count"></p>
@@ -126,6 +134,7 @@
         <button type="button" id="adminBtn" class="admin-btn" style="display: none; margin-top:30px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
+    <!-- 3. 包廂畫面 -->
     <div id="room-screen" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="text-align: left;">
@@ -156,6 +165,7 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
+    <!-- 4. 管理員雙功能後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         
@@ -179,6 +189,7 @@
 
 <div id="toast"></div>
 
+<!-- 彈窗區塊 -->
 <div id="admin-modal-overlay" class="overlay">
     <div class="modal-content" id="admin-modal-box">
         <span class="close-btn" onclick="closeAdminModal()">×</span>
@@ -322,17 +333,10 @@
         });
     });
 
-    function isDateDisabled(month, date) {
-        if (month === 6) { if (date < 5) return true; return [8, 9, 12, 22, 23].includes(date); }
-        if (month === 7) { return (date >= 1 && date <= 19) || [24, 25].includes(date); }
-        if (month === 8) { return (date >= 24 && date <= 31) || [4, 5, 6].includes(date); }
-        return false; 
-    }
-
+    const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = ''; let myGroupData = null; let syncTimer = null;
     let localCart = {}; let adminParsedData = {}; let globalAnnotations = {}; let selectedAdminDate = '';
 
-    // ⭐ 修正版自動登入載入器
     window.onload = function() {
         const savedName = localStorage.getItem('teacherBanquetName');
         if (savedName) {
@@ -346,6 +350,7 @@
         setTimeout(() => toast.className = "", 3000);
     }
 
+    // ⭐ 終極防卡死版登入驗證
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
@@ -353,14 +358,23 @@
         document.getElementById('loginBtn').style.display = 'none'; 
         document.getElementById('loading').style.display = 'block';
 
+        // 設置 15 秒超時，強迫網頁不能永遠卡在「正在連線」
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         fetch(gasURL, {
-            method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'verify', name: name })
+            method: 'POST',
+            redirect: 'follow',
+            signal: controller.signal,
+            body: JSON.stringify({ action: 'verify', name: name })
         }).then(res => res.json()).then(data => {
-            document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block'; 
+            clearTimeout(timeoutId);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loginBtn').style.display = 'block'; 
 
             if (data.status === 'success') {
                 currentName = name;
-                localStorage.setItem('teacherBanquetName', currentName); // ⭐ 修正：確認成功登入後，確實寫入快取啟用自動登入
+                localStorage.setItem('teacherBanquetName', currentName);
                 
                 document.getElementById('map-block').style.display = 'block'; 
                 
@@ -376,10 +390,18 @@
                 } else {
                     renderLobby(data.groupStatus);
                 }
-            } else { showToast(data.message); }
-        }).catch(() => {
-            document.getElementById('loading').style.display = 'none'; document.getElementById('loginBtn').style.display = 'block';
-            showToast('❌ 網路連線錯誤');
+            } else {
+                showToast(data.message);
+            }
+        }).catch(err => { 
+            clearTimeout(timeoutId);
+            document.getElementById('loading').style.display = 'none'; 
+            document.getElementById('loginBtn').style.display = 'block';
+            if (err.name === 'AbortError') {
+                showToast('❌ 網路超時，請重新整理網頁再試');
+            } else {
+                showToast('❌ 連線伺服器失敗，請清除網頁快取'); 
+            }
         });
     }
 
@@ -389,6 +411,32 @@
         document.getElementById('room-screen').style.display = 'none';
         document.getElementById('lobby-name').innerText = currentName;
         document.getElementById('lobby-table-count').innerText = `目前座位概量：第一桌 ${status.table1.count}/15人，第二桌 ${status.table2.count}/15人。`;
+
+        const container = document.getElementById('tables-container');
+        container.innerHTML = '';
+
+        [1, 2].forEach(tNum => {
+            const tKey = tNum === 1 ? 'table1' : 'table2';
+            const tData = status[tKey];
+            let html = `<div class="table-box"><div class="table-header"><span>第 ${tNum} 桌</span><span>${tData.count} / 15 人</span></div>`;
+            
+            if (Object.keys(tData.groups).length === 0) {
+                html += `<div style="font-size: 13px; color: #adb5bd; text-align: center; padding:10px;">目前沒有小組，搶先建立吧！</div>`;
+            } else {
+                for (let gName in tData.groups) {
+                    const members = tData.groups[gName].members.join(', ');
+                    html += `
+                    <div class="group-card">
+                        <div style="flex:1; text-align:left;">
+                            <div class="group-name">${gName}</div>
+                            <div class="group-members">成員 (${tData.groups[gName].members.length}人): ${members}</div>
+                        </div>
+                        <button class="join-btn" onclick="joinGroup(${tNum}, '${gName}')">加入</button>
+                    </div>`;
+                }
+            }
+            html += `</div>`; container.innerHTML += html;
+        });
     }
 
     function switchLobbyPanel(panelId) {
@@ -429,14 +477,12 @@
         const parts = myGroupData.groupName.split('#');
         document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${parts[0]}】`;
         
-        // ⭐ 修正版：密碼代碼區塊，點擊文字即可自動複製
-        document.getElementById('room-code-display').innerHTML = `🔑 小組密碼：<strong id="my-code-val" style="color:var(--primary); font-size:14px; background:#fff; padding:2px 6px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="copyRoomCode()">${parts[1]}</strong> <span style="font-size:12px; color:var(--admin-blue); cursor:pointer; font-weight:bold; margin-left:4px;" onclick="copyRoomCode()">[點擊複製]</span>`;
+        document.getElementById('room-code-display').innerHTML = `🔑 小組密碼：<strong style="color:var(--primary); font-size:14px; background:#fff; padding:2px 6px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="copyRoomCode()">${parts[1]}</strong> <span style="font-size:12px; color:var(--admin-blue); cursor:pointer; font-weight:bold; margin-left:4px;" onclick="copyRoomCode()">[點擊複製]</span>`;
         
         renderMenuListUI();
         startPolling(); 
     }
 
-    // ⭐ 修正版：點擊自動複製代碼
     function copyRoomCode() {
         const parts = myGroupData.groupName.split('#');
         const code = parts[1];
@@ -540,7 +586,6 @@
         });
     }
 
-    const allMenuItems = menuData.flatMap(c => c.items);
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); list.innerHTML = '';
@@ -553,7 +598,7 @@
                 const price = itemPriceMap[key] || 0;
                 const subTotal = price * qty;
                 totalSum += subTotal;
-                list.innerHTML += `<li><strong>${key}</strong> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <strong>$${subTotal}</strong></li>`;
+                list.innerHTML += `<li><strong>${key}</strong> <span style="color:#8d99ae; font-size:12px;">($${price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <strong>$${subTotal}</strong></li>`;
             }
         }
 
@@ -566,7 +611,8 @@
                     const selectEl = document.getElementById(`sel-${cIdx}-${iIdx}`);
                     if(selectEl) {
                         const fullKey = `${item.name} (${selectEl.value})`;
-                        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[fullKey] || 0;
+                        const qtySpecEl = document.getElementById(`qty-spec-${cIdx}-${iIdx}`);
+                        if(qtySpecEl) qtySpecEl.innerText = localCart[fullKey] || 0;
                     }
                 }
             });
@@ -619,7 +665,7 @@
         clearInterval(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
         .then(() => {
-            localStorage.removeItem('teacherBanquetName'); // 登出時清空
+            localStorage.removeItem('teacherBanquetName');
             location.reload();
         });
     }
@@ -630,7 +676,7 @@
         event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    // ===== 管理員後台 =====
+    // ===== 📊 管理員後台核心邏輯 =====
     function switchAdminSubTab(subId) {
         document.getElementById('admin-tab-summary').classList.remove('active');
         document.getElementById('admin-tab-breakdown').classList.remove('active');
@@ -648,33 +694,20 @@
             if (data.status === 'success') {
                 renderAdminSummaryAndBreakdownUI(data.groupStatus);
 
-                adminParsedData = {};
-                if(data.data) {
-                    data.data.forEach(row => {
-                        if(row.reasonString && row.reasonString !== "全部皆可參加") {
-                            row.reasonString.split('\n').forEach(line => {
-                                const parts = line.split('：');
-                                if(parts.length >= 2) {
-                                    const date = parts[0].trim(); const reason = parts.slice(1).join('：').trim();
-                                    if(!adminParsedData[date]) adminParsedData[date] = [];
-                                    adminParsedData[date].push({name: row.name, reason: reason});
-                                }
-                            });
-                        }
-                    });
-                }
-
                 document.getElementById('lobby-screen').style.display = 'none';
                 document.getElementById('room-screen').style.display = 'none'; 
                 document.getElementById('admin-screen').style.display = 'block';
-                const calContainer = document.getElementById('admin-calendar-container'); calContainer.innerHTML = '';
-                renderMonthsGrid(calContainer); 
             } else { showToast(data.message); }
-        });
+        }).catch(()=>{ showToast('連線失敗'); });
     }
 
+    // ⭐ 完美修正版：全品項與尺寸都能精準算進去
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
-        let globalSummary = {}; let totalClassCost = 0;
+        let globalSummary = {};
+        for(let key in itemPriceMap) { globalSummary[key] = 0; } // 確保所有有規格的品項都被初始化
+        
+        let totalClassCost = 0;
+
         const summaryPanel = document.getElementById('admin-panel-summary');
         const breakdownPanel = document.getElementById('admin-panel-breakdown');
         summaryPanel.innerHTML = '<h3 style="margin-top:0; font-size:15px; border-bottom:1px solid #edf2f4; padding-bottom:5px;">📋 餐廳叫菜匯總統計</h3>';
@@ -687,15 +720,21 @@
             for(let groupIdentifier in tGroups) {
                 const groupObj = tGroups[groupIdentifier];
                 const parts = groupIdentifier.split('#');
-                const cleanName = parts[0]; const code = parts[1];
+                const cleanName = parts[0];
+                const code = parts[1];
 
-                let groupTotal = 0; let groupItemsHtml = '';
+                let groupTotal = 0;
+                let groupItemsHtml = '';
 
+                // 統計該組餐點
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
-                        const price = itemPriceMap[key] || 0; const cost = price * qty;
-                        groupTotal += cost; totalClassCost += cost;
+                        const price = itemPriceMap[key] || 0;
+                        const cost = price * qty;
+                        groupTotal += cost;
+                        totalClassCost += cost;
+
                         globalSummary[key] = (globalSummary[key] || 0) + qty;
                         groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${key} x ${qty} = $${cost}</div>`;
                     }
@@ -705,7 +744,9 @@
 
                 breakdownPanel.innerHTML += `
                 <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #edf2f4;">
-                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">[第 ${tableNum} 桌] ${cleanName} (密碼: ${code})</div>
+                    <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">
+                        [第 ${tableNum} 桌] ${cleanName} (密碼: ${code})
+                    </div>
                     <div style="font-size:12px; color:#6c757d; padding-left:5px;">組員: ${groupObj.members.join(', ')}</div>
                     ${groupItemsHtml}
                     <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">組開銷小計: $${groupTotal}</div>
@@ -713,11 +754,16 @@
             }
         });
 
+        // 渲染分頁 A (全班總計)
         let hasOrder = false;
         for(let key in globalSummary) {
-            hasOrder = true;
-            const price = itemPriceMap[key] || 0; const cost = price * globalSummary[key];
-            summaryPanel.innerHTML += `<div>• <strong>${key}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${globalSummary[key]}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
+            const qty = globalSummary[key];
+            if(qty > 0) {
+                hasOrder = true;
+                const price = itemPriceMap[key] || 0;
+                const cost = price * qty;
+                summaryPanel.innerHTML += `<div>• <strong>${key}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${qty}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
+            }
         }
         
         if(hasOrder) {
@@ -727,78 +773,6 @@
             summaryPanel.innerHTML += '<span style="color:#adb5bd;">目前全班尚無點餐資料。</span>';
             breakdownPanel.innerHTML += '<span style="color:#adb5bd;">目前全班尚無點餐資料。</span>';
         }
-    }
-
-    function renderMonthsGrid(targetContainer) {
-        const months = [6, 7, 8];
-        const monthNames = {6: '6 月 June', 7: '7 月 July', 8: '8 月 August'};
-        const daysInMonth = {6: 30, 7: 31, 8: 31};
-
-        months.forEach(m => {
-            const section = document.createElement('div');
-            const title = document.createElement('div'); title.className = 'month-title'; title.innerText = monthNames[m];
-            section.appendChild(title);
-
-            const grid = document.createElement('div'); grid.className = 'calendar-grid';
-            const daysHeader = ['日', '一', '二', '三', '四', '五', '六'];
-            daysHeader.forEach(d => { const el = document.createElement('div'); el.className = 'cal-header'; el.innerText = d; grid.appendChild(el); });
-
-            const startDay = new Date(2026, m - 1, 1).getDay();
-            for(let i = 0; i < startDay; i++) { grid.appendChild(document.createElement('div')); }
-
-            for(let d = 1; d <= daysInMonth[m]; d++) {
-                const dateStr = `${m}/${d}`; const isDisabled = isDateDisabled(m, d);
-                const dayEl = document.createElement('div'); dayEl.className = 'cal-day ' + (!isDisabled ? 'clickable' : 'disabled'); dayEl.innerText = d;
-
-                const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
-                if (!isDisabled) {
-                    if (count > 0) {
-                        let bgColor = '#fff', textColor = '#2b2d42';
-                        if (count === 1) { bgColor = '#ffe0b2'; }
-                        else if (count === 2) { bgColor = '#ffb74d'; }
-                        else if (count === 3) { bgColor = '#ff9800'; }
-                        else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
-                        else { bgColor = '#d32f2f'; textColor = '#fff'; }
-                        dayEl.style.backgroundColor = bgColor; dayEl.style.color = textColor;
-                    }
-                    const annColor = globalAnnotations[dateStr];
-                    if (annColor === 'blue') dayEl.classList.add('admin-blue');
-                    if (annColor === 'green') dayEl.classList.add('admin-green');
-
-                    dayEl.onclick = () => openAdminModal(dateStr, count);
-                }
-                grid.appendChild(dayEl);
-            }
-            section.appendChild(grid); targetContainer.appendChild(section);
-        });
-    }
-
-    function openAdminModal(dateStr, count) {
-        selectedAdminDate = dateStr;
-        document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
-        const listContainer = document.getElementById('admin-modal-list'); listContainer.innerHTML = '';
-        
-        if (count === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: #8d99ae; margin-top: 20px;">這天目前全員都可以參加喔！🎉</p>';
-        } else {
-            adminParsedData[dateStr].forEach(p => {
-                listContainer.innerHTML += `<div class="detail-item"><span class="detail-name">${p.name}</span><span class="detail-reason">${p.reason}</span></div>`;
-            });
-        }
-        const overlay = document.getElementById('admin-modal-overlay'); const box = document.getElementById('admin-modal-box');
-        overlay.style.display = 'block'; setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
-    }
-
-    function setAnnotation(color) {
-        if (color === 'none') { delete globalAnnotations[selectedAdminDate]; } else { globalAnnotations[selectedAdminDate] = color; }
-        closeAdminModal();
-        const cal = document.getElementById('admin-calendar-container'); cal.innerHTML = ''; renderMonthsGrid(cal);
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'annotations', value: globalAnnotations }) });
-    }
-
-    function closeAdminModal() {
-        const overlay = document.getElementById('admin-modal-overlay'); const box = document.getElementById('admin-modal-box');
-        overlay.style.opacity = '0'; box.style.transform = 'translate(-50%, -45%)'; setTimeout(() => overlay.style.display = 'none', 300);
     }
 
     function exitAdmin() { 
