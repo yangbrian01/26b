@@ -3,54 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026TCLIPb 謝師宴點餐系統</title>
+    <title>2026TCLIPb 謝師宴座位與點餐系統</title>
     <style>
-        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; }
+        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        .app-container { background: var(--surface); width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); margin-bottom: 20px; }
-        .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 26px; }
-        .sub-title { text-align: center; color: #8d99ae; font-size: 14px; margin-bottom: 20px; margin-top: 0; }
+        .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; }
+        .sub-title { text-align: center; color: #8d99ae; font-size: 15px; margin-bottom: 20px; margin-top: 0; }
         
-        input[type="text"] { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; background: #f8f9fa; }
-        input[type="text"]:focus { border-color: var(--primary); background: #fff; }
+        .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 15px; border: 2px solid var(--gold); }
+        .map-container { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .map-container iframe { width: 100%; height: 100%; border: none; }
+        .location-info { text-align: center; font-size: 14px; color: #6c757d; margin-bottom: 25px; font-weight: 500; }
+        .location-info a { color: var(--admin-blue); text-decoration: none; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #e0f2fe; }
         
+        input[type="text"], select { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; background: #f8f9fa; }
         button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         button:hover { background-color: #0f1923; transform: translateY(-2px); }
         button.secondary { background-color: #edf2f4; color: #457b9d; }
         button.danger { background-color: #ffe3e3; color: var(--accent); }
         
-        /* 大廳排位子樣式 */
         .table-box { background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
         .table-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: var(--primary); margin-bottom: 10px; border-bottom: 2px dashed #edf2f4; padding-bottom: 10px;}
-        .group-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .group-name { font-weight: bold; color: var(--admin-blue); }
-        .group-members { font-size: 12px; color: #6c757d; }
-        .join-btn { width: auto; padding: 6px 12px; font-size: 13px; margin: 0; border-radius: 6px; }
+        .group-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .group-name { font-weight: bold; color: var(--admin-blue); font-size: 16px; }
+        .group-members { font-size: 13px; color: #6c757d; margin-top: 4px; }
+        .join-btn { width: auto; padding: 6px 14px; font-size: 13px; margin: 0; border-radius: 6px; }
 
-        /* 包廂面板切換 */
         .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; }
         .tab-btn.active { background: var(--primary); color: #fff; }
-        
-        /* 點餐與聊天區塊 */
-        .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 400px; overflow-y: auto; }
+        .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 380px; overflow-y: auto; }
         .panel.active { display: block; }
         
-        /* 菜單樣式 */
-        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; }
-        .menu-btn { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 18px; line-height: 1; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
-        .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 10px; margin-top: 15px; }
+        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
+        .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
+        .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: left; }
 
-        /* 聊天室樣式 */
-        .chat-box { height: 280px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; }
+        .chat-box { height: 280px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; text-align: left; }
         .msg-bubble { background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 8px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .msg-bubble.mine { background: #dbeafe; margin-left: auto; border-radius: 15px; border-bottom-right-radius: 0; }
         .msg-sender { font-size: 11px; color: #adb5bd; margin-bottom: 2px; }
         .chat-input-row { display: flex; gap: 8px; }
         .chat-input-row input { margin: 0; flex: 1; }
         .chat-input-row button { width: auto; margin: 0; padding: 0 20px; }
+
+        /* 月份熱力圖樣式 */
+        .month-title { color: var(--primary); font-size: 18px; font-weight: bold; border-left: 5px solid var(--primary); padding-left: 8px; margin: 25px 0 10px 0; text-align: left; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 15px; text-align: center; width: 100%; }
+        .cal-header { font-weight: 700; color: #8d99ae; padding: 6px 0; font-size: 14px; }
+        .cal-day { padding: 14px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; display: flex; align-items: center; justify-content: center; }
+        .cal-day.disabled { color: #cbd5e1; background-color: #f1f5f9; border-color: transparent; }
+        .cal-day.clickable { cursor: pointer; }
+        .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
+        .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
+        .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; gap: 4px; }
+        .legend-item { display: flex; align-items: center; margin: 0 4px; }
+        .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
 
         #toast { visibility: hidden; min-width: 200px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 12px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
@@ -60,115 +71,158 @@
 
 <div class="app-container">
     <h2 class="header-title">2026TCLIPb</h2>
-    <p class="sub-title">金色三麥排位與點餐系統</p>
+    <p class="sub-title">謝師宴座位與點餐系統</p>
+
+    <div id="map-block" style="display:none;">
+        <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
+        <div class="map-container">
+            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹巨城店PARK15&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+        <div class="location-info">📍 巨城 (7F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹巨城店PARK15" target="_blank">一鍵開啟導航</a></div>
+    </div>
 
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
-        <button type="button" onclick="verifyName()">進入大廳</button>
+        <button type="button" onclick="verifyName()">進入系統</button>
+        <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">正在連線，請稍候...</div>
     </div>
 
     <div id="lobby-screen" style="display: none;">
-        <h3 style="color: var(--admin-blue); margin-top: 0;">👋 歡迎，<span id="lobby-name"></span>！</h3>
-        <p style="font-size: 14px; color: #6c757d;">請選擇一桌加入，或在該桌建立你的小組。</p>
-        
-        <div id="tables-container"></div> <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #edf2f4;">
-            <label style="font-weight: bold; font-size: 14px;">✨ 建立新小組</label>
+        <h3 style="color: var(--admin-blue); margin-top: 0; text-align: left;">👋 歡迎，<span id="lobby-name"></span>！</h3>
+        <p style="font-size: 14px; color: #6c757d; text-align: left;">每桌上限 15 人。你可以加入現有小組，或建立新小組。</p>
+        <div id="tables-container"></div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #edf2f4; text-align: left;">
+            <strong style="font-size: 14px; color: var(--primary);">✨ 建立新小組</strong>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <select id="new-group-table" style="padding: 10px; border-radius: 8px; border: 2px solid #edf2f4;">
+                <select id="new-group-table" style="margin:0; width:90px; padding:10px;">
                     <option value="1">第一桌</option>
                     <option value="2">第二桌</option>
                 </select>
-                <input type="text" id="new-group-name" placeholder="小組名稱 (例: 肉食怪)" style="margin: 0; flex: 1; padding: 10px;">
+                <input type="text" id="new-group-name" placeholder="輸入組名 (例: 樂團風暴)" style="margin: 0; flex: 1; padding: 10px;">
             </div>
-            <button type="button" onclick="createGroup()" style="margin-top: 10px; padding: 10px;">新增並加入</button>
+            <button type="button" onclick="createGroup()" style="margin-top: 10px; padding: 12px; font-size:14px;">建立並加入</button>
         </div>
+        <button type="button" id="adminBtn" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至管理員統計後台</button>
     </div>
 
     <div id="room-screen" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
-            <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出小組</button>
+            <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">換位置 / 退出組</button>
         </div>
-
         <div class="tab-nav">
             <div class="tab-btn active" onclick="switchTab('menu')">🍔 點餐</div>
-            <div class="tab-btn" onclick="switchTab('chat')">💬 討論版</div>
+            <div class="tab-btn" onclick="switchTab('chat')">💬 組內討論版</div>
         </div>
-
         <div id="tab-menu" class="panel active">
             <div id="menu-list"></div>
             <div class="cart-box">
-                <strong style="color: #b08d00;">🛒 本組購物車：</strong>
-                <ul id="cart-list" style="margin: 5px 0 0 0; padding-left: 20px; font-size: 14px; color: #495057;"></ul>
+                <strong style="color: #b08d00;">🛒 本組已點餐點：</strong>
+                <ul id="cart-list" style="margin: 5px 0 0 0; padding-left: 20px; font-size: 14px; color: #495057; line-height: 1.6;"></ul>
             </div>
         </div>
-
         <div id="tab-chat" class="panel">
             <div class="chat-box" id="chat-history"></div>
             <div class="chat-input-row">
-                <input type="text" id="chat-input" placeholder="說點什麼..." onkeypress="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chat-input" placeholder="傳送訊息給組員..." onkeypress="if(event.key==='Enter') sendChat()">
                 <button type="button" onclick="sendChat()">傳送</button>
             </div>
         </div>
+    </div>
+
+    <div id="admin-screen" style="display: none; text-align: left;">
+        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召統計後台</h3>
+        
+        <h4 style="color: var(--admin-blue); margin-bottom: 5px;">📋 兩桌點餐總計 (餐廳出菜參考)</h4>
+        <div id="admin-order-summary" style="background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
+
+        <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
+        
+        <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段：6/5 - 8/31 檔期熱力圖與請假原因</h4>
+        <div class="heatmap-legend">
+            <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>2</div>
+            <div class="legend-item"><div class="legend-box" style="background: #ff9800;"></div>3</div>
+            <div class="legend-item"><div class="legend-box" style="background: #f44336;"></div>4</div>
+            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>5+</div>
+        </div>
+        <div id="admin-calendar-container"></div>
+        
+        <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回分組大廳</button>
     </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-    const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
-    let currentName = '';
-    let myGroupData = null; // 紀錄我在哪一桌哪個組
-    let syncTimer = null;
-
-    // 預設菜單
+    // 🍔 在這裡修改你的金色三麥菜單品項，直接改陣列名稱就會生效！
     const menuItems = [
-        "金色三麥經典大拼盤", "德式香腸披薩", "酥炸椒麻雞", 
-        "現釀黑麥啤酒 (350ml)", "蜂蜜啤酒 (350ml)", "德國豬腳", 
-        "松露窯烤野菇燉飯", "無酒精黑麥汁"
+        "金色三麥經典大拼盤", 
+        "酥炸椒麻雞", 
+        "德國豬腳", 
+        "德式香腸披薩", 
+        "松露窯烤野菇燉飯", 
+        "西班牙海鮮飯", 
+        "現釀蜜蜂啤酒 (350ml)", 
+        "無酒精黑麥汁"
     ];
 
+    const calendarValidDates = [];
+    function isDateDisabled(month, date) {
+        if (month === 6) { if (date < 5) return true; return [8, 9, 12, 22, 23].includes(date); }
+        if (month === 7) { return (date >= 1 && date <= 19) || [24, 25].includes(date); }
+        if (month === 8) { return (date >= 24 && date <= 31) || [4, 5, 6].includes(date); }
+        return false; 
+    }
+
+    let currentName = '';
+    let myGroupData = null; 
+    let syncTimer = null;
+    let localCart = {}; 
+    let adminParsedData = {}; 
+    let globalAnnotations = {};
+
     function showToast(msg) {
-        const toast = document.getElementById("toast");
-        toast.innerText = msg;
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 3000);
+        const toast = document.getElementById("toast"); toast.innerText = msg; toast.className = "show";
+        setTimeout(() => toast.className = "", 3000);
     }
 
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
-
-        document.getElementById('login-screen').innerHTML = '<p style="text-align: center; color: #8d99ae;">登入中...</p>';
+        document.getElementById('loading').style.display = 'block';
 
         fetch(gasURL, {
             method: 'POST',
             body: JSON.stringify({ action: 'verify', name: name })
         }).then(res => res.json()).then(data => {
+            document.getElementById('loading').style.display = 'none';
             if (data.status === 'success') {
                 currentName = name;
+                document.getElementById('map-block').style.display = 'block'; // 地圖顯現
                 const myInfo = data.groupStatus.users[name];
-                
                 if (myInfo) {
-                    // 已經在群組裡，直接進包廂
                     myGroupData = myInfo;
                     enterRoom();
                 } else {
-                    // 還沒分組，進大廳
                     renderLobby(data.groupStatus);
                 }
             } else {
                 showToast(data.message);
-                location.reload();
             }
-        });
+        }).catch(() => { document.getElementById('loading').style.display = 'none'; showToast('網路錯誤'); });
     }
 
-    // ===== 大廳邏輯 =====
     function renderLobby(status) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('lobby-screen').style.display = 'block';
+        document.getElementById('room-screen').style.display = 'none';
         document.getElementById('lobby-name').innerText = currentName;
+
+        // 判斷是否為管理員
+        fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
+        .then(res => res.json()).then(d => { if(d.status === 'success') document.getElementById('adminBtn').style.display = 'block'; });
 
         const container = document.getElementById('tables-container');
         container.innerHTML = '';
@@ -176,26 +230,24 @@
         [1, 2].forEach(tNum => {
             const tKey = tNum === 1 ? 'table1' : 'table2';
             const tData = status[tKey];
-            let html = `<div class="table-box">
-                <div class="table-header"><span>第 ${tNum} 桌</span><span>${tData.count} / 15 人</span></div>`;
+            let html = `<div class="table-box"><div class="table-header"><span>第 ${tNum} 桌</span><span>${tData.count} / 15 人</span></div>`;
             
             if (Object.keys(tData.groups).length === 0) {
-                html += `<div style="font-size: 13px; color: #adb5bd; text-align: center;">目前沒有小組，搶先建立吧！</div>`;
+                html += `<div style="font-size: 13px; color: #adb5bd; text-align: center; padding:10px;">目前沒有小組，搶先建立吧！</div>`;
             } else {
                 for (let gName in tData.groups) {
                     const members = tData.groups[gName].members.join(', ');
                     html += `
                     <div class="group-card">
-                        <div>
+                        <div style="flex:1; text-align:left;">
                             <div class="group-name">${gName}</div>
-                            <div class="group-members">成員: ${members}</div>
+                            <div class="group-members">成員 (${tData.groups[gName].members.length}人): ${members}</div>
                         </div>
                         <button class="join-btn" onclick="joinGroup(${tNum}, '${gName}')">加入</button>
                     </div>`;
                 }
             }
-            html += `</div>`;
-            container.innerHTML += html;
+            html += `</div>`; container.innerHTML += html;
         });
     }
 
@@ -207,7 +259,6 @@
     }
 
     function joinGroup(tNum, gName) {
-        showToast('加入中...');
         fetch(gasURL, {
             method: 'POST',
             body: JSON.stringify({ action: 'joinGroup', name: currentName, table: tNum, groupName: gName })
@@ -215,52 +266,32 @@
             if (data.status === 'success') {
                 myGroupData = { table: tNum, groupName: gName };
                 enterRoom();
-            } else {
-                showToast(data.message);
-            }
+            } else { showToast(data.message); }
         });
     }
 
-    // ===== 包廂邏輯 =====
     function enterRoom() {
+        document.getElementById('login-screen').style.display = 'none';
         document.getElementById('lobby-screen').style.display = 'none';
         document.getElementById('room-screen').style.display = 'block';
-        document.getElementById('room-title').innerText = `T${myGroupData.table} - ${myGroupData.groupName}`;
+        document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${myGroupData.groupName}】`;
         
-        renderMenu();
-        startPolling(); // 啟動同步精靈！
-    }
-
-    function leaveGroup() {
-        if (!confirm('確定要退出這個小組嗎？')) return;
-        clearInterval(syncTimer);
-        fetch(gasURL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'leaveGroup', name: currentName })
-        }).then(() => location.reload());
-    }
-
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        // 初始化點餐 local 變數與 UI
+        menuItems.forEach(item => localCart[item] = 0);
+        renderMenuListUI();
         
-        event.target.classList.add('active');
-        document.getElementById('tab-' + tabId).classList.add('active');
+        startPolling(); 
     }
 
-    // --- 點餐 ---
-    let localCart = {};
-    function renderMenu() {
-        const list = document.getElementById('menu-list');
-        list.innerHTML = '';
+    function renderMenuListUI() {
+        const list = document.getElementById('menu-list'); list.innerHTML = '';
         menuItems.forEach(item => {
-            localCart[item] = 0;
             list.innerHTML += `
             <div class="menu-item">
                 <span style="font-weight: bold; font-size: 14px;">${item}</span>
                 <div style="display: flex; align-items: center;">
                     <button class="menu-btn secondary" onclick="modCart('${item}', -1)">-</button>
-                    <span id="qty-${item}" style="width: 20px; text-align: center; font-weight: bold;">0</span>
+                    <span id="qty-${item}" style="width: 25px; text-align: center; font-weight: bold; color:var(--admin-blue);">0</span>
                     <button class="menu-btn" onclick="modCart('${item}', 1)">+</button>
                 </div>
             </div>`;
@@ -268,89 +299,227 @@
     }
 
     function modCart(item, delta) {
-        localCart[item] = Math.max(0, localCart[item] + delta);
-        updateCartUI(localCart);
-        
-        // 轉成陣列格式上傳
-        let cartArray = [];
-        for (let k in localCart) { if(localCart[k] > 0) cartArray.push(`${k} x${localCart[k]}`); }
-        
+        let currentQty = localCart[item] || 0;
+        let newQty = Math.max(0, currentQty + delta);
+        localCart[item] = newQty;
+        document.getElementById(`qty-${item}`).innerText = newQty;
+
+        // 直接把本地包裝好的物件送往後端覆蓋
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: cartArray })
+            body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart })
+        }).then(res => res.json()).then(data => { if(data.status !== 'success') showToast('同步失敗'); });
+    }
+
+    function syncCartUI(serverCartObj) {
+        localCart = serverCartObj || {};
+        const list = document.getElementById('cart-list'); list.innerHTML = '';
+        let hasItem = false;
+
+        menuItems.forEach(item => {
+            const qty = localCart[item] || 0;
+            const qtyEl = document.getElementById(`qty-${item}`);
+            if (qtyEl) qtyEl.innerText = qty; // 連動數字
+
+            if (qty > 0) {
+                hasItem = true;
+                list.innerHTML += `<li><strong>${item}</strong> <span style="color:var(--accent);">x ${qty}份</span></li>`;
+            }
         });
+        if(!hasItem) list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
     }
 
-    function updateCartUI(cartArrayOrObj) {
-        const list = document.getElementById('cart-list');
-        list.innerHTML = '';
-        
-        // 如果是從伺服器抓下來的陣列
-        if (Array.isArray(cartArrayOrObj)) {
-            cartArrayOrObj.forEach(i => list.innerHTML += `<li>${i}</li>`);
-            // 同步回 local 數字
-            cartArrayOrObj.forEach(str => {
-                let parts = str.split(' x');
-                if(parts.length===2 && document.getElementById(`qty-${parts[0]}`)) {
-                    localCart[parts[0]] = parseInt(parts[1]);
-                    document.getElementById(`qty-${parts[0]}`).innerText = parts[1];
-                }
-            });
-        }
-    }
-
-    // --- 聊天室 ---
     function sendChat() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if(!text) return;
-        input.value = '';
-
-        // 先假裝自己送出了 (樂觀 UI 更新)
-        const box = document.getElementById('chat-history');
-        box.innerHTML += `<div class="msg-bubble mine"><div class="msg-sender">我</div>${text}</div>`;
-        box.scrollTop = box.scrollHeight;
-
-        fetch(gasURL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text })
-        });
+        const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
+        fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text }) });
     }
 
-    function updateChatUI(chatArray) {
-        const box = document.getElementById('chat-history');
-        const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 20;
-        
+    function syncChatUI(chatArray) {
+        const box = document.getElementById('chat-history'); const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 30;
         box.innerHTML = '';
         chatArray.forEach(msg => {
             const isMe = msg.sender === currentName;
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}">
-                <div class="msg-sender">${msg.sender} <span style="font-size: 9px;">${msg.time.substring(11,16)}</span></div>
-                ${msg.text}
+                <div class="msg-sender">${msg.sender} <span style="font-size: 9px; color:#ced4da;">${msg.time.substring(11,16)}</span></div>
+                <div style="word-break:break-all;">${msg.text}</div>
             </div>`;
         });
-        
         if(isAtBottom) box.scrollTop = box.scrollHeight;
     }
 
-    // --- 同步精靈 (長輪詢) ---
     function startPolling() {
+        if(syncTimer) clearInterval(syncTimer);
+        // 每 3 秒偷問一次後台有沒有新訊息或新餐點
         syncTimer = setInterval(() => {
-            fetch(gasURL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'syncGroup', name: currentName })
-            }).then(res => res.json()).then(data => {
+            fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
+            .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
-                    updateCartUI(data.cart);
-                    updateChatUI(data.chat);
-                } else if (data.status === 'kicked') {
-                    clearInterval(syncTimer);
-                    location.reload();
-                }
-            });
-        }, 5000); // 每 5 秒抓一次最新資料
+                    syncCartObj = data.cart || {};
+                    // 只有在手指沒在按的時候，同步遠端數據，防干擾
+                    if(document.activeElement.tagName !== 'BUTTON') { syncCartUI(syncCartObj); }
+                    syncChatUI(data.chat || []);
+                } else if(data.status === 'kicked') { clearInterval(syncTimer); location.reload(); }
+            }).catch(()=>{});
+        }, 3000);
     }
+
+    function leaveGroup() {
+        if (!confirm('確定要退出此小組或換位子嗎？點餐紀錄會保留給同組組員。')) return;
+        clearInterval(syncTimer);
+        fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
+        .then(() => location.reload());
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // ===== 📊 總召管理員統計後台邏輯 =====
+    function fetchAdminData() {
+        showToast('讀取後台綜合大數據中...');
+        fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
+        .then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                globalDeadline = data.deadline || ''; globalAnnotations = data.annotations || {};
+                
+                // 1. 統計並渲染所有小組的點餐總計
+                renderAdminOrderSummaryUI(data.groupStatus);
+
+                // 2. 儲存第一階段請假資料並畫出獨立月份熱力圖
+                adminParsedData = {};
+                data.data.forEach(row => {
+                    if(row.reasonString && row.reasonString !== "全部皆可參加") {
+                        row.reasonString.split('\n').forEach(line => {
+                            const parts = line.split('：');
+                            if(parts.length >= 2) {
+                                const date = parts[0].trim(); const reason = parts.slice(1).join('：').trim();
+                                if(!adminParsedData[date]) adminParsedData[date] = [];
+                                adminParsedData[date].push({name: row.name, reason: reason});
+                            }
+                        });
+                    }
+                });
+
+                document.getElementById('lobby-screen').style.display = 'none';
+                document.getElementById('admin-screen').style.display = 'block';
+                
+                const calContainer = document.getElementById('admin-calendar-container'); calContainer.innerHTML = '';
+                renderMonthsGrid(calContainer); // 畫日曆
+            } else { showToast(data.message); }
+        });
+    }
+
+    function renderAdminOrderSummaryUI(groupStatus) {
+        let summaryObj = {};
+        menuItems.forEach(item => summaryObj[item] = 0);
+
+        // 走訪第一桌與第二桌所有小組的購物車進行加總
+        ['table1', 'table2'].forEach(tKey => {
+            let tGroups = groupStatus[tKey].groups;
+            for(let gName in tGroups) {
+                let cart = tGroups[gName].cart || {};
+                for(let item in cart) {
+                    if(summaryObj[item] !== undefined) summaryObj[item] += (cart[item] || 0);
+                }
+            }
+        });
+
+        const summaryDiv = document.getElementById('admin-order-summary');
+        summaryDiv.innerHTML = '';
+        let hasOrder = false;
+        
+        menuItems.forEach(item => {
+            if(summaryObj[item] > 0) {
+                hasOrder = true;
+                summaryDiv.innerHTML += `<div>• <strong>${item}</strong>： <span style="color:var(--admin-blue); font-weight:bold; font-size:15px;">${summaryObj[item]}</span> 份</div>`;
+            }
+        });
+        if(!hasOrder) summaryDiv.innerHTML = '<span style="color:#adb5bd;">目前尚無任何小組點餐。</span>';
+    }
+
+    function renderMonthsGrid(targetContainer) {
+        const months = [6, 7, 8];
+        const monthNames = {6: '6 月 June', 7: '7 月 July', 8: '8 月 August'};
+        const daysInMonth = {6: 30, 7: 31, 8: 31};
+
+        months.forEach(m => {
+            const section = document.createElement('div');
+            const title = document.createElement('div'); title.className = 'month-title'; title.innerText = monthNames[m];
+            section.appendChild(title);
+
+            const grid = document.createElement('div'); grid.className = 'calendar-grid';
+            const daysHeader = ['日', '一', '二', '三', '四', '五', '六'];
+            daysHeader.forEach(d => { const el = document.createElement('div'); el.className = 'cal-header'; el.innerText = d; grid.appendChild(el); });
+
+            const startDay = new Date(2026, m - 1, 1).getDay();
+            for(let i = 0; i < startDay; i++) { grid.appendChild(document.createElement('div')); }
+
+            for(let d = 1; d <= daysInMonth[m]; d++) {
+                const dateStr = `${m}/${d}`; const isDisabled = isDateDisabled(m, d);
+                const dayEl = document.createElement('div'); dayEl.className = 'cal-day ' + (!isDisabled ? 'clickable' : 'disabled'); dayEl.innerText = d;
+
+                const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
+                if (!isDisabled) {
+                    if (count > 0) {
+                        let bgColor = '#fff', textColor = '#2b2d42';
+                        if (count === 1) { bgColor = '#ffe0b2'; }
+                        else if (count === 2) { bgColor = '#ffb74d'; }
+                        else if (count === 3) { bgColor = '#ff9800'; }
+                        else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
+                        else { bgColor = '#d32f2f'; textColor = '#fff'; }
+                        dayEl.style.backgroundColor = bgColor; dayEl.style.color = textColor;
+                    }
+                    const annColor = globalAnnotations[dateStr];
+                    if (annColor === 'blue') dayEl.classList.add('admin-blue');
+                    if (annColor === 'green') dayEl.classList.add('admin-green');
+
+                    dayEl.onclick = () => openAdminModal(dateStr, count);
+                }
+                grid.appendChild(dayEl);
+            }
+            section.appendChild(grid); targetContainer.appendChild(section);
+        });
+    }
+
+    function openAdminModal(dateStr, count) {
+        selectedAdminDate = dateStr;
+        document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
+        const listContainer = document.getElementById('admin-modal-list'); listContainer.innerHTML = '';
+        
+        if (count === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #8d99ae; margin-top: 20px;">這天目前全員都可以參加喔！🎉</p>';
+        } else {
+            adminParsedData[dateStr].forEach(p => {
+                listContainer.innerHTML += `<div class="detail-item"><span class="detail-name">${p.name}</span><span class="detail-reason">${p.reason}</span></div>`;
+            });
+        }
+        const overlay = document.getElementById('admin-modal-overlay'); const box = document.getElementById('admin-modal-box');
+        overlay.style.display = 'block'; setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
+    }
+
+    function setAnnotation(color) {
+        if (color === 'none') { delete globalAnnotations[selectedAdminDate]; } else { globalAnnotations[selectedAdminDate] = color; }
+        closeAdminModal();
+        const cal = document.getElementById('admin-calendar-container'); cal.innerHTML = ''; renderMonthsGrid(cal);
+        fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'annotations', value: globalAnnotations }) });
+    }
+
+    function closeAdminModal() {
+        const overlay = document.getElementById('admin-modal-overlay'); const box = document.getElementById('admin-modal-box');
+        overlay.style.opacity = '0'; box.style.transform = 'translate(-50%, -45%)'; setTimeout(() => overlay.style.display = 'none', 300);
+    }
+
+    function saveDeadline() {
+        const val = document.getElementById('admin-deadline-input').value;
+        fetch(gasURL, { method: 'POST', body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'deadline', value: val }) })
+        .then(() => showToast('✅ 截止時間設定成功！'));
+    }
+
+    function exitAdmin() { document.getElementById('admin-screen').style.display = 'none'; document.getElementById('lobby-screen').style.display = 'block'; }
+    function dismissModal() { closeAdminModal(); }
 </script>
 </body>
 </html>
