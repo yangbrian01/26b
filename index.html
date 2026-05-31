@@ -89,7 +89,6 @@
     <h2 class="header-title">2026TCLIPb</h2>
     <p class="sub-title">謝師宴座位與點餐系統</p>
 
-    <!-- 定位：享平方店 -->
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
@@ -98,14 +97,12 @@
         <div class="location-info">📍 享平方店 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a></div>
     </div>
 
-    <!-- 1. 登入畫面 -->
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
         <button type="button" id="loginBtn" onclick="verifyName()">進入系統</button>
         <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">正在連線，請稍候...</div>
     </div>
 
-    <!-- 2. 私密大廳畫面 -->
     <div id="lobby-screen" style="display: none;">
         <h3 style="color: var(--admin-blue); margin-top: 0; text-align: left;">👋 歡迎，<span id="lobby-name"></span>！</h3>
         <p style="font-size: 14px; color: #6c757d; text-align: left;" id="lobby-table-count"></p>
@@ -134,7 +131,6 @@
         <button type="button" id="adminBtn" class="admin-btn" style="display: none; margin-top:30px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 3. 包廂畫面 -->
     <div id="room-screen" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="text-align: left;">
@@ -165,7 +161,6 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 4. 管理員雙功能後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         
@@ -177,31 +172,11 @@
         <div id="admin-panel-summary" style="display: block; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
         <div id="admin-panel-breakdown" style="display: none; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
 
-        <div id="admin-heatmap-section" style="display: none;">
-            <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
-            <h4 style="color: var(--accent); margin-bottom: 5px;">📅 第一階段請假熱力圖</h4>
-            <div id="admin-calendar-container"></div>
-        </div>
-        
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回大廳</button>
     </div>
 </div>
 
 <div id="toast"></div>
-
-<!-- 彈窗區塊 -->
-<div id="admin-modal-overlay" class="overlay">
-    <div class="modal-content" id="admin-modal-box">
-        <span class="close-btn" onclick="closeAdminModal()">×</span>
-        <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
-        <div id="admin-modal-list"></div>
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 標記不行</button>
-            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 標記有機會</button>
-        </div>
-        <button type="button" class="secondary" onclick="setAnnotation('none')" style="margin-top: 8px; padding: 12px; font-size: 14px;">❌ 清除標記</button>
-    </div>
-</div>
 
 <script>
     const menuData = [
@@ -335,7 +310,11 @@
 
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = ''; let myGroupData = null; let syncTimer = null;
-    let localCart = {}; let adminParsedData = {}; let globalAnnotations = {}; let selectedAdminDate = '';
+    let localCart = {}; let localChatHistory = [];
+    
+    // ⭐ 狀態鎖，防止樂觀UI被舊資料洗掉
+    let isUpdatingCart = false;
+    let isUpdatingChat = false;
 
     window.onload = function() {
         const savedName = localStorage.getItem('teacherBanquetName');
@@ -350,7 +329,7 @@
         setTimeout(() => toast.className = "", 3000);
     }
 
-    // ⭐ 終極防卡死版登入驗證
+    // ⭐ 移除惱人的超時報錯，單純信任背景傳輸
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
@@ -358,18 +337,10 @@
         document.getElementById('loginBtn').style.display = 'none'; 
         document.getElementById('loading').style.display = 'block';
 
-        // 設置 15 秒超時，強迫網頁不能永遠卡在「正在連線」
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-
         fetch(gasURL, {
-            method: 'POST',
-            redirect: 'follow',
-            signal: controller.signal,
-            body: JSON.stringify({ action: 'verify', name: name })
+            method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'verify', name: name })
         }).then(res => res.json()).then(data => {
-            clearTimeout(timeoutId);
-            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loading').style.display = 'none'; 
             document.getElementById('loginBtn').style.display = 'block'; 
 
             if (data.status === 'success') {
@@ -393,15 +364,10 @@
             } else {
                 showToast(data.message);
             }
-        }).catch(err => { 
-            clearTimeout(timeoutId);
+        }).catch(() => { 
             document.getElementById('loading').style.display = 'none'; 
             document.getElementById('loginBtn').style.display = 'block';
-            if (err.name === 'AbortError') {
-                showToast('❌ 網路超時，請重新整理網頁再試');
-            } else {
-                showToast('❌ 連線伺服器失敗，請清除網頁快取'); 
-            }
+            showToast('❌ 網路不穩，請重新整理'); 
         });
     }
 
@@ -466,7 +432,7 @@
                 myGroupData = data.groupStatus.users[currentName];
                 enterRoom();
             } else { showToast(data.message); }
-        });
+        }).catch(() => showToast('網路異常'));
     }
 
     function enterRoom() {
@@ -485,12 +451,9 @@
 
     function copyRoomCode() {
         const parts = myGroupData.groupName.split('#');
-        const code = parts[1];
-        navigator.clipboard.writeText(code).then(() => {
-            showToast('📋 房號代碼已成功複製到剪貼簿！');
-        }).catch(() => {
-            showToast('❌ 複製失敗，請手動圈選複製。');
-        });
+        navigator.clipboard.writeText(parts[1]).then(() => {
+            showToast('📋 房號代碼已複製到剪貼簿！');
+        }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
     function renderMenuListUI() {
@@ -561,28 +524,31 @@
         const fullKey = `${itemObj.name} (${specName})`;
         
         let currentQty = localCart[fullKey] || 0;
-        let newQty = Math.max(0, currentQty + delta);
-        localCart[fullKey] = newQty;
-        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = newQty;
-
-        syncCartUI(localCart);
+        localCart[fullKey] = Math.max(0, currentQty + delta);
+        
+        syncCartUI(localCart); // 樂觀 UI：瞬間畫面上更新
         uploadCart();
     }
 
     function modCart(itemName, delta) {
         let currentQty = localCart[itemName] || 0;
-        let newQty = Math.max(0, currentQty + delta);
-        localCart[itemName] = newQty;
-        document.getElementById(`qty-${itemName}`).innerText = newQty;
-
-        syncCartUI(localCart);
+        localCart[itemName] = Math.max(0, currentQty + delta);
+        
+        syncCartUI(localCart); // 樂觀 UI：瞬間畫面上更新
         uploadCart();
     }
 
+    // ⭐ 真正的樂觀背景上傳
     function uploadCart() {
+        isUpdatingCart = true;
         fetch(gasURL, {
             method: 'POST', redirect: 'follow',
             body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart })
+        }).catch(() => {
+            // 默默失敗，等下一個輪詢或是使用者再按一次就會補上，不干擾體驗
+        }).finally(() => {
+            // 延遲解除鎖定，避免伺服器還沒存好就被輪詢洗掉
+            setTimeout(() => { isUpdatingCart = false; }, 1000);
         });
     }
 
@@ -602,6 +568,7 @@
             }
         }
 
+        // 回填畫面數字
         menuData.forEach((cat, cIdx) => {
             cat.items.forEach((item, iIdx) => {
                 if(item.type === 'single') {
@@ -625,17 +592,26 @@
         }
     }
 
+    // ⭐ 聊天室樂觀 UI 更新
     function sendChat() {
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
-        const box = document.getElementById('chat-history');
-        box.innerHTML += `<div class="msg-bubble mine"><div class="msg-sender">我</div><div style="word-break:break-all;">${text}</div></div>`;
-        box.scrollTop = box.scrollHeight;
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text }) });
+        
+        // 瞬間把訊息加到陣列並印出來
+        const nowStr = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
+        localChatHistory.push({ sender: currentName, text: text, time: "剛剛 " + nowStr });
+        syncChatUI(localChatHistory);
+        
+        isUpdatingChat = true;
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text }) })
+        .catch(() => showToast('⚠️ 網路不穩，訊息可能未送達'))
+        .finally(() => { setTimeout(() => { isUpdatingChat = false; }, 1000); });
     }
 
     function syncChatUI(chatArray) {
-        const box = document.getElementById('chat-history'); const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 30;
+        const box = document.getElementById('chat-history'); 
+        const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 30;
         box.innerHTML = '';
+        
         chatArray.forEach(msg => {
             const isMe = msg.sender === currentName;
             box.innerHTML += `
@@ -644,19 +620,30 @@
                 <div style="word-break:break-all;">${msg.text}</div>
             </div>`;
         });
+        
         if(isAtBottom) box.scrollTop = box.scrollHeight;
     }
 
+    // ⭐ 安全的長輪詢
     function startPolling() {
         if(syncTimer) clearInterval(syncTimer);
         syncTimer = setInterval(() => {
             fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
-                    if(document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'SELECT') { syncCartUI(data.cart || {}); }
-                    syncChatUI(data.chat || []);
-                } else if(data.status === 'kicked') { clearInterval(syncTimer); location.reload(); }
-            }).catch(()=>{});
+                    // 如果沒在按鈕操作中，才把後端的購物車同步進來
+                    if(!isUpdatingCart && document.activeElement.tagName !== 'SELECT') { 
+                        syncCartUI(data.cart || {}); 
+                    }
+                    // 如果沒有在送訊息，才把後端的聊天覆蓋進來
+                    if(!isUpdatingChat) {
+                        localChatHistory = data.chat || [];
+                        syncChatUI(localChatHistory); 
+                    }
+                } else if(data.status === 'kicked') { 
+                    clearInterval(syncTimer); location.reload(); 
+                }
+            }).catch(()=>{ /* 背景失敗就假裝沒事發生 */ });
         }, 3000);
     }
 
@@ -665,7 +652,7 @@
         clearInterval(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
         .then(() => {
-            localStorage.removeItem('teacherBanquetName');
+            localStorage.removeItem('teacherBanquetName'); // 退出時把快取也清掉
             location.reload();
         });
     }
@@ -676,7 +663,7 @@
         event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    // ===== 📊 管理員後台核心邏輯 =====
+    // ===== 📊 管理員後台 =====
     function switchAdminSubTab(subId) {
         document.getElementById('admin-tab-summary').classList.remove('active');
         document.getElementById('admin-tab-breakdown').classList.remove('active');
@@ -688,7 +675,7 @@
     }
 
     function fetchAdminData() {
-        showToast('綜合大數據載入中...');
+        showToast('大數據載入中...');
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
         .then(res => res.json()).then(data => {
             if (data.status === 'success') {
@@ -698,13 +685,16 @@
                 document.getElementById('room-screen').style.display = 'none'; 
                 document.getElementById('admin-screen').style.display = 'block';
             } else { showToast(data.message); }
-        }).catch(()=>{ showToast('連線失敗'); });
+        }).catch(()=>{ showToast('連線異常'); });
     }
 
-    // ⭐ 完美修正版：全品項與尺寸都能精準算進去
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
         let globalSummary = {};
-        for(let key in itemPriceMap) { globalSummary[key] = 0; } // 確保所有有規格的品項都被初始化
+        const allMenuItems = menuData.flatMap(c => c.items);
+        allMenuItems.forEach(item => {
+            if (item.type === 'single') globalSummary[item.name] = 0;
+            else item.options.forEach(o => globalSummary[`${item.name} (${o.n})`] = 0);
+        });
         
         let totalClassCost = 0;
 
@@ -726,7 +716,6 @@
                 let groupTotal = 0;
                 let groupItemsHtml = '';
 
-                // 統計該組餐點
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
@@ -754,7 +743,6 @@
             }
         });
 
-        // 渲染分頁 A (全班總計)
         let hasOrder = false;
         for(let key in globalSummary) {
             const qty = globalSummary[key];
