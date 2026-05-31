@@ -3,235 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026TCLIPb 謝師宴檔期重調查</title>
+    <title>2026TCLIPb 謝師宴點餐系統</title>
     <style>
-        /* ===== 基礎與電腦/平板版樣式 ===== */
-        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; --admin-green: #2a9d8f; }
-        
+        :root { --primary: #1a2a3a; --accent: #e63946; --bg: #f0f2f5; --text: #2b2d42; --surface: rgba(255, 255, 255, 0.95); --gold: #d4af37; --admin-blue: #3a86ff; }
         * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .app-container { background: var(--surface); width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 26px; }
+        .sub-title { text-align: center; color: #8d99ae; font-size: 14px; margin-bottom: 20px; margin-top: 0; }
         
-        .app-container { background: var(--surface); width: 100%; max-width: 550px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); backdrop-filter: blur(10px); margin-bottom: 20px; }
+        input[type="text"] { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; background: #f8f9fa; }
+        input[type="text"]:focus { border-color: var(--primary); background: #fff; }
         
-        .header-title { text-align: center; margin-top: 0; margin-bottom: 5px; color: var(--primary); font-weight: 800; font-size: 28px; letter-spacing: 1px; }
-        .sub-title { text-align: center; color: #8d99ae; font-size: 15px; margin-bottom: 20px; margin-top: 0; font-weight: 500; }
-        
-        .deadline-banner { background: #ffe3e3; color: var(--accent); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 20px; display: none; border: 2px solid #ffc2d1; }
-        
-        input[type="text"], input[type="datetime-local"] { width: 100%; padding: 15px; margin: 10px 0 15px 0; border: 2px solid #edf2f4; border-radius: 12px; font-size: 16px; outline: none; transition: all 0.3s ease; background: #f8f9fa; }
-        input[type="text"]:focus, input[type="datetime-local"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(26, 42, 58, 0.1); transform: translateY(-1px); }
-        input:disabled { background: #e9ecef; cursor: not-allowed; opacity: 0.7; }
-        
-        button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px; }
-        button:hover { background-color: #0f1923; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
-        button:active { transform: translateY(0); }
+        button { width: 100%; padding: 16px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        button:hover { background-color: #0f1923; transform: translateY(-2px); }
         button.secondary { background-color: #edf2f4; color: #457b9d; }
-        button.secondary:hover { background-color: #e2eafc; }
-        button.admin-btn { background-color: #4a4e69; margin-top: 10px; }
-        button.admin-btn:hover { background-color: #22223b; }
+        button.danger { background-color: #ffe3e3; color: var(--accent); }
         
-        .btn-blue { background-color: var(--admin-blue); flex: 1; }
-        .btn-blue:hover { background-color: #266dd3; }
-        .btn-green { background-color: var(--admin-green); flex: 1; }
-        .btn-green:hover { background-color: #21867a; }
+        /* 大廳排位子樣式 */
+        .table-box { background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        .table-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; color: var(--primary); margin-bottom: 10px; border-bottom: 2px dashed #edf2f4; padding-bottom: 10px;}
+        .group-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .group-name { font-weight: bold; color: var(--admin-blue); }
+        .group-members { font-size: 12px; color: #6c757d; }
+        .join-btn { width: auto; padding: 6px 12px; font-size: 13px; margin: 0; border-radius: 6px; }
 
-        @keyframes pulse-btn {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
-            50% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(230, 57, 70, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); }
-        }
-        .pulse-animation { animation: pulse-btn 1.5s infinite; background-color: var(--accent) !important; }
+        /* 包廂面板切換 */
+        .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; transition: 0.2s; }
+        .tab-btn.active { background: var(--primary); color: #fff; }
         
-        /* 金色三麥大橫幅 */
-        .restaurant-banner { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: var(--gold); padding: 20px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--gold); letter-spacing: 1px; }
+        /* 點餐與聊天區塊 */
+        .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 400px; overflow-y: auto; }
+        .panel.active { display: block; }
         
-        /* 地圖區塊樣式 */
-        .map-container { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .map-container iframe { width: 100%; height: 100%; border: none; }
-        .location-info { text-align: center; font-size: 14px; color: #6c757d; margin-bottom: 25px; font-weight: 500; }
-        .location-info a { color: var(--admin-blue); text-decoration: none; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #e0f2fe; transition: 0.2s; }
-        .location-info a:hover { background: #bde0fe; }
+        /* 菜單樣式 */
+        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; }
+        .menu-btn { width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 18px; line-height: 1; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
+        .cart-box { background: #fff9e6; border: 1px solid #fde08b; border-radius: 10px; padding: 10px; margin-top: 15px; }
 
-        .admin-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #edf2f4; }
-        .admin-label { font-weight: bold; font-size: 14px; color: var(--primary); display: block; margin-bottom: 8px; }
+        /* 聊天室樣式 */
+        .chat-box { height: 280px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; margin-bottom: 10px; border: 1px solid #e9ecef; }
+        .msg-bubble { background: #fff; padding: 8px 12px; border-radius: 15px; border-bottom-left-radius: 0; margin-bottom: 8px; max-width: 80%; width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .msg-bubble.mine { background: #dbeafe; margin-left: auto; border-radius: 15px; border-bottom-right-radius: 0; }
+        .msg-sender { font-size: 11px; color: #adb5bd; margin-bottom: 2px; }
+        .chat-input-row { display: flex; gap: 8px; }
+        .chat-input-row input { margin: 0; flex: 1; }
+        .chat-input-row button { width: auto; margin: 0; padding: 0 20px; }
 
-        /* 新增投票結果圖表樣式 */
-        .vote-result-box { background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-        .vote-result-title { font-size: 16px; font-weight: bold; color: var(--primary); text-align: left; margin-bottom: 15px; border-left: 4px solid var(--admin-blue); padding-left: 8px; }
-        .vote-row { margin-bottom: 15px; }
-        .vote-info { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: #495057; margin-bottom: 6px; }
-        .vote-progress-bar { width: 100%; height: 22px; background: #e9ecef; border-radius: 8px; overflow: hidden; }
-        .vote-progress-fill { height: 100%; background: #3a86ff; width: 0%; transition: width 0.6s cubic-bezier(0.1, 0.8, 0.3, 1); }
-
-        /* 月份分開樣式 */
-        .month-title { color: var(--primary); font-size: 18px; font-weight: bold; border-left: 5px solid var(--primary); padding-left: 8px; margin: 25px 0 10px 0; text-align: left; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 15px; text-align: center; width: 100%; }
-        .cal-header { font-weight: 700; color: #8d99ae; padding: 6px 0; font-size: 14px; }
-        .cal-day { padding: 14px 4px; border-radius: 12px; font-size: 15px; background-color: #fff; border: 1px solid #edf2f4; transition: 0.2s; position: relative; font-weight: 600; color: #2b2d42; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        
-        /* 徹底反黑反白禁用樣式 */
-        .cal-day.disabled { color: #cbd5e1; background-color: #f1f5f9; border-color: transparent; cursor: not-allowed; }
-        .cal-day.clickable { cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .cal-day.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: #f8fafc; }
-        
-        .cal-day.unavailable { background-color: #fff0f3; border-color: #ffc2d1; color: var(--accent); }
-        .cal-day.unavailable::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: var(--accent); border-radius: 50%; }
-        
-        /* 管理員邊框標記 */
-        .cal-day.admin-blue { box-shadow: inset 0 0 0 4px var(--admin-blue) !important; border-color: var(--admin-blue) !important; }
-        .cal-day.admin-green { box-shadow: inset 0 0 0 4px var(--admin-green) !important; border-color: var(--admin-green) !important; }
-
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
-        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -45%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: transform 0.3s; }
-        .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
-        .close-btn:hover { color: var(--accent); }
-
-        .date-chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0 15px 0; max-height: 120px; overflow-y: auto; padding-right: 5px; }
-        .date-chip { padding: 6px 2px; background: #f8f9fa; border: 1px solid #edf2f4; border-radius: 8px; font-size: 12px; color: #495057; cursor: pointer; transition: 0.2s; text-align: center;}
-        .date-chip:hover { background: #e2eafc; border-color: #bde0fe; }
-        .date-chip.selected { background: #e2eafc; border-color: var(--primary); color: var(--primary); font-weight: bold; }
-
-        .heatmap-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 12px; color: #6c757d; font-weight: 500; gap: 4px; }
-        .legend-item { display: flex; align-items: center; margin: 0 4px; }
-        .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
-        
-        #admin-modal-list { max-height: 35vh; overflow-y: auto; text-align: left; margin: 15px 0; padding-right: 5px; }
-        .detail-item { padding: 10px 0; border-bottom: 1px solid #edf2f4; display: flex; flex-direction: column; }
-        .detail-item:last-child { border-bottom: none; }
-        .detail-name { font-weight: bold; color: var(--primary); font-size: 15px; }
-        .detail-reason { color: #6c757d; font-size: 13px; margin-top: 4px; line-height: 1.4; }
-        
-        #toast { visibility: hidden; min-width: 260px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s; backdrop-filter: blur(4px); }
+        #toast { visibility: hidden; min-width: 200px; background: rgba(33, 37, 41, 0.95); color: #fff; text-align: center; border-radius: 12px; padding: 12px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .app-container { padding: 25px 15px; border-radius: 15px; }
-            .header-title { font-size: 24px; }
-            button { padding: 14px; font-size: 15px; }
-            input[type="text"], input[type="datetime-local"] { padding: 12px; font-size: 14px; }
-            .restaurant-banner { font-size: 18px; padding: 15px; }
-            .month-title { font-size: 16px; }
-            .calendar-grid { gap: 4px; }
-            .cal-header { font-size: 12px; }
-            .cal-day { padding: 10px 2px; font-size: 13px; border-radius: 8px; }
-            .cal-day.admin-blue { box-shadow: inset 0 0 0 2.5px var(--admin-blue) !important; }
-            .cal-day.admin-green { box-shadow: inset 0 0 0 2.5px var(--admin-green) !important; }
-            .modal-content { padding: 20px 15px; width: 92%; }
-            .date-chip-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
-            .date-chip { padding: 6px 2px; font-size: 12px; }
-            .heatmap-legend { gap: 2px; font-size: 11px; }
-            .legend-item { margin: 0 2px; }
-            .legend-box { width: 12px; height: 12px; }
-        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <h2 class="header-title">2026TCLIPb</h2>
-    <p class="sub-title">謝師宴檔期重調查</p>
-    
-    <div id="deadline-banner" class="deadline-banner"></div>
+    <p class="sub-title">金色三麥排位與點餐系統</p>
 
     <div id="login-screen">
         <input type="text" id="studentName" placeholder="請輸入你的姓名">
-        <button type="button" id="loginBtn" onclick="verifyName()">進入調查</button>
-        <div id="loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">載入資料中，請稍候...</div>
+        <button type="button" onclick="verifyName()">進入大廳</button>
     </div>
 
-    <div id="vote-screen" style="display: none; text-align: center;">
-        <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 20px;">🗳️ 謝師宴地點意願投票</h3>
-        <p style="color: #6c757d; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
-            目前大家對分店有不同想法，請投下你寶貴的一票！<br>
-            <span style="color: var(--accent); font-weight: bold;">(此投票只需填寫一次，投完後直接進入時間調查)</span>
-        </p>
-        <button type="button" class="btn-blue" onclick="submitVote('巨城店')" style="padding: 18px; margin-bottom: 15px; font-size: 16px;">🍻 想要：巨城 金色三麥</button>
-        <button type="button" class="btn-green" onclick="submitVote('享平方店')" style="padding: 18px; margin-bottom: 15px; font-size: 16px;">🎬 想要：享平方 金色三麥</button>
-        <div id="vote-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">投票資料儲存中...</div>
+    <div id="lobby-screen" style="display: none;">
+        <h3 style="color: var(--admin-blue); margin-top: 0;">👋 歡迎，<span id="lobby-name"></span>！</h3>
+        <p style="font-size: 14px; color: #6c757d;">請選擇一桌加入，或在該桌建立你的小組。</p>
+        
+        <div id="tables-container"></div> <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #edf2f4;">
+            <label style="font-weight: bold; font-size: 14px;">✨ 建立新小組</label>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <select id="new-group-table" style="padding: 10px; border-radius: 8px; border: 2px solid #edf2f4;">
+                    <option value="1">第一桌</option>
+                    <option value="2">第二桌</option>
+                </select>
+                <input type="text" id="new-group-name" placeholder="小組名稱 (例: 肉食怪)" style="margin: 0; flex: 1; padding: 10px;">
+            </div>
+            <button type="button" onclick="createGroup()" style="margin-top: 10px; padding: 10px;">新增並加入</button>
+        </div>
     </div>
 
-    <div id="calendar-screen" style="display: none;">
-        <div class="restaurant-banner">
-            🍻 餐廳確認：金色三麥 🍻
+    <div id="room-screen" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
+            <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出小組</button>
         </div>
 
-        <div class="map-container">
-            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹竹北店&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
-        <div class="location-info">
-            📍 享平方 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a>
+        <div class="tab-nav">
+            <div class="tab-btn active" onclick="switchTab('menu')">🍔 點餐</div>
+            <div class="tab-btn" onclick="switchTab('chat')">💬 討論版</div>
         </div>
 
-        <p style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #495057;">
-            <strong id="displayName" style="color: var(--primary); font-size: 22px;"></strong><br>
-            <span style="font-size: 14px; color: #8d99ae; display: inline-block; margin-top: 8px;">請點選你 <span style="color: var(--accent); font-weight: 700;">不行</span> 參加的日期，並註明原因</span>
-        </p>
-        
-        <div id="calendar-container"></div>
-
-        <button type="button" id="submitBtn" onclick="submitData()">儲存調查結果</button>
-        <div id="submit-loading" style="display: none; text-align: center; margin-top: 15px; color: #8d99ae;">資料同步中...</div>
-        
-        <button type="button" id="adminBtn" class="admin-btn" style="display: none;" onclick="fetchAdminData()">📊 切換至管理員後台</button>
-    </div>
-
-    <div id="admin-screen" style="display: none;">
-        <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 統計後台</h3>
-        
-        <div class="vote-result-box">
-            <div class="vote-result-title">┃ 目前得票統計</div>
-            <div id="vote-results-container"></div>
+        <div id="tab-menu" class="panel active">
+            <div id="menu-list"></div>
+            <div class="cart-box">
+                <strong style="color: #b08d00;">🛒 本組購物車：</strong>
+                <ul id="cart-list" style="margin: 5px 0 0 0; padding-left: 20px; font-size: 14px; color: #495057;"></ul>
+            </div>
         </div>
 
-        <div class="admin-section">
-            <label class="admin-label">⏳ 設定截止時間</label>
-            <input type="datetime-local" id="admin-deadline-input">
-            <button type="button" class="btn-blue" onclick="saveDeadline()" style="padding: 10px; font-size: 14px; margin-top: 8px;">儲存截止時間</button>
+        <div id="tab-chat" class="panel">
+            <div class="chat-box" id="chat-history"></div>
+            <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="說點什麼..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button type="button" onclick="sendChat()">傳送</button>
+            </div>
         </div>
-
-        <h4 style="color: #495057; margin-bottom: 15px; border-left: 4px solid var(--accent); padding-left: 8px;">熱力圖與無法參加名單</h4>
-        <div class="heatmap-legend">
-            <div class="legend-item"><div class="legend-box" style="background: #fff;"></div>0</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffe0b2;"></div>1</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ffb74d;"></div>2</div>
-            <div class="legend-item"><div class="legend-box" style="background: #ff9800;"></div>3</div>
-            <div class="legend-item"><div class="legend-box" style="background: #f44336;"></div>4</div>
-            <div class="legend-item"><div class="legend-box" style="background: #d32f2f;"></div>5</div>
-            <div class="legend-item"><div class="legend-box" style="background: #880e4f;"></div>6+</div>
-        </div>
-
-        <div id="admin-calendar-container"></div>
-        
-        <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 15px;">返回個人調查</button>
-    </div>
-</div>
-
-<div id="modal-overlay" class="overlay">
-    <div class="modal-content" id="modal-box">
-        <span class="close-btn" onclick="dismissModal()">×</span>
-        <h3 style="margin-top: 0; color: var(--primary); font-size: 20px; margin-bottom: 15px;">無法參加的原因</h3>
-        <div style="font-size: 13px; color: #8d99ae; margin-bottom: 5px; text-align: left; font-weight: bold;">已選日期：<span id="selected-dates-display" style="color: var(--accent); font-size: 15px;"></span></div>
-        <div style="font-size: 12px; color: #adb5bd; text-align: left; margin-bottom: 5px;">點擊下方按鈕可快速套用到其他日期</div>
-        <div id="multi-select-grid" class="date-chip-grid"></div>
-        <input type="text" id="reasonInput" placeholder="請填寫明確清楚的原因 (如: 出國)">
-        <button type="button" onclick="saveReason()">確認紀錄</button>
-        <button type="button" class="secondary" onclick="closeModal()">清除所選日期的紀錄</button>
-    </div>
-</div>
-
-<div id="admin-modal-overlay" class="overlay">
-    <div class="modal-content" id="admin-modal-box">
-        <span class="close-btn" onclick="closeAdminModal()">×</span>
-        <h3 id="admin-modal-title" style="margin-top: 5px; color: var(--primary); font-size: 20px; border-bottom: 2px solid #edf2f4; padding-bottom: 10px;"></h3>
-        <div id="admin-modal-list"></div>
-        
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button type="button" class="btn-blue" onclick="setAnnotation('blue')" style="padding: 12px; font-size: 14px;">🔵 標記不行</button>
-            <button type="button" class="btn-green" onclick="setAnnotation('green')" style="padding: 12px; font-size: 14px;">🟢 標記有機會</button>
-        </div>
-        <button type="button" class="secondary" onclick="setAnnotation('none')" style="margin-top: 8px; padding: 12px; font-size: 14px;">❌ 清除標記</button>
     </div>
 </div>
 
@@ -240,523 +118,238 @@
 <script>
     const gasURL = 'https://script.google.com/macros/s/AKfycbwiqBsbsBEL4aNP6OOot1QxU1_m6HxcR4E_vACotQhPriDYaI3fE0fVj8bw8Gk0hJAc/exec'; 
     let currentName = '';
-    let unavailableData = {}; 
-    let adminParsedData = {}; 
-    let allValidDates = []; 
-    let activeMultiDates = []; 
-    let globalAnnotations = {}; 
-    let globalDeadline = '';
-    let isPastDeadline = false;
-    let selectedAdminDate = '';
+    let myGroupData = null; // 紀錄我在哪一桌哪個組
+    let syncTimer = null;
 
-    // ⭐ 封鎖日期更新：加入 7/13-19 及 8/24-31 區間
-    function isDateDisabled(month, date) {
-        if (month === 6) {
-            if (date < 5) return true; 
-            return [8, 9, 12, 22, 23].includes(date);
-        }
-        if (month === 7) {
-            // 原本 1~12 加上新需求 13~19 合併為 1~19 不開放
-            return (date >= 11 && date <= 12) || [24, 25].includes(date);
-        }
-        if (month === 8) {
-            // 新增 8/24-31 不開放
-            return (date >= 24 && date <= 41) || [4, 5, 6].includes(date);
-        }
-        return false; 
-    }
+    // 預設菜單
+    const menuItems = [
+        "金色三麥經典大拼盤", "德式香腸披薩", "酥炸椒麻雞", 
+        "現釀黑麥啤酒 (350ml)", "蜂蜜啤酒 (350ml)", "德國豬腳", 
+        "松露窯烤野菇燉飯", "無酒精黑麥汁"
+    ];
 
-    function generateValidDates() {
-        allValidDates = [];
-        let curr = new Date(2026, 5, 5);
-        const endDate = new Date(2026, 7, 31);
-        while(curr <= endDate) {
-            const m = curr.getMonth() + 1;
-            const d = curr.getDate();
-            if (!isDateDisabled(m, d)) {
-                allValidDates.push(`${m}/${d}`);
-            }
-            curr.setDate(curr.getDate() + 1);
-        }
-    }
-    generateValidDates();
-
-    function showToast(message) {
+    function showToast(msg) {
         const toast = document.getElementById("toast");
-        toast.innerText = message;
-        toast.className = "show";
-        setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
-    }
-
-    function checkDeadlineStatus() {
-        if (!globalDeadline) return false;
-        const now = new Date();
-        const pad = (n) => n < 10 ? '0' + n : n;
-        const nowStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
-        return nowStr > globalDeadline; 
-    }
-
-    window.onload = function() {
-        const savedName = localStorage.getItem('teacherBanquetName');
-        if (savedName) {
-            document.getElementById('studentName').value = savedName;
-            verifyName();
-        }
+        toast.innerText = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
     }
 
     function verifyName() {
-        const nameInput = document.getElementById('studentName').value.trim();
-        if (!nameInput) return showToast('請輸入姓名！');
+        const name = document.getElementById('studentName').value.trim();
+        if (!name) return showToast('請輸入姓名！');
 
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('loading').style.display = 'block';
+        document.getElementById('login-screen').innerHTML = '<p style="text-align: center; color: #8d99ae;">登入中...</p>';
 
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'verify', name: nameInput })
+            body: JSON.stringify({ action: 'verify', name: name })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
-                currentName = nameInput;
-                localStorage.setItem('teacherBanquetName', currentName); 
+                currentName = name;
+                const myInfo = data.groupStatus.users[name];
                 
-                unavailableData = data.previousData || {}; 
-                globalDeadline = data.deadline || '';
-                globalAnnotations = data.annotations || {};
-                
-                document.getElementById('displayName').innerText = currentName;
-                document.getElementById('login-screen').style.display = 'none';
-                
-                isPastDeadline = checkDeadlineStatus();
-                if (isPastDeadline) {
-                    const banner = document.getElementById('deadline-banner');
-                    if (globalDeadline.includes('T')) {
-                        const [pDate, pTime] = globalDeadline.split('T');
-                        const [y, m, d] = pDate.split('-');
-                        banner.innerText = `🚨 調查已於 ${m}/${d} ${pTime} 截止。`;
-                    } else {
-                        banner.innerText = `🚨 調查已截止。`;
-                    }
-                    banner.style.display = 'block';
-                    document.getElementById('submitBtn').style.display = 'none';
-                }
-
-                if (data.isAdmin) document.getElementById('adminBtn').style.display = 'block';
-                
-                if (!data.wishlist) {
-                    document.getElementById('vote-screen').style.display = 'block';
+                if (myInfo) {
+                    // 已經在群組裡，直接進包廂
+                    myGroupData = myInfo;
+                    enterRoom();
                 } else {
-                    document.getElementById('calendar-screen').style.display = 'block';
-                    renderCalendar(); 
+                    // 還沒分組，進大廳
+                    renderLobby(data.groupStatus);
                 }
             } else {
                 showToast(data.message);
-                resetLoginBtn();
+                location.reload();
             }
-        }).catch(err => {
-            showToast('連線失敗，請檢查網路後再試');
-            resetLoginBtn();
         });
     }
 
-    function submitVote(voteChoice) {
-        if (isPastDeadline) return showToast('🚨 調查已截止，無法投票！');
-        
-        document.querySelectorAll('#vote-screen button').forEach(b => b.style.display = 'none');
-        document.getElementById('vote-loading').style.display = 'block';
+    // ===== 大廳邏輯 =====
+    function renderLobby(status) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('lobby-screen').style.display = 'block';
+        document.getElementById('lobby-name').innerText = currentName;
 
-        fetch(gasURL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'submitVote', name: currentName, vote: voteChoice })
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success') {
-                showToast('✅ 投票成功！');
-                document.getElementById('vote-screen').style.display = 'none';
-                document.getElementById('calendar-screen').style.display = 'block';
-                renderCalendar();
-            } else {
-                showToast(data.message || '投票失敗，請稍後再試');
-                resetVoteBtns();
-            }
-        }).catch(() => {
-            showToast('❌ 連線失敗，請檢查網路');
-            resetVoteBtns();
-        });
-    }
-
-    function resetVoteBtns() {
-        document.querySelectorAll('#vote-screen button').forEach(b => b.style.display = 'block');
-        document.getElementById('vote-loading').style.display = 'none';
-    }
-
-    function resetLoginBtn() {
-        document.getElementById('loginBtn').style.display = 'block';
-        document.getElementById('loading').style.display = 'none';
-    }
-
-    function renderCalendar() {
-        const container = document.getElementById('calendar-container');
+        const container = document.getElementById('tables-container');
         container.innerHTML = '';
-        renderMonths(container, true);
-    }
 
-    function renderMonths(targetContainer, isUser) {
-        const months = [6, 7, 8];
-        const monthNames = {6: '6 月 June', 7: '7 月 July', 8: '8 月 August'};
-        const daysInMonth = {6: 30, 7: 31, 8: 31};
-
-        months.forEach(m => {
-            const section = document.createElement('div');
+        [1, 2].forEach(tNum => {
+            const tKey = tNum === 1 ? 'table1' : 'table2';
+            const tData = status[tKey];
+            let html = `<div class="table-box">
+                <div class="table-header"><span>第 ${tNum} 桌</span><span>${tData.count} / 15 人</span></div>`;
             
-            const title = document.createElement('div');
-            title.className = 'month-title';
-            title.innerText = monthNames[m];
-            section.appendChild(title);
-
-            const grid = document.createElement('div');
-            grid.className = 'calendar-grid';
-            
-            const daysHeader = ['日', '一', '二', '三', '四', '五', '六'];
-            daysHeader.forEach(d => {
-                const el = document.createElement('div');
-                el.className = 'cal-header';
-                el.innerText = d;
-                grid.appendChild(el);
-            });
-
-            const startDay = new Date(2026, m - 1, 1).getDay();
-            for(let i = 0; i < startDay; i++) {
-                grid.appendChild(document.createElement('div'));
-            }
-
-            for(let d = 1; d <= daysInMonth[m]; d++) {
-                const dateStr = `${m}/${d}`;
-                const isDisabled = isDateDisabled(m, d);
-                
-                const dayEl = document.createElement('div');
-                dayEl.className = 'cal-day ' + (!isDisabled ? 'clickable' : 'disabled');
-                dayEl.innerText = d;
-
-                if (isUser) {
-                    dayEl.id = `day-${dateStr}`;
-                    if (unavailableData[dateStr] && !isDisabled) {
-                        dayEl.classList.add('unavailable');
-                    }
-                    if (!isDisabled) {
-                        if (isPastDeadline) {
-                            dayEl.onclick = () => showToast('🚨 調查已經截止囉，無法再做修改！');
-                        } else {
-                            dayEl.onclick = () => openModal(dateStr);
-                        }
-                    }
-                } else {
-                    const count = adminParsedData[dateStr] ? adminParsedData[dateStr].length : 0;
-                    if (!isDisabled) {
-                        if (count > 0) {
-                            let bgColor = '#fff', textColor = '#2b2d42';
-                            if (count === 1) { bgColor = '#ffe0b2'; }
-                            else if (count === 2) { bgColor = '#ffb74d'; }
-                            else if (count === 3) { bgColor = '#ff9800'; }
-                            else if (count === 4) { bgColor = '#f44336'; textColor = '#fff'; }
-                            else if (count === 5) { bgColor = '#d32f2f'; textColor = '#fff'; }
-                            else { bgColor = '#880e4f'; textColor = '#fff'; }
-                            
-                            dayEl.style.backgroundColor = bgColor;
-                            dayEl.style.color = textColor;
-                        }
-
-                        const annColor = globalAnnotations[dateStr];
-                        if (annColor === 'blue') dayEl.classList.add('admin-blue');
-                        if (annColor === 'green') dayEl.classList.add('admin-green');
-
-                        dayEl.onclick = () => openAdminModal(dateStr, count);
-                    }
-                }
-                grid.appendChild(dayEl);
-            }
-            section.appendChild(grid);
-            targetContainer.appendChild(section);
-        });
-    }
-
-    function updateSelectedDatesDisplay() {
-        const sorted = [...activeMultiDates].sort((a,b) => {
-            const [mA, dA] = a.split('/').map(Number);
-            const [mB, dB] = b.split('/').map(Number);
-            return (mA*100+dA) - (mB*100+dB);
-        });
-        document.getElementById('selected-dates-display').innerText = sorted.join(', ');
-    }
-
-    function openModal(dateStr) {
-        if (isPastDeadline) return showToast('🚨 調查已截止，無法修改！'); 
-        
-        activeMultiDates = [dateStr]; 
-        updateSelectedDatesDisplay();
-        document.getElementById('reasonInput').value = unavailableData[dateStr] || '';
-        
-        const grid = document.getElementById('multi-select-grid');
-        grid.innerHTML = '';
-        allValidDates.forEach(d => {
-            if (d === dateStr) return; 
-            const chip = document.createElement('div');
-            chip.className = 'date-chip';
-            chip.innerText = d;
-            chip.onclick = () => {
-                if (chip.classList.contains('selected')) {
-                    chip.classList.remove('selected');
-                    activeMultiDates = activeMultiDates.filter(x => x !== d);
-                } else {
-                    chip.classList.add('selected');
-                    activeMultiDates.push(d);
-                }
-                updateSelectedDatesDisplay();
-            };
-            grid.appendChild(chip);
-        });
-        
-        const overlay = document.getElementById('modal-overlay');
-        const box = document.getElementById('modal-box');
-        overlay.style.display = 'block';
-        setTimeout(() => {
-            overlay.style.opacity = '1';
-            box.style.transform = 'translate(-50%, -50%)';
-            document.getElementById('reasonInput').focus();
-        }, 10);
-    }
-
-    function dismissModal() { hideModal(); }
-
-    function closeModal() {
-        if (isPastDeadline) return;
-        activeMultiDates.forEach(d => { delete unavailableData[d]; });
-        renderCalendar();
-        hideModal();
-        triggerSaveReminder();
-    }
-
-    function saveReason() {
-        if (isPastDeadline) return;
-        const reason = document.getElementById('reasonInput').value.trim();
-        if (!reason) return showToast('請填寫原因！若可參加請點選取消');
-        
-        activeMultiDates.forEach(d => { unavailableData[d] = reason; });
-        renderCalendar();
-        hideModal();
-        triggerSaveReminder();
-    }
-
-    function triggerSaveReminder() {
-        if (isPastDeadline) return;
-        document.getElementById('submitBtn').classList.add('pulse-animation');
-    }
-
-    function hideModal() {
-        const overlay = document.getElementById('modal-overlay');
-        const box = document.getElementById('modal-box');
-        overlay.style.opacity = '0';
-        box.style.transform = 'translate(-50%, -45%)';
-        setTimeout(() => overlay.style.display = 'none', 300);
-    }
-
-    function submitData() {
-        if (isPastDeadline) return showToast('🚨 已過截止時間，無法儲存');
-        
-        document.getElementById('submitBtn').classList.remove('pulse-animation');
-        document.getElementById('submitBtn').style.display = 'none';
-        document.getElementById('submit-loading').style.display = 'block';
-
-        fetch(gasURL, {
-            method: 'POST',
-            redirect: 'follow',
-            body: JSON.stringify({ action: 'submit', name: currentName, reasons: unavailableData }) 
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success') {
-                showToast('✅ 調查資料已儲存！');
+            if (Object.keys(tData.groups).length === 0) {
+                html += `<div style="font-size: 13px; color: #adb5bd; text-align: center;">目前沒有小組，搶先建立吧！</div>`;
             } else {
-                showToast(data.message); 
+                for (let gName in tData.groups) {
+                    const members = tData.groups[gName].members.join(', ');
+                    html += `
+                    <div class="group-card">
+                        <div>
+                            <div class="group-name">${gName}</div>
+                            <div class="group-members">成員: ${members}</div>
+                        </div>
+                        <button class="join-btn" onclick="joinGroup(${tNum}, '${gName}')">加入</button>
+                    </div>`;
+                }
             }
-            document.getElementById('submitBtn').style.display = 'block';
-            document.getElementById('submit-loading').style.display = 'none';
-        }).catch(err => {
-            console.error(err);
-            showToast('❌ 傳送失敗，請稍後再試！');
-            document.getElementById('submitBtn').style.display = 'block';
-            document.getElementById('submit-loading').style.display = 'none';
+            html += `</div>`;
+            container.innerHTML += html;
         });
     }
 
-    function fetchAdminData() {
-        showToast('讀取熱力圖資料中...');
+    function createGroup() {
+        const tNum = document.getElementById('new-group-table').value;
+        const gName = document.getElementById('new-group-name').value.trim();
+        if (!gName) return showToast('請輸入小組名稱！');
+        joinGroup(tNum, gName);
+    }
+
+    function joinGroup(tNum, gName) {
+        showToast('加入中...');
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'getAdminData', name: currentName })
+            body: JSON.stringify({ action: 'joinGroup', name: currentName, table: tNum, groupName: gName })
         }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
-                globalDeadline = data.deadline || '';
-                globalAnnotations = data.annotations || {};
-                
-                if (globalDeadline) {
-                    try {
-                        const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-                        const d = new Date(parsedStr);
-                        if (!isNaN(d)) {
-                            const pad = (n) => n < 10 ? '0' + n : n;
-                            const formatted = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-                            document.getElementById('admin-deadline-input').value = formatted;
-                        }
-                    } catch(e) {}
-                }
-
-                renderAdminScreen(data.data);
+                myGroupData = { table: tNum, groupName: gName };
+                enterRoom();
             } else {
                 showToast(data.message);
             }
-        }).catch(() => showToast('讀取失敗'));
-    }
-
-    // ⭐ 更新管理員後台渲染：整合投票進度統計圖表
-    function renderAdminScreen(allData) {
-        document.getElementById('calendar-screen').style.display = 'none';
-        document.getElementById('admin-screen').style.display = 'block';
-        
-        adminParsedData = {};
-        let voteBigCity = 0;
-        let voteSquare = 0;
-        let totalVotes = 0;
-
-        allData.forEach(row => {
-            // 累加投票數
-            if (row.vote === '巨城店') voteBigCity++;
-            if (row.vote === '享平方店') voteSquare++;
-
-            if(row.reasonString && row.reasonString !== "全部皆可參加") {
-                row.reasonString.split('\n').forEach(line => {
-                    const parts = line.split('：');
-                    if(parts.length >= 2) {
-                        const date = parts[0].trim();
-                        const reason = parts.slice(1).join('：').trim();
-                        if(!adminParsedData[date]) adminParsedData[date] = [];
-                        adminParsedData[date].push({name: row.name, reason: reason});
-                    }
-                });
-            }
         });
-
-        // 計算投票百分比
-        totalVotes = voteBigCity + voteSquare;
-        const pctBigCity = totalVotes > 0 ? Math.round((voteBigCity / totalVotes) * 100) : 0;
-        const pctSquare = totalVotes > 0 ? Math.round((voteSquare / totalVotes) * 100) : 0;
-
-        // 完美對齊手機圖表排版
-        const voteHtml = `
-            <div class="vote-row">
-                <div class="vote-info">
-                    <span>巨城店 金色三麥</span>
-                    <span>${voteBigCity} 票 (${pctBigCity}%)</span>
-                </div>
-                <div class="vote-progress-bar">
-                    <div class="vote-progress-fill" style="width: ${pctBigCity}%; background: #3a86ff;"></div>
-                </div>
-            </div>
-            <div class="vote-row">
-                <div class="vote-info">
-                    <span>享平方店 金色三麥</span>
-                    <span>${voteSquare} 票 (${pctSquare}%)</span>
-                </div>
-                <div class="vote-progress-bar">
-                    <div class="vote-progress-fill" style="width: ${pctSquare}%; background: #10b981;"></div>
-                </div>
-            </div>
-        `;
-        document.getElementById('vote-results-container').innerHTML = voteHtml;
-
-        const cal = document.getElementById('admin-calendar-container');
-        cal.innerHTML = '';
-        renderMonths(cal, false);
     }
-    
-    function saveDeadline() {
-        const val = document.getElementById('admin-deadline-input').value; 
-        showToast('儲存設定中...');
+
+    // ===== 包廂邏輯 =====
+    function enterRoom() {
+        document.getElementById('lobby-screen').style.display = 'none';
+        document.getElementById('room-screen').style.display = 'block';
+        document.getElementById('room-title').innerText = `T${myGroupData.table} - ${myGroupData.groupName}`;
+        
+        renderMenu();
+        startPolling(); // 啟動同步精靈！
+    }
+
+    function leaveGroup() {
+        if (!confirm('確定要退出這個小組嗎？')) return;
+        clearInterval(syncTimer);
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'deadline', value: val })
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success') {
-                globalDeadline = val; 
-                showToast('✅ 截止時間設定成功！');
-            }
+            body: JSON.stringify({ action: 'leaveGroup', name: currentName })
+        }).then(() => location.reload());
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // --- 點餐 ---
+    let localCart = {};
+    function renderMenu() {
+        const list = document.getElementById('menu-list');
+        list.innerHTML = '';
+        menuItems.forEach(item => {
+            localCart[item] = 0;
+            list.innerHTML += `
+            <div class="menu-item">
+                <span style="font-weight: bold; font-size: 14px;">${item}</span>
+                <div style="display: flex; align-items: center;">
+                    <button class="menu-btn secondary" onclick="modCart('${item}', -1)">-</button>
+                    <span id="qty-${item}" style="width: 20px; text-align: center; font-weight: bold;">0</span>
+                    <button class="menu-btn" onclick="modCart('${item}', 1)">+</button>
+                </div>
+            </div>`;
         });
     }
 
-    function openAdminModal(dateStr, count) {
-        selectedAdminDate = dateStr;
-        document.getElementById('admin-modal-title').innerText = `${dateStr} (${count} 人無法參加)`;
-        const listContainer = document.getElementById('admin-modal-list');
-        listContainer.innerHTML = '';
+    function modCart(item, delta) {
+        localCart[item] = Math.max(0, localCart[item] + delta);
+        updateCartUI(localCart);
         
-        if (count === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: #8d99ae; margin-top: 20px; font-size: 15px;">這天目前全員都可以參加喔！🎉</p>';
-        } else {
-            const people = adminParsedData[dateStr];
-            people.forEach(p => {
-                listContainer.innerHTML += `<div class="detail-item"><span class="detail-name">${p.name}</span><span class="detail-reason">${p.reason}</span></div>`;
+        // 轉成陣列格式上傳
+        let cartArray = [];
+        for (let k in localCart) { if(localCart[k] > 0) cartArray.push(`${k} x${localCart[k]}`); }
+        
+        fetch(gasURL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: cartArray })
+        });
+    }
+
+    function updateCartUI(cartArrayOrObj) {
+        const list = document.getElementById('cart-list');
+        list.innerHTML = '';
+        
+        // 如果是從伺服器抓下來的陣列
+        if (Array.isArray(cartArrayOrObj)) {
+            cartArrayOrObj.forEach(i => list.innerHTML += `<li>${i}</li>`);
+            // 同步回 local 數字
+            cartArrayOrObj.forEach(str => {
+                let parts = str.split(' x');
+                if(parts.length===2 && document.getElementById(`qty-${parts[0]}`)) {
+                    localCart[parts[0]] = parseInt(parts[1]);
+                    document.getElementById(`qty-${parts[0]}`).innerText = parts[1];
+                }
             });
         }
-        
-        const overlay = document.getElementById('admin-modal-overlay');
-        const box = document.getElementById('admin-modal-box');
-        overlay.style.display = 'block';
-        setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translate(-50%, -50%)'; }, 10);
     }
-    
-    function setAnnotation(color) {
-        if (color === 'none') {
-            delete globalAnnotations[selectedAdminDate];
-        } else {
-            globalAnnotations[selectedAdminDate] = color;
-        }
-        
-        closeAdminModal();
-        
-        const cal = document.getElementById('admin-calendar-container');
-        cal.innerHTML = '';
-        renderMonths(cal, false); 
-        
-        showToast('更新標記中...');
-        
+
+    // --- 聊天室 ---
+    function sendChat() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(!text) return;
+        input.value = '';
+
+        // 先假裝自己送出了 (樂觀 UI 更新)
+        const box = document.getElementById('chat-history');
+        box.innerHTML += `<div class="msg-bubble mine"><div class="msg-sender">我</div>${text}</div>`;
+        box.scrollTop = box.scrollHeight;
+
         fetch(gasURL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'updateSettings', name: currentName, settingType: 'annotations', value: globalAnnotations })
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success') showToast('✅ 標記已更新！');
+            body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text })
         });
     }
 
-    function closeAdminModal() {
-        const overlay = document.getElementById('admin-modal-overlay');
-        const box = document.getElementById('admin-modal-box');
-        overlay.style.opacity = '0';
-        box.style.transform = 'translate(-50%, -45%)';
-        setTimeout(() => overlay.style.display = 'none', 300);
+    function updateChatUI(chatArray) {
+        const box = document.getElementById('chat-history');
+        const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 20;
+        
+        box.innerHTML = '';
+        chatArray.forEach(msg => {
+            const isMe = msg.sender === currentName;
+            box.innerHTML += `
+            <div class="msg-bubble ${isMe ? 'mine' : ''}">
+                <div class="msg-sender">${msg.sender} <span style="font-size: 9px;">${msg.time.substring(11,16)}</span></div>
+                ${msg.text}
+            </div>`;
+        });
+        
+        if(isAtBottom) box.scrollTop = box.scrollHeight;
     }
 
-    function exitAdmin() {
-        document.getElementById('admin-screen').style.display = 'none';
-        isPastDeadline = checkDeadlineStatus();
-        if (isPastDeadline) {
-            const banner = document.getElementById('deadline-banner');
-            const parsedStr = globalDeadline.replace('T', ' ').replace(/-/g, '/');
-            const d = new Date(parsedStr);
-            banner.innerText = `🚨 調查已於 ${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes()} 截止。`;
-            banner.style.display = 'block';
-            document.getElementById('submitBtn').style.display = 'none';
-        } else {
-            document.getElementById('deadline-banner').style.display = 'none';
-            document.getElementById('submitBtn').style.display = 'block';
-        }
-        renderCalendar(); 
-        document.getElementById('calendar-screen').style.display = 'block';
+    // --- 同步精靈 (長輪詢) ---
+    function startPolling() {
+        syncTimer = setInterval(() => {
+            fetch(gasURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'syncGroup', name: currentName })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    updateCartUI(data.cart);
+                    updateChatUI(data.chat);
+                } else if (data.status === 'kicked') {
+                    clearInterval(syncTimer);
+                    location.reload();
+                }
+            });
+        }, 5000); // 每 5 秒抓一次最新資料
     }
 </script>
 </body>
