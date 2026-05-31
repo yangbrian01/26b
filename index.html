@@ -62,7 +62,6 @@
         .legend-item { display: flex; align-items: center; margin: 0 4px; }
         .legend-box { width: 14px; height: 14px; margin-right: 4px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
 
-        /* ⭐ 找回遺失的遮罩與彈窗 CSS 語法 */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 26px; color: #adb5bd; cursor: pointer; transition: color 0.2s; line-height: 1; font-weight: bold; }
@@ -81,9 +80,9 @@
     <div id="map-block" style="display:none;">
         <div class="restaurant-banner">🍻 餐廳確認：金色三麥 🍻</div>
         <div class="map-container">
-            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹巨城店PARK15&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+            <iframe src="https://maps.google.com/maps?q=金色三麥+新竹竹北店&output=embed" allowfullscreen="" loading="lazy"></iframe>
         </div>
-        <div class="location-info">📍 巨城 (7F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹巨城店PARK15" target="_blank">一鍵開啟導航</a></div>
+        <div class="location-info">📍 享平方店 (1F) | <a href="https://www.google.com/maps/dir/?api=1&destination=金色三麥+新竹竹北店" target="_blank">一鍵開啟導航</a></div>
     </div>
 
     <div id="login-screen">
@@ -140,7 +139,7 @@
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召統計後台</h3>
         
-        <h4 style="color: var(--admin-blue); margin-bottom: 5px;">📋 兩桌點餐總計 (餐廳出菜參考)</h4>
+        <h4 style="color: var(--admin-blue); margin-bottom: 5px;">📋 全班點餐總計與金額 (總分帳參考)</h4>
         <div id="admin-order-summary" style="background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
 
         <hr style="border: 0; border-top: 2px dashed #edf2f4; margin: 25px 0;">
@@ -176,9 +175,16 @@
 </div>
 
 <script>
+    // ⭐ 菜單全面綁定真實價格
     const menuItems = [
-        "金色三麥經典大拼盤", "酥炸椒麻雞", "德國豬腳", "德式香腸披薩", 
-        "松露窯烤野菇燉飯", "西班牙海鮮飯", "現釀蜜蜂啤酒 (350ml)", "無酒精黑麥汁"
+        { name: "金色三麥經典大拼盤", price: 1250 },
+        { name: "酥炸椒麻雞", price: 380 },
+        { name: "德國豬腳", price: 520 },
+        { name: "德式香腸披薩", price: 380 },
+        { name: "松露窯烤野菇燉飯", price: 480 },
+        { name: "西班牙海鮮飯", price: 480 },
+        { name: "現釀蜜蜂啤酒 (350ml)", price: 170 },
+        { name: "無酒精黑麥汁", price: 120 }
     ];
 
     function isDateDisabled(month, date) {
@@ -202,17 +208,6 @@
         setTimeout(() => toast.className = "", 3000);
     }
 
-    // 負責確認是否為管理員
-    function checkAdminAccess() {
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'getAdminData', name: currentName }) })
-        .then(res => res.json()).then(d => { 
-            if(d.status === 'success') {
-                document.getElementById('adminBtn').style.display = 'block'; // 大廳的按鈕
-                document.getElementById('adminBtnRoom').style.display = 'block'; // 包廂的按鈕
-            }
-        });
-    }
-
     function verifyName() {
         const name = document.getElementById('studentName').value.trim();
         if (!name) return showToast('請輸入姓名！');
@@ -232,7 +227,11 @@
                 currentName = name;
                 document.getElementById('map-block').style.display = 'block'; 
                 
-                checkAdminAccess(); // 觸發管理員權限檢查
+                // ⭐ 修復核心：直接拿 verify 回傳的權限判定，管理員按鈕秒開！
+                if (data.isAdmin) {
+                    document.getElementById('adminBtn').style.display = 'block';
+                    document.getElementById('adminBtnRoom').style.display = 'block';
+                }
                 
                 const myInfo = data.groupStatus.users[name];
                 if (myInfo) {
@@ -247,7 +246,7 @@
         }).catch(err => { 
             document.getElementById('loading').style.display = 'none'; 
             document.getElementById('loginBtn').style.display = 'block';
-            showToast('❌ 網路連線失敗，請檢查網路'); 
+            showToast('❌ 連線伺服器失敗'); 
         });
     }
 
@@ -292,7 +291,6 @@
     }
 
     function joinGroup(tNum, gName) {
-        showToast('加入小組中...');
         fetch(gasURL, {
             method: 'POST',
             redirect: 'follow', 
@@ -311,68 +309,77 @@
         document.getElementById('room-screen').style.display = 'block';
         document.getElementById('room-title').innerText = `第 ${myGroupData.table} 桌 - 【${myGroupData.groupName}】`;
         
-        menuItems.forEach(item => localCart[item] = 0);
         renderMenuListUI();
         startPolling(); 
     }
 
+    // ⭐ 菜單列表顯示價格
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
         menuItems.forEach(item => {
+            localCart[item.name] = 0;
             list.innerHTML += `
             <div class="menu-item">
-                <span style="font-weight: bold; font-size: 14px;">${item}</span>
+                <div style="text-align:left;">
+                    <span style="font-weight: bold; font-size: 14px; display:block;">${item.name}</span>
+                    <span style="font-size: 13px; color: #8d99ae; font-weight:600;">$${item.price}</span>
+                </div>
                 <div style="display: flex; align-items: center;">
-                    <button class="menu-btn secondary" onclick="modCart('${item}', -1)">-</button>
-                    <span id="qty-${item}" style="width: 25px; text-align: center; font-weight: bold; color:var(--admin-blue);">0</span>
-                    <button class="menu-btn" onclick="modCart('${item}', 1)">+</button>
+                    <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
+                    <span id="qty-${item.name}" style="width: 25px; text-align: center; font-weight: bold; color:var(--admin-blue);">0</span>
+                    <button class="menu-btn" onclick="modCart('${item.name}', 1)">+</button>
                 </div>
             </div>`;
         });
     }
 
-    // ⭐ 完美修正：點擊加減號瞬間更新購物車黃色區塊，不等後端
-    function modCart(item, delta) {
-        let currentQty = localCart[item] || 0;
+    // ⭐ 點餐瞬間同步更新黃色購物車，並計算總額
+    function modCart(itemName, delta) {
+        let currentQty = localCart[itemName] || 0;
         let newQty = Math.max(0, currentQty + delta);
-        localCart[item] = newQty;
-        document.getElementById(`qty-${item}`).innerText = newQty;
+        localCart[itemName] = newQty;
+        document.getElementById(`qty-${itemName}`).innerText = newQty;
 
-        syncCartUI(localCart); // 立即更新下方顯示的購物車清單
+        syncCartUI(localCart); // 樂觀UI更新
 
         fetch(gasURL, {
             method: 'POST',
             redirect: 'follow',
             body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart })
-        }).then(res => res.json()).then(data => { if(data.status !== 'success') showToast('同步失敗'); });
+        });
     }
 
+    // ⭐ 購物車加入詳細金額計算與總計
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); list.innerHTML = '';
         let hasItem = false;
+        let totalSum = 0;
 
         menuItems.forEach(item => {
-            const qty = localCart[item] || 0;
-            const qtyEl = document.getElementById(`qty-${item}`);
+            const qty = localCart[item.name] || 0;
+            const qtyEl = document.getElementById(`qty-${item.name}`);
             if (qtyEl) qtyEl.innerText = qty; 
 
             if (qty > 0) {
                 hasItem = true;
-                list.innerHTML += `<li><strong>${item}</strong> <span style="color:var(--accent);">x ${qty}份</span></li>`;
+                const subTotal = item.price * qty;
+                totalSum += subTotal;
+                list.innerHTML += `<li><strong>${item.name}</strong> <span style="color:#8d99ae; font-size:12px;">($${item.price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}份</span> = <span style="font-weight:bold;">$${subTotal}</span></li>`;
             }
         });
-        if(!hasItem) list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
+        if(hasItem) {
+            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費總額：$${totalSum}</div>`;
+        } else {
+            list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
+        }
     }
 
     function sendChat() {
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
-        
-        // 樂觀 UI：先印出來再送出，讓使用者覺得沒有延遲
         const box = document.getElementById('chat-history');
         box.innerHTML += `<div class="msg-bubble mine"><div class="msg-sender">我</div><div style="word-break:break-all;">${text}</div></div>`;
         box.scrollTop = box.scrollHeight;
-
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'chat', name: currentName, payload: text }) });
     }
 
@@ -441,7 +448,7 @@
                 }
 
                 document.getElementById('lobby-screen').style.display = 'none';
-                document.getElementById('room-screen').style.display = 'none'; // 隱藏包廂畫面
+                document.getElementById('room-screen').style.display = 'none'; 
                 document.getElementById('admin-screen').style.display = 'block';
                 const calContainer = document.getElementById('admin-calendar-container'); calContainer.innerHTML = '';
                 renderMonthsGrid(calContainer); 
@@ -449,16 +456,17 @@
         });
     }
 
+    // ⭐ 後台總金額統計與精準算錢
     function renderAdminOrderSummaryUI(groupStatus) {
         let summaryObj = {};
-        menuItems.forEach(item => summaryObj[item] = 0);
+        menuItems.forEach(item => summaryObj[item.name] = 0);
 
         ['table1', 'table2'].forEach(tKey => {
             let tGroups = groupStatus[tKey].groups;
             for(let gName in tGroups) {
                 let cart = tGroups[gName].cart || {};
-                for(let item in cart) {
-                    if(summaryObj[item] !== undefined) summaryObj[item] += (cart[item] || 0);
+                for(let itemName in cart) {
+                    if(summaryObj[itemName] !== undefined) summaryObj[itemName] += (cart[itemName] || 0);
                 }
             }
         });
@@ -466,14 +474,22 @@
         const summaryDiv = document.getElementById('admin-order-summary');
         summaryDiv.innerHTML = '';
         let hasOrder = false;
+        let totalClassCost = 0;
         
         menuItems.forEach(item => {
-            if(summaryObj[item] > 0) {
+            const totalQty = summaryObj[item.name] || 0;
+            if(totalQty > 0) {
                 hasOrder = true;
-                summaryDiv.innerHTML += `<div>• <strong>${item}</strong>： <span style="color:var(--admin-blue); font-weight:bold; font-size:15px;">${summaryObj[item]}</span> 份</div>`;
+                const cost = item.price * totalQty;
+                totalClassCost += cost;
+                summaryDiv.innerHTML += `<div>• <strong>${item.name}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${totalQty}</span> 份 <span style="color:#8d99ae;">(小計: $${cost})</span></div>`;
             }
         });
-        if(!hasOrder) summaryDiv.innerHTML = '<span style="color:#adb5bd;">目前尚無任何小組點餐。</span>';
+        if(hasOrder) {
+            summaryDiv.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;"><div style="text-align:right; font-weight:bold; font-size:17px; color:var(--accent);">🔥 全班消費大總計：$${totalClassCost} 元</div>`;
+        } else {
+            summaryDiv.innerHTML = '<span style="color:#adb5bd;">目前尚無任何小組點餐。</span>';
+        }
     }
 
     function renderMonthsGrid(targetContainer) {
@@ -550,11 +566,7 @@
 
     function exitAdmin() { 
         document.getElementById('admin-screen').style.display = 'none'; 
-        if (myGroupData) {
-            document.getElementById('room-screen').style.display = 'block'; // 如果在群組裡，回包廂
-        } else {
-            document.getElementById('lobby-screen').style.display = 'block'; // 如果不在，回大廳
-        }
+        if (myGroupData) { document.getElementById('room-screen').style.display = 'block'; } else { document.getElementById('lobby-screen').style.display = 'block'; }
     }
 </script>
 </body>
