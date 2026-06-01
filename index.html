@@ -189,7 +189,6 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         <div class="tab-nav">
@@ -204,7 +203,6 @@
 
 <div id="toast"></div>
 
-<!-- 表情貼明細彈窗 -->
 <div id="reaction-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 25px 20px;">
         <span class="close-btn" onclick="closeReactionModal()">×</span>
@@ -213,7 +211,6 @@
     </div>
 </div>
 
-<!-- 餐點圖文詳情彈窗 -->
 <div id="item-detail-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 0; overflow: hidden; width: 90%; max-width: 400px;">
         <span class="close-btn" style="color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); z-index: 10;" onclick="closeItemDetailModal()">×</span>
@@ -227,7 +224,7 @@
 </div>
 
 <script>
-    // ⭐ 完美終極版 MenuData：包含精準價錢與103張截圖淬鍊出的文案
+    // ⭐ 完美終極版 MenuData：包含精準價錢、103張截圖淬鍊出的文案、並把「椒香滿天飛」、「炸魚薯條」等全數補回！
     const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
@@ -258,7 +255,10 @@
                 { name: "德式綜合香腸", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 550 }], desc: "同時享有黑胡椒香腸、煙燻香腸、青花椒德式香腸(3選2)，搭配黃芥末醬與酸菜，肉味鮮香。青花椒德式香腸：精選台灣豬前腿肉及獨門調料，呈現青花椒微帶麻感的香氣，再以德國櫸木煙燻製成，運用低溫真空工藝搭配漸進式升溫熟化技術，鮮嫩Q彈！", img: "" },
                 { name: "酥炸薯條", type: "single", price: 170, desc: "酥炸馬鈴薯條，傳統美式風味，經典不敗的好滋味！", img: "" },
                 { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }], desc: "翅腿裹粉酥炸，將雞汁封存，搭配特製椒麻醬汁，酥香椒麻，顛覆味蕾，是主廚大力推薦的招牌菜。", img: "" },
-                { name: "咔滋蟹舞明太子", type: "single", price: 450, desc: "咔滋咔滋！是軟殼蟹在唇齒間舞動出酥脆口感，搭配濃郁的明太子美乃滋，鱈魚卵在舌尖噗滋爆裂出濃郁鹹香，交疊出大海的雙倍鮮美！", img: "" }
+                { name: "咔滋蟹舞明太子", type: "single", price: 450, desc: "咔滋咔滋！是軟殼蟹在唇齒間舞動出酥脆口感，搭配濃郁的明太子美乃滋，鱈魚卵在舌尖噗滋爆裂出濃郁鹹香，交疊出大海的雙倍鮮美！", img: "" },
+                // ⭐ 完美補回：椒香滿天飛 與 炸魚薯條佐塔塔
+                { name: "椒香滿天飛 🌶️🌶️", type: "single", price: 280, desc: "精選雞翅中段，酥炸至乾香酥脆，搭配滿滿的特調秘辛香料，勁辣爽口，超級下酒！", img: "" },
+                { name: "炸魚薯條佐塔塔", type: "single", price: 450, desc: "經典Fish&Chips的全新演繹！台灣東海岸飛虎魚又稱「鬼頭刀」，特別醃製精釀啤酒炸出外酥香內滑嫩的口感，搭配花東剝皮辣椒特製的酸辣塔塔醬與爽口薯條，誰能忍住一口接一口的誘惑！", img: "" }
             ]
         },
         {
@@ -858,7 +858,7 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
+            const cleanText = (msg.text || '').replace(/"/g, '"');
             
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
@@ -964,7 +964,7 @@
         if (!confirm('確定要離開此秘密小組嗎？')) return;
         clearTimeout(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
-        .then(() => { location.reload(); });
+        .then(() => { localStorage.removeItem('teacherBanquetName'); location.reload(); });
     }
 
     function switchTab(tabId) {
