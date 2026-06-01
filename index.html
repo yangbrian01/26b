@@ -176,7 +176,7 @@
                 <span style="cursor:pointer; font-size:20px; color:#adb5bd; line-height:1;" onclick="cancelReply()">×</span>
             </div>
             <div class="chat-input-row">
-                <input type="text" id="chat-input" placeholder="左滑/右滑/長按訊息可回覆..." onkeypress="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chat-input" placeholder="左滑/右滑/長按訊息可回覆..." onkeypress="if(event.key==='Enter') sendChat()" oninput="triggerFastPolling()">
                 <button type="button" onclick="sendChat()">傳送</button>
             </div>
         </div>
@@ -338,6 +338,10 @@
     let localCart = {}; let localChatHistory = [];
     let isUpdatingCart = false, isUpdatingChat = false;
     
+    // ⭐ 智慧節能輪詢控制參數
+    let currentPollRate = 10000; // 預設降速至 10 秒
+    let fastPollTimeout = null;
+    
     let replyingToObj = null; 
     let targetMsgForContext = null; 
 
@@ -352,6 +356,16 @@
     function showToast(msg) {
         const toast = document.getElementById("toast"); toast.innerText = msg; toast.className = "show";
         setTimeout(() => toast.className = "", 3000);
+    }
+
+    // ⭐ 觸發高頻輪詢 (衝刺模式：切換至 3 秒)
+    function triggerFastPolling() {
+        currentPollRate = 3000;
+        if(fastPollTimeout) clearTimeout(fastPollTimeout);
+        // 如果 30 秒都沒有新的動作，就自動降速回 10 秒，保護配額
+        fastPollTimeout = setTimeout(() => {
+            currentPollRate = 10000;
+        }, 30000);
     }
 
     function verifyName() {
@@ -501,7 +515,6 @@
                         <div style="text-align:left;">
                             <span style="font-weight:bold; font-size:14px; display:block;">${item.name}</span>
                             <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
-                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-top:3px;">${item.desc}</span>`:''}
                         </div>
                         <div style="display:flex; align-items:center;">
                             <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
@@ -549,8 +562,8 @@
         document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[fullKey] || 0;
     }
 
-    // ⭐ 購物車數量加減
     function modSpecCart(cIdx, iIdx, delta) {
+        triggerFastPolling(); // 啟動高頻輪詢
         const itemObj = menuData[cIdx].items[iIdx];
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${itemObj.name} (${specName})`;
@@ -565,6 +578,7 @@
     }
 
     function modCart(itemName, delta) {
+        triggerFastPolling(); // 啟動高頻輪詢
         let currentQty = localCart[itemName] || 0;
         let newQty = Math.max(0, currentQty + delta);
         localCart[itemName] = newQty;
@@ -574,7 +588,6 @@
         uploadCartDelta(itemName, delta);
     }
 
-    // ⭐ 完美修正：只傳送 Delta 變化量，避免並發點餐互相覆蓋
     function uploadCartDelta(itemName, delta) {
         isUpdatingCart = true;
         fetch(gasURL, {
@@ -584,7 +597,6 @@
         .then(res => res.json())
         .then(data => {
             if(data.status === 'success' && data.cart) {
-                // 回傳瞬間，以伺服器最真實、運算過的購物車覆蓋本地
                 syncCartUI(data.cart);
             }
         })
@@ -625,7 +637,6 @@
         else list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
     }
 
-    // ⭐ IG風：打開表情貼明細與刪除
     function openReactionModal(msgId) {
         const msg = localChatHistory.find(m => m.id === msgId);
         if (!msg || !msg.reactions) return;
@@ -664,6 +675,7 @@
     }
 
     function removeReaction(msgId, emoji) {
+        triggerFastPolling(); // 觸發高頻
         const msg = localChatHistory.find(m => m.id === msgId);
         if (!msg || !msg.reactions || !msg.reactions[emoji]) return;
 
@@ -699,6 +711,7 @@
     }
 
     function triggerReaction(emoji) {
+        triggerFastPolling(); // 觸發高頻
         document.getElementById('chat-context-menu').style.display = 'none';
         if (!targetMsgForContext) return;
         
@@ -719,6 +732,7 @@
     }
 
     function sendChat() {
+        triggerFastPolling(); // 觸發高頻
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
         const nowStr = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
         
@@ -830,9 +844,17 @@
         }
     });
 
+    // ⭐ 真正的智慧節能輪詢引擎：用遞迴 setTimeout 代替 setInterval
     function startPolling() {
-        if(syncTimer) clearInterval(syncTimer);
-        syncTimer = setInterval(() => {
+        if(syncTimer) clearTimeout(syncTimer);
+        
+        const doPoll = () => {
+            // 背景休眠判定：如果切換到別的視窗，降速或不抓
+            if (document.hidden) {
+                syncTimer = setTimeout(doPoll, 10000);
+                return;
+            }
+
             fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
@@ -842,14 +864,19 @@
                         localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
                         syncChatUI(localChatHistory); 
                     }
-                } else if(data.status === 'kicked') { clearInterval(syncTimer); location.reload(); }
-            }).catch(()=>{});
-        }, 3000);
+                } else if(data.status === 'kicked') { clearTimeout(syncTimer); location.reload(); }
+            }).catch(()=>{})
+            .finally(() => {
+                // 排程下一次抓取，間隔取決於當前是「熱絡(3s)」還是「掛機(10s)」
+                syncTimer = setTimeout(doPoll, currentPollRate);
+            });
+        };
+        doPoll();
     }
 
     function leaveGroup() {
         if (!confirm('確定要離開此秘密小組嗎？')) return;
-        clearInterval(syncTimer);
+        clearTimeout(syncTimer);
         fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
         .then(() => { location.reload(); });
     }
