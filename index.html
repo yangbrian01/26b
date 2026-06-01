@@ -38,8 +38,16 @@
         .lobby-content.active { display: block; }
 
         .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: #fff; }
+        
+        /* ⭐ 新增：未讀訊息閃爍特效 */
+        @keyframes blink-alert {
+            0%, 100% { background-color: #edf2f4; color: #6c757d; }
+            50% { background-color: var(--accent); color: white; box-shadow: 0 0 10px rgba(230, 57, 70, 0.4); }
+        }
+        .tab-btn.blink { animation: blink-alert 1.2s infinite; }
+
         .panel { display: none; background: #fff; border: 2px solid #edf2f4; border-radius: 15px; padding: 15px; height: 420px; overflow-y: auto; position: relative; }
         .panel.active { display: flex; flex-direction: column; }
         
@@ -83,7 +91,6 @@
         .reaction-emoji { font-size: 22px; }
         .reaction-remove-btn { color: var(--accent); font-size: 13px; cursor: pointer; background: #ffe3e3; padding: 6px 12px; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; margin:0; width: auto;}
 
-        /* 餐點圖文詳情彈窗樣式 */
         #item-detail-modal-overlay { z-index: 1060; }
         .item-clickable-area { cursor: pointer; transition: opacity 0.2s; padding-right: 10px; }
         .item-clickable-area:hover { opacity: 0.7; }
@@ -161,7 +168,6 @@
             <div style="text-align: left;">
                 <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
                 <div id="room-code-display" style="font-size:13px; font-weight:bold; margin-top:4px;"></div>
-                <!-- ⭐ 新增：小組成員即時名單顯示區 -->
                 <div id="room-members-display" style="font-size:12px; margin-top:8px; padding:6px 10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd; font-weight:bold; color:var(--admin-blue); line-height: 1.4;">👥 本組成員：載入中...</div>
             </div>
             <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出 / 更換小組</button>
@@ -191,13 +197,19 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         <div class="tab-nav">
             <div class="tab-btn active" id="admin-tab-summary" onclick="switchAdminSubTab('summary')">📋 叫菜總計</div>
             <div class="tab-btn" id="admin-tab-breakdown" onclick="switchAdminSubTab('breakdown')">💰 各組拆帳</div>
         </div>
+        
+        <div id="admin-panel-broadcast" style="background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; margin-bottom:20px;">
+            <h4 style="margin-top:0; color:var(--accent);">📢 發送全班廣播訊息</h4>
+            <input type="text" id="admin-broadcast-msg" placeholder="輸入提醒訊息 (如: 點餐將於五分鐘後截止)...">
+            <button class="danger" onclick="sendBroadcast()" style="margin-bottom:0;">送出全班廣播</button>
+        </div>
+
         <div id="admin-panel-summary" style="display: block; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
         <div id="admin-panel-breakdown" style="display: none; background:#fff; border:1px solid #edf2f4; padding:15px; border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:25px;"></div>
         <button type="button" class="secondary" onclick="exitAdmin()" style="margin-top: 20px;">返回大廳</button>
@@ -206,7 +218,6 @@
 
 <div id="toast"></div>
 
-<!-- 表情貼明細彈窗 -->
 <div id="reaction-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 25px 20px;">
         <span class="close-btn" onclick="closeReactionModal()">×</span>
@@ -215,7 +226,6 @@
     </div>
 </div>
 
-<!-- 餐點圖文詳情彈窗 -->
 <div id="item-detail-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 0; overflow: hidden; width: 90%; max-width: 400px;">
         <span class="close-btn" style="color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); z-index: 10;" onclick="closeItemDetailModal()">×</span>
@@ -400,6 +410,10 @@
     let replyingToObj = null; 
     let targetMsgForContext = null; 
 
+    // ⭐ 閃爍提醒標記變數
+    let isChatTabActive = false;
+    let lastMsgCount = 0;
+
     window.onload = function() {
         const savedName = localStorage.getItem('teacherBanquetName');
         if (savedName) {
@@ -543,13 +557,13 @@
             const tKey = myGroupData.table == 1 ? 'table1' : 'table2';
             const groupStatus = statusObj[tKey].groups[myGroupData.groupName];
             if (groupStatus) {
-                // ⭐ 初始載入時顯示小組成員
                 if (groupStatus.members) {
                     document.getElementById('room-members-display').innerText = `👥 本組成員：${groupStatus.members.join('、')}`;
                 }
                 syncCartUI(groupStatus.cart || {});
                 localChatHistory = groupStatus.chat || [];
                 localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
+                lastMsgCount = localChatHistory.length; // ⭐ 記錄初始訊息數量
                 syncChatUI(localChatHistory);
             }
         }
@@ -652,12 +666,10 @@
     function updateSpecQtyUI(baseName, cIdx, iIdx) {
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${baseName} (${specName})`;
-        // ⭐ 切換規格時，顯示「自己」點的數量
         const myCartKey = `${fullKey}::${currentName}`;
         document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[myCartKey] || 0;
     }
 
-    // ⭐ 完美分帳核心：把點餐者綁在 Key 上面傳給後端
     function modSpecCart(cIdx, iIdx, delta) {
         triggerFastPolling(); 
         const itemObj = menuData[cIdx].items[iIdx];
@@ -701,7 +713,6 @@
         .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 800); });
     }
 
-    // ⭐ 完美分帳核心：解析包含名字的資料，並整理出超美的購物車明細
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); 
@@ -709,27 +720,22 @@
         let hasItem = false; 
         let totalSum = 0;
 
-        let displayCart = {}; // 用來整理要顯示在購物車的資料
+        let displayCart = {}; 
 
-        // 步驟一：拆解後端傳來的 Key (例如: 德式豬腳::楊定豊)
         for(let key in localCart) {
             const qty = localCart[key] || 0;
             if(qty > 0) {
                 hasItem = true;
-                
                 let parts = key.split('::');
                 let itemName = parts[0];
                 let userName = parts.length > 1 ? parts[1] : '原有點餐';
 
-                if (!displayCart[itemName]) {
-                    displayCart[itemName] = { total: 0, users: {} };
-                }
+                if (!displayCart[itemName]) displayCart[itemName] = { total: 0, users: {} };
                 displayCart[itemName].total += qty;
                 displayCart[itemName].users[userName] = (displayCart[itemName].users[userName] || 0) + qty;
             }
         }
 
-        // 步驟二：繪製超詳細的購物車清單
         for(let itemName in displayCart) {
             let itemTotal = displayCart[itemName].total;
             let price = itemPriceMap[itemName] || 0; 
@@ -751,7 +757,6 @@
             </li>`;
         }
 
-        // 步驟三：把「自己點的數量」更新回菜單的 + - 中間
         menuData.forEach((cat, cIdx) => {
             cat.items.forEach((item, iIdx) => {
                 if(item.type === 'single') {
@@ -871,14 +876,15 @@
         .finally(() => { setTimeout(() => { isUpdatingChat = false; }, 1000); });
     }
 
+    // ⭐ 時間戳記修復，使用精確的 HH:mm 格式
     function sendChat() {
         triggerFastPolling(); 
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
-        const nowStr = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
+        const nowStr = new Date().toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'});
         
         const newMsg = {
             id: 'msg_' + Date.now() + Math.floor(Math.random()*1000),
-            sender: currentName, text: text, time: "剛剛 " + nowStr, reactions: {}
+            sender: currentName, text: text, time: nowStr, reactions: {}
         };
         if (replyingToObj) { newMsg.replyTo = replyingToObj; cancelReply(); }
 
@@ -892,6 +898,16 @@
     }
 
     function syncChatUI(chatArray) {
+        // ⭐ 未讀訊息閃爍特效邏輯
+        if (!isChatTabActive && chatArray.length > lastMsgCount && lastMsgCount > 0) {
+            const chatBtn = document.querySelectorAll('.tab-nav .tab-btn')[1]; // 取第二個按鈕 (討論版)
+            chatBtn.classList.add('blink');
+        }
+        // 更新最後數量
+        if (isChatTabActive || lastMsgCount === 0) {
+            lastMsgCount = chatArray.length;
+        }
+
         const box = document.getElementById('chat-history'); 
         const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 40;
         box.innerHTML = '';
@@ -912,11 +928,22 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
+            const cleanText = (msg.text || '').replace(/"/g, '"');
+            
+            // ⭐ 時間戳記修復：把後端(2026/06/01 15:30:00)跟前端(15:30)的時間完美切割
+            let displayTime = msg.time || '';
+            if (displayTime.includes(' ')) {
+                const parts = displayTime.split(' ');
+                if (parts.length > 1) displayTime = parts[1].substring(0, 5);
+            } else if (displayTime.length > 5) {
+                displayTime = displayTime.substring(0, 5);
+            }
+            
+            let nameColor = (msg.sender === "系統") ? "color:var(--accent); font-weight:bold;" : "";
             
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
-                <div class="msg-sender">${msg.sender} <span style="font-size: 9px; color:#ced4da;">${msg.time ? msg.time.substring(11,16) : ''}</span></div>
+                <div class="msg-sender" style="${nameColor}">${msg.sender} <span style="font-size: 10px; color:#adb5bd; margin-left:6px; font-weight:normal;">${displayTime}</span></div>
                 ${replyHtml}
                 <div class="msg-text">${msg.text}</div>
                 ${reactionsHtml}
@@ -999,11 +1026,9 @@
             fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
-                    // ⭐ 即時更新小組成員名單
                     if(data.members) {
                         document.getElementById('room-members-display').innerText = `👥 本組成員：${data.members.join('、')}`;
                     }
-
                     if(!isUpdatingCart && document.activeElement.tagName !== 'SELECT') { syncCartUI(data.cart || {}); }
                     if(!isUpdatingChat) {
                         localChatHistory = data.chat || [];
@@ -1026,16 +1051,45 @@
         .then(() => { localStorage.removeItem('teacherBanquetName'); location.reload(); });
     }
 
+    // ⭐ 切換 Tab 時，如果切到聊天室就把閃爍拔掉
     function switchTab(tabId) {
         document.querySelectorAll('.tab-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active');
+        event.target.classList.add('active'); 
+        document.getElementById('tab-' + tabId).classList.add('active');
+        
+        if (tabId === 'chat') {
+            isChatTabActive = true;
+            const chatBtn = document.querySelectorAll('.tab-nav .tab-btn')[1];
+            chatBtn.classList.remove('blink');
+            lastMsgCount = localChatHistory.length;
+            const box = document.getElementById('chat-history');
+            box.scrollTop = box.scrollHeight;
+        } else {
+            isChatTabActive = false;
+        }
     }
 
+    // ===== 總召後台與全班廣播 =====
     function switchAdminSubTab(subId) {
         document.getElementById('admin-tab-summary').classList.remove('active'); document.getElementById('admin-tab-breakdown').classList.remove('active');
         document.getElementById('admin-panel-summary').style.display = 'none'; document.getElementById('admin-panel-breakdown').style.display = 'none';
         document.getElementById('admin-tab-' + subId).classList.add('active'); document.getElementById('admin-panel-' + subId).style.display = 'block';
+    }
+
+    // ⭐ 發送全班廣播的觸發函數
+    function sendBroadcast() {
+        const msg = document.getElementById('admin-broadcast-msg').value.trim();
+        if(!msg) return showToast('請輸入廣播內容！');
+        if(!confirm('確定要發送這則系統公告給所有小組嗎？')) return;
+        
+        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'broadcast', name: currentName, payload: msg }) })
+        .then(res => res.json()).then(data => {
+            if(data.status === 'success') {
+                showToast('✅ 廣播發送成功！');
+                document.getElementById('admin-broadcast-msg').value = '';
+            } else { showToast(data.message); }
+        }).catch(() => showToast('網路異常'));
     }
 
     function fetchAdminData() {
@@ -1050,7 +1104,6 @@
         }).catch(()=>{ showToast('連線異常'); });
     }
 
-    // ⭐ 完美升級總召後台：解析帶有人名的點餐 Key
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
         let globalSummary = {};
         const allMenuItems = menuData.flatMap(c => c.items);
@@ -1075,7 +1128,6 @@
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
-                        // 拆解名稱與點餐者
                         let keyParts = key.split('::');
                         let itemName = keyParts[0];
                         let userName = keyParts.length > 1 ? keyParts[1] : '原有點餐';
