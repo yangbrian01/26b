@@ -47,7 +47,6 @@
         .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
         .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
         .category-content.open { display: block; }
-        .toggle-icon { font-size: 12px; }
 
         .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #f1f3f5; }
         .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
@@ -83,6 +82,12 @@
         .reaction-user { font-size: 15px; font-weight: bold; color: var(--primary); }
         .reaction-emoji { font-size: 22px; }
         .reaction-remove-btn { color: var(--accent); font-size: 13px; cursor: pointer; background: #ffe3e3; padding: 6px 12px; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; margin:0; width: auto;}
+
+        /* ⭐ 新增的餐點圖片與詳情彈窗樣式 */
+        #item-detail-modal-overlay { z-index: 1060; }
+        .item-clickable-area { cursor: pointer; transition: opacity 0.2s; padding-right: 10px; }
+        .item-clickable-area:hover { opacity: 0.7; }
+        .info-icon { font-size: 12px; color: #adb5bd; margin-left: 4px; border: 1px solid #adb5bd; border-radius: 50%; padding: 0 4px; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
@@ -184,7 +189,6 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
-    <!-- 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         <div class="tab-nav">
@@ -207,124 +211,142 @@
     </div>
 </div>
 
+<div id="item-detail-modal-overlay" class="overlay">
+    <div class="modal-content" style="transform: translate(-50%, -50%); padding: 0; overflow: hidden; width: 90%; max-width: 400px;">
+        <span class="close-btn" style="color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); z-index: 10;" onclick="closeItemDetailModal()">×</span>
+        <div id="item-detail-img" style="width: 100%; height: 220px; background-color: #edf2f4; background-size: cover; background-position: center; display: none;"></div>
+        <div style="padding: 25px 20px; text-align: left;">
+            <h3 id="item-detail-title" style="margin-top: 0; color: var(--primary); font-size: 20px; margin-bottom: 8px;"></h3>
+            <div id="item-detail-price" style="color: var(--accent); font-weight: bold; font-size: 16px; margin-bottom: 12px;"></div>
+            <div id="item-detail-desc" style="color: #6c757d; font-size: 14px; line-height: 1.6; margin: 0; background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 3px solid var(--admin-blue);"></div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // ⭐ 新增了 5 款特殊調酒，並加入 img 欄位供未來放圖使用
     const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
             items: [
-                { name: "海鮮水果沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }] },
-                { name: "經典尼斯沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }] },
-                { name: "握握手小農溫沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }] },
-                { name: "凱薩沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }] },
-                { name: "海鮮濃湯", type: "single", price: 200 },
-                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180 }
+                { name: "海鮮水果沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }], desc: "", img: "" },
+                { name: "經典尼斯沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "", img: "" },
+                { name: "握握手小農溫沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }], desc: "", img: "" },
+                { name: "凱薩沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "", img: "" },
+                { name: "海鮮濃湯", type: "single", price: 200, desc: "", img: "" },
+                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180, desc: "", img: "" }
             ]
         },
         {
             category: "👑 SIGNATURE DISHES 主廚推薦",
             items: [
-                { name: "金色三麥經典大拼盤", type: "single", price: 1380, desc: "炸椒麻雞/德式豬腳/薯條/綜合香腸" },
-                { name: "德式豬腳", type: "single", price: 550 },
-                { name: "獨享拼盤", type: "single", price: 480, desc: "炸椒麻雞/薯條/墨魚酢辣椒魚子" },
-                { name: "黃金蝦餅", type: "single", price: 450 },
-                { name: "墨魚醉嗆烏魚子", type: "single", price: 380 },
-                { name: "現釀啤酒蝦 🌶️", type: "single", price: 380 },
-                { name: "墨西哥濃香玉米片", type: "single", price: 250 },
-                { name: "北海道鹽昆布透抽", type: "single", price: 280 },
-                { name: "椒香滿天飛 🌶️🌶️", type: "single", price: 280 },
-                { name: "蜜香滿天飛", type: "single", price: 280 },
-                { name: "涼拌墨魚 🌶️", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }] },
-                { name: "墨西哥雞肉餅 🌶️🌶️", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 480 }] },
-                { name: "德式綜合香腸", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 550 }] },
-                { name: "酥炸薯條", type: "single", price: 170 },
-                { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }] },
-                { name: "咔滋蟹舞明太子", type: "single", price: 450 }
+                { name: "金色三麥經典大拼盤", type: "single", price: 1380, desc: "炸椒麻雞/德式豬腳/薯條/綜合香腸", img: "" },
+                { name: "德式豬腳", type: "single", price: 550, desc: "", img: "" },
+                { name: "獨享拼盤", type: "single", price: 480, desc: "炸椒麻雞/薯條/墨魚酢辣椒魚子", img: "" },
+                { name: "黃金蝦餅", type: "single", price: 450, desc: "", img: "" },
+                { name: "墨魚醉嗆烏魚子", type: "single", price: 380, desc: "", img: "" },
+                { name: "現釀啤酒蝦 🌶️", type: "single", price: 380, desc: "", img: "" },
+                { name: "墨西哥濃香玉米片", type: "single", price: 250, desc: "", img: "" },
+                { name: "北海道鹽昆布透抽", type: "single", price: 280, desc: "", img: "" },
+                { name: "椒香滿天飛 🌶️🌶️", type: "single", price: 280, desc: "", img: "" },
+                { name: "蜜香滿天飛", type: "single", price: 280, desc: "", img: "" },
+                { name: "涼拌墨魚 🌶️", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "", img: "" },
+                { name: "墨西哥雞肉餅 🌶️🌶️", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 480 }], desc: "", img: "" },
+                { name: "德式綜合香腸", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 550 }], desc: "", img: "" },
+                { name: "酥炸薯條", type: "single", price: 170, desc: "", img: "" },
+                { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }], desc: "", img: "" },
+                { name: "咔滋蟹舞明太子", type: "single", price: 450, desc: "", img: "" }
             ]
         },
         {
             category: "🍝 RICE & SPAGHETTI 飯 & 麵",
             items: [
-                { name: "鮭魚什香拌飯", type: "select", options: [{ n: "2人", p: 550 }, { n: "4人", p: 980 }] },
-                { name: "西班牙海鮮燉飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }] },
-                { name: "松露野菇燉飯", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }] },
-                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }] },
-                { name: "紐奧良什錦飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }] },
-                { name: "義大利海鮮麵", type: "single", price: 350 },
-                { name: "義式番茄海鮮麵", type: "single", price: 350 },
-                { name: "奶油雙菇雞肉麵", type: "single", price: 350 },
-                { name: "海鮮義大利麵 (兒童餐)", type: "single", price: 350, desc: "附蔬菜、經典炸物" },
-                { name: "烤鮭魚拌飯 (兒童餐)", type: "single", price: 380, desc: "附蔬菜、經典炸物" }
+                { name: "鮭魚什香拌飯", type: "select", options: [{ n: "2人", p: 550 }, { n: "4人", p: 980 }], desc: "", img: "" },
+                { name: "西班牙海鮮燉飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "", img: "" },
+                { name: "松露野菇燉飯", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "", img: "" },
+                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "", img: "" },
+                { name: "紐奧良什錦飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }], desc: "", img: "" },
+                { name: "義大利海鮮麵", type: "single", price: 350, desc: "", img: "" },
+                { name: "義式番茄海鮮麵", type: "single", price: 350, desc: "", img: "" },
+                { name: "奶油雙菇雞肉麵", type: "single", price: 350, desc: "", img: "" },
+                { name: "海鮮義大利麵 (兒童餐)", type: "single", price: 350, desc: "附蔬菜、經典炸物", img: "" },
+                { name: "烤鮭魚拌飯 (兒童餐)", type: "single", price: 380, desc: "附蔬菜、經典炸物", img: "" }
             ]
         },
         {
             category: "🍕 PIZZA 披薩",
             items: [
-                { name: "蝦仁鮭魚披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }] },
-                { name: "德式香腸披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }] },
-                { name: "絲綢白乳酪披薩", type: "select", options: [{ n: "8吋", p: 350 }] },
-                { name: "陽光鳳梨披薩", type: "select", options: [{ n: "8吋", p: 380 }] }
+                { name: "蝦仁鮭魚披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }], desc: "", img: "" },
+                { name: "德式香腸披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }], desc: "", img: "" },
+                { name: "絲綢白乳酪披薩", type: "select", options: [{ n: "8吋", p: 350 }], desc: "", img: "" },
+                { name: "陽光鳳梨披薩", type: "select", options: [{ n: "8吋", p: 380 }], desc: "", img: "" }
             ]
         },
         {
             category: "🍮 DESSERT 甜點",
             items: [
-                { name: "焦糖葡萄塔 (蛋奶素)", type: "select", options: [{ n: "8顆", p: 250 }] },
-                { name: "黑巧提拉米蘇 (含酒精)", type: "single", price: 150 },
-                { name: "波士頓派 (蛋奶素)", type: "single", price: 150 },
-                { name: "黑麥霜淇淋 (蛋奶素)", type: "single", price: 150 },
-                { name: "金色三麥經典蛋糕", type: "select", options: [{ n: "6吋", p: 790 }] }
+                { name: "焦糖葡萄塔 (蛋奶素)", type: "select", options: [{ n: "8顆", p: 250 }], desc: "", img: "" },
+                { name: "黑巧提拉米蘇 (含酒精)", type: "single", price: 150, desc: "", img: "" },
+                { name: "波士頓派 (蛋奶素)", type: "single", price: 150, desc: "", img: "" },
+                { name: "黑麥霜淇淋 (蛋奶素)", type: "single", price: 150, desc: "", img: "" },
+                { name: "金色三麥經典蛋糕", type: "select", options: [{ n: "6吋", p: 790 }], desc: "", img: "" }
             ]
         },
         {
             category: "🍺 ALCOHOLIC BEVERAGES 酒精飲品",
             items: [
-                { name: "琥珀啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
-                { name: "蜂蜜啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
-                { name: "黑麥啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
-                { name: "德式小麥啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
-                { name: "季節啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }] },
-                { name: "三麥啤酒組合 (200ml x3)", type: "single", price: 320 },
-                { name: "MISSS 蜂蜜氣泡酒 (500ml)", type: "single", price: 680 }
+                { name: "發光黑爵士 (7.5%)", type: "single", price: 220, desc: "蘭姆酒/可樂/黃檸檬", img: "" },
+                { name: "搖滾黑玫瑰 (16.4%)", type: "single", price: 250, desc: "黑蘭姆酒/君度橙酒/杏仁露/蛋白泡沫/玫瑰糖漿", img: "" },
+                { name: "蜜柚瑪格麗特 (8.6%)", type: "single", price: 250, desc: "香艾酒/君度橙酒/蜂蜜/檸檬/精釀啤酒", img: "" },
+                { name: "迷幻冰果橙酒 (7.7%)", type: "single", price: 250, desc: "君度橙酒/精釀啤酒/覆盆莓果泥/百香果", img: "" },
+                { name: "醉鬼說莓醉 (5%)", type: "single", price: 250, desc: "威士忌/覆盆莓果泥", img: "" },
+                { name: "琥珀啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }], desc: "", img: "" },
+                { name: "蜂蜜啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }], desc: "", img: "" },
+                { name: "黑麥啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }], desc: "", img: "" },
+                { name: "德式小麥啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }], desc: "", img: "" },
+                { name: "季節啤酒", type: "select", options: [{ n: "350ml", p: 180 }, { n: "500ml", p: 250 }, { n: "3L", p: 1500 }, { n: "10L", p: 4800 }], desc: "", img: "" },
+                { name: "三麥啤酒組合 (200ml x3)", type: "single", price: 320, desc: "", img: "" },
+                { name: "MISSS 蜂蜜氣泡酒 (500ml)", type: "single", price: 680, desc: "", img: "" }
             ]
         },
         {
             category: "🍹 DRINK 飲料",
             items: [
-                { name: "SUNMAI 紅烏龍康普茶 (330ml)", type: "single", price: 90 },
-                { name: "蜂蜜啤酒芒果冰沙", type: "single", price: 220 },
-                { name: "桃氣破冰船", type: "single", price: 220 },
-                { name: "桂花奶霜氣泡烏龍", type: "single", price: 180 },
-                { name: "華麗芭洛克果茶 (熱)", type: "single", price: 180 },
-                { name: "鮮果好夢茶 (熱)", type: "single", price: 180 },
-                { name: "彩虹珊瑚鮮果汁", type: "single", price: 150 },
-                { name: "豔夏紅寶石", type: "single", price: 150 },
-                { name: "芭莉仙女下凡來", type: "single", price: 150 },
-                { name: "美式咖啡 (冰/熱)", type: "single", price: 120 },
-                { name: "拿鐵咖啡 (冰/熱)", type: "single", price: 150 },
-                { name: "莫西多氣泡咖啡", type: "single", price: 220 }
+                { name: "SUNMAI 紅烏龍康普茶 (330ml)", type: "single", price: 90, desc: "", img: "" },
+                { name: "蜂蜜啤酒芒果冰沙", type: "single", price: 220, desc: "", img: "" },
+                { name: "桃氣破冰船", type: "single", price: 220, desc: "", img: "" },
+                { name: "桂花奶霜氣泡烏龍", type: "single", price: 180, desc: "", img: "" },
+                { name: "華麗芭洛克果茶 (熱)", type: "single", price: 180, desc: "", img: "" },
+                { name: "鮮果好夢茶 (熱)", type: "single", price: 180, desc: "", img: "" },
+                { name: "彩虹珊瑚鮮果汁", type: "single", price: 150, desc: "", img: "" },
+                { name: "豔夏紅寶石", type: "single", price: 150, desc: "", img: "" },
+                { name: "芭莉仙女下凡來", type: "single", price: 150, desc: "", img: "" },
+                { name: "美式咖啡 (冰/熱)", type: "single", price: 120, desc: "", img: "" },
+                { name: "拿鐵咖啡 (冰/熱)", type: "single", price: 150, desc: "", img: "" },
+                { name: "莫西多氣泡咖啡", type: "single", price: 220, desc: "", img: "" }
             ]
         },
         {
             category: "🥗 VEGETARIAN 蔬食",
             items: [
-                { name: "纖主義涼涮秋葵 (素)", type: "single", price: 180 },
-                { name: "握握手小農溫沙拉 (素)", type: "single", price: 250 },
-                { name: "凱薩沙拉 (蛋奶素)", type: "single", price: 220 },
-                { name: "酥炸香濃起司條 (蛋奶素)", type: "single", price: 180 },
-                { name: "酥炸山藥 (素)", type: "single", price: 220 },
-                { name: "植想麻辣蔬食雞 🌶️🌶️ (素)", type: "single", price: 250 },
-                { name: "蔬食椒麻雞 🌶️ (素)", type: "single", price: 260 },
-                { name: "純蔬彈力蝦肉餅 (素)", type: "single", price: 280 },
-                { name: "炸鮮菇降落傘 (素)", type: "single", price: 280 },
-                { name: "BBQ美腿燒 🌶️ (五辛素)", type: "single", price: 150 },
-                { name: "帕瑪森南瓜打滾 (蛋奶素)", type: "single", price: 250 },
-                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180 },
-                { name: "冠軍蜂蜜啤酒麥芽麵包 (蛋奶素)", type: "single", price: 180 },
-                { name: "辣味義式蔬菜麵 🌶️🌶️ (素)", type: "single", price: 350 },
-                { name: "聞香起舞野菇飯 (素)", type: "single", price: 280 },
-                { name: "花心蔬脆披薩", type: "select", options: [{ n: "6吋", p: 250 }] },
-                { name: "榴槤忘返甜披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 280 }] },
-                { name: "陽光鳳梨披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 250 }] }
+                { name: "纖主義涼涮秋葵 (素)", type: "single", price: 180, desc: "", img: "" },
+                { name: "握握手小農溫沙拉 (素)", type: "single", price: 250, desc: "", img: "" },
+                { name: "凱薩沙拉 (蛋奶素)", type: "single", price: 220, desc: "", img: "" },
+                { name: "酥炸香濃起司條 (蛋奶素)", type: "single", price: 180, desc: "", img: "" },
+                { name: "酥炸山藥 (素)", type: "single", price: 220, desc: "", img: "" },
+                { name: "植想麻辣蔬食雞 🌶️🌶️ (素)", type: "single", price: 250, desc: "", img: "" },
+                { name: "蔬食椒麻雞 🌶️ (素)", type: "single", price: 260, desc: "", img: "" },
+                { name: "純蔬彈力蝦肉餅 (素)", type: "single", price: 280, desc: "", img: "" },
+                { name: "炸鮮菇降落傘 (素)", type: "single", price: 280, desc: "", img: "" },
+                { name: "BBQ美腿燒 🌶️ (五辛素)", type: "single", price: 150, desc: "", img: "" },
+                { name: "帕瑪森南瓜打滾 (蛋奶素)", type: "single", price: 250, desc: "", img: "" },
+                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180, desc: "", img: "" },
+                { name: "冠軍蜂蜜啤酒麥芽麵包 (蛋奶素)", type: "single", price: 180, desc: "", img: "" },
+                { name: "辣味義式蔬菜麵 🌶️🌶️ (素)", type: "single", price: 350, desc: "", img: "" },
+                { name: "聞香起舞野菇飯 (素)", type: "single", price: 280, desc: "", img: "" },
+                { name: "花心蔬脆披薩", type: "select", options: [{ n: "6吋", p: 250 }], desc: "", img: "" },
+                { name: "榴槤忘返甜披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 280 }], desc: "", img: "" },
+                { name: "陽光鳳梨披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 250 }], desc: "", img: "" }
             ]
         }
     ];
@@ -503,7 +525,7 @@
         navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
-    // ⭐ 確保所有餐點都渲染出內容物說明
+    // ⭐ 綁定餐點圖文彈窗功能
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
         menuData.forEach((cat, cIdx) => {
@@ -512,8 +534,8 @@
                 if (item.type === 'single') {
                     itemsHtml += `
                     <div class="menu-item">
-                        <div style="text-align:left;">
-                            <span style="font-weight:bold; font-size:14px; display:block;">${item.name}</span>
+                        <div class="item-clickable-area" style="text-align:left; flex:1;" onclick="showItemDetail(${cIdx}, ${iIdx})">
+                            <span style="font-weight:bold; font-size:14px; display:block;">${item.name} <span class="info-icon">ⓘ</span></span>
                             <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
                             ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-top:3px;">${item.desc}</span>`:''}
                         </div>
@@ -529,8 +551,10 @@
                     itemsHtml += `
                     <div class="menu-item">
                         <div style="text-align:left; flex:1; padding-right:10px;">
-                            <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name}</span>
-                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px;">${item.desc}</span>`:''}
+                            <div class="item-clickable-area" onclick="showItemDetail(${cIdx}, ${iIdx})">
+                                <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name} <span class="info-icon">ⓘ</span></span>
+                                ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px;">${item.desc}</span>`:''}
+                            </div>
                             <select id="sel-${cIdx}-${iIdx}" style="padding:4px 8px; font-size:12px; margin:0; border-radius:6px; height:auto; width:auto;" onchange="updateSpecQtyUI('${item.name}', ${cIdx}, ${iIdx})">
                                 ${optionsHtml}
                             </select>
@@ -556,6 +580,39 @@
     function toggleCategory(idx) {
         document.getElementById(`cat-content-${idx}`).classList.toggle('open');
         document.getElementById(`cat-head-${idx}`).classList.toggle('open');
+    }
+
+    // ⭐ 顯示餐點圖文彈窗
+    function showItemDetail(cIdx, iIdx) {
+        const item = menuData[cIdx].items[iIdx];
+        document.getElementById('item-detail-title').innerText = item.name;
+        
+        let priceStr = "";
+        if (item.type === 'single') {
+            priceStr = `$${item.price}`;
+        } else {
+            priceStr = item.options.map(o => `${o.n}: $${o.p}`).join(' / ');
+        }
+        document.getElementById('item-detail-price').innerText = priceStr;
+        document.getElementById('item-detail-desc').innerText = item.desc || "這道餐點真的很讚，不用懷疑點下去就對了！🍻";
+        
+        const imgDiv = document.getElementById('item-detail-img');
+        if (item.img) {
+            imgDiv.style.backgroundImage = `url('${item.img}')`;
+            imgDiv.style.display = 'block';
+        } else {
+            imgDiv.style.display = 'none';
+        }
+        
+        const overlay = document.getElementById('item-detail-modal-overlay');
+        overlay.style.display = 'block';
+        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+    }
+
+    function closeItemDetailModal() {
+        const overlay = document.getElementById('item-detail-modal-overlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 300);
     }
 
     function updateSpecQtyUI(baseName, cIdx, iIdx) {
@@ -774,7 +831,7 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
+            const cleanText = (msg.text || '').replace(/"/g, '"');
             
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
@@ -843,6 +900,9 @@
         }
         if(e.target.id === 'reaction-modal-overlay') {
             closeReactionModal();
+        }
+        if(e.target.id === 'item-detail-modal-overlay') {
+            closeItemDetailModal();
         }
     });
 
