@@ -47,7 +47,6 @@
         .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
         .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
         .category-content.open { display: block; }
-        .toggle-icon { font-size: 12px; }
 
         .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #f1f3f5; }
         .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
@@ -83,7 +82,6 @@
         .reaction-user { font-size: 15px; font-weight: bold; color: var(--primary); }
         .reaction-emoji { font-size: 22px; }
         .reaction-remove-btn { color: var(--accent); font-size: 13px; cursor: pointer; background: #ffe3e3; padding: 6px 12px; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; margin:0; width: auto;}
-        .reaction-remove-btn:hover { background: #ffc2d1; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10; opacity: 0; transition: opacity 0.3s; }
         .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
@@ -492,7 +490,6 @@
         navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
-    // ⭐ 在這段加入了餐點說明的渲染
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
         menuData.forEach((cat, cIdx) => {
@@ -519,7 +516,6 @@
                     <div class="menu-item">
                         <div style="text-align:left; flex:1; padding-right:10px;">
                             <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name}</span>
-                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px;">${item.desc}</span>`:''}
                             <select id="sel-${cIdx}-${iIdx}" style="padding:4px 8px; font-size:12px; margin:0; border-radius:6px; height:auto; width:auto;" onchange="updateSpecQtyUI('${item.name}', ${cIdx}, ${iIdx})">
                                 ${optionsHtml}
                             </select>
@@ -553,25 +549,46 @@
         document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[fullKey] || 0;
     }
 
+    // ⭐ 購物車數量加減
     function modSpecCart(cIdx, iIdx, delta) {
         const itemObj = menuData[cIdx].items[iIdx];
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${itemObj.name} (${specName})`;
+        
         let currentQty = localCart[fullKey] || 0;
-        localCart[fullKey] = Math.max(0, currentQty + delta);
-        syncCartUI(localCart); uploadCart();
+        let newQty = Math.max(0, currentQty + delta);
+        localCart[fullKey] = newQty;
+        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = newQty;
+
+        syncCartUI(localCart);
+        uploadCartDelta(fullKey, delta);
     }
 
     function modCart(itemName, delta) {
         let currentQty = localCart[itemName] || 0;
-        localCart[itemName] = Math.max(0, currentQty + delta);
-        syncCartUI(localCart); uploadCart();
+        let newQty = Math.max(0, currentQty + delta);
+        localCart[itemName] = newQty;
+        document.getElementById(`qty-${itemName}`).innerText = newQty;
+
+        syncCartUI(localCart);
+        uploadCartDelta(itemName, delta);
     }
 
-    function uploadCart() {
+    // ⭐ 完美修正：只傳送 Delta 變化量，避免並發點餐互相覆蓋
+    function uploadCartDelta(itemName, delta) {
         isUpdatingCart = true;
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'updateData', type: 'cart', name: currentName, payload: localCart }) })
-        .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 1000); });
+        fetch(gasURL, {
+            method: 'POST', redirect: 'follow',
+            body: JSON.stringify({ action: 'updateData', type: 'cart_delta', name: currentName, payload: { item: itemName, delta: delta } })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success' && data.cart) {
+                // 回傳瞬間，以伺服器最真實、運算過的購物車覆蓋本地
+                syncCartUI(data.cart);
+            }
+        })
+        .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 800); });
     }
 
     function syncCartUI(serverCartObj) {
@@ -608,6 +625,7 @@
         else list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
     }
 
+    // ⭐ IG風：打開表情貼明細與刪除
     function openReactionModal(msgId) {
         const msg = localChatHistory.find(m => m.id === msgId);
         if (!msg || !msg.reactions) return;
