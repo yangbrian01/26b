@@ -83,7 +83,7 @@
         .reaction-emoji { font-size: 22px; }
         .reaction-remove-btn { color: var(--accent); font-size: 13px; cursor: pointer; background: #ffe3e3; padding: 6px 12px; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; margin:0; width: auto;}
 
-        /* ⭐ 新增的餐點圖片與詳情彈窗樣式 */
+        /* 餐點圖片與詳情彈窗樣式 */
         #item-detail-modal-overlay { z-index: 1060; }
         .item-clickable-area { cursor: pointer; transition: opacity 0.2s; padding-right: 10px; }
         .item-clickable-area:hover { opacity: 0.7; }
@@ -203,6 +203,7 @@
 
 <div id="toast"></div>
 
+<!-- 表情貼明細彈窗 -->
 <div id="reaction-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 25px 20px;">
         <span class="close-btn" onclick="closeReactionModal()">×</span>
@@ -211,6 +212,7 @@
     </div>
 </div>
 
+<!-- 餐點圖文詳情彈窗 -->
 <div id="item-detail-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 0; overflow: hidden; width: 90%; max-width: 400px;">
         <span class="close-btn" style="color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); z-index: 10;" onclick="closeItemDetailModal()">×</span>
@@ -224,79 +226,94 @@
 </div>
 
 <script>
-    // ⭐ 新增了 5 款特殊調酒，並加入 img 欄位供未來放圖使用
+    // ⭐ 將 87 張截圖的內容完美整合進來的終極版 MenuData
     const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
             items: [
-                { name: "海鮮水果沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }], desc: "", img: "" },
-                { name: "經典尼斯沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "", img: "" },
-                { name: "握握手小農溫沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }], desc: "", img: "" },
-                { name: "凱薩沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "", img: "" },
-                { name: "海鮮濃湯", type: "single", price: 200, desc: "", img: "" },
-                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180, desc: "", img: "" }
+                { name: "海鮮水果沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }], desc: "以法式芥末沙拉醬拌勻奶油生菜、芝麻葉、白蝦、干貝、墨魚、洋蔥絲、甜椒、小番茄，再巧妙搭配新鮮水果丁，清爽開胃，鮮美驚艷。", img: "" },
+                { name: "經典尼斯沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "選用鮮美鮪魚、鹹酸橄欖、水煮蛋以及新鮮生菜，淋上主廚自製檸檬油醋醬，享受地中海飲食的輕盈無負擔。", img: "" },
+                { name: "握握手小農溫沙拉", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 380 }], desc: "安心與美味，都跟小農約定好了！來自台灣小農的四種頂級生菜，不同的鮮脆拌勻煎烤蕈菇、鮮蝦、堅果與義大利酒醋醬汁，交織出多層次的開胃享受。", img: "" },
+                { name: "凱薩沙拉", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "特調凱薩醬拌勻蘿蔓心、培根絲、葡萄乾、小黃瓜、小番茄，最後灑上帕瑪森起司與麵包丁，清爽風味適合餐前享用，開啟味蕾饗宴。", img: "" },
+                { name: "海鮮濃湯", type: "single", price: 200, desc: "以墨魚、蝦仁加入鮮奶油燉煮至濃郁湯頭，鮮甜美味。", img: "" },
+                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180, desc: "上選日本南瓜與台灣金瓜熬煮，自然甘甜、營養滿分。", img: "" }
             ]
         },
         {
             category: "👑 SIGNATURE DISHES 主廚推薦",
             items: [
-                { name: "金色三麥經典大拼盤", type: "single", price: 1380, desc: "炸椒麻雞/德式豬腳/薯條/綜合香腸", img: "" },
-                { name: "德式豬腳", type: "single", price: 550, desc: "", img: "" },
-                { name: "獨享拼盤", type: "single", price: 480, desc: "炸椒麻雞/薯條/墨魚酢辣椒魚子", img: "" },
-                { name: "黃金蝦餅", type: "single", price: 450, desc: "", img: "" },
-                { name: "墨魚醉嗆烏魚子", type: "single", price: 380, desc: "", img: "" },
-                { name: "現釀啤酒蝦 🌶️", type: "single", price: 380, desc: "", img: "" },
-                { name: "墨西哥濃香玉米片", type: "single", price: 250, desc: "", img: "" },
+                { name: "金色三麥經典大拼盤", type: "single", price: 1380, desc: "內含酥炸椒麻雞、德式豬腳、美式薯條，並搭配黑胡椒香腸、煙燻香腸、青花椒香腸，一次品嚐多種特色，盡享金色三麥的獨家魅力。", img: "" },
+                { name: "德式豬腳", type: "single", price: 550, desc: "正統德式作法，將豬腳慢火烘烤至外皮酥脆、肉質Q彈富嚼勁，再搭配濃郁黃芥末醬，帶出味覺新層次，最後夾上特製酸菜解膩，完美呈現。", img: "" },
+                { name: "獨享拼盤", type: "single", price: 480, desc: "人氣炸物大集合，酥炸椒麻雞、墨魚醉嗆烏魚子、賣萊塢卡啦脆，獨享各式高人氣酥炸餐點。", img: "" },
+                { name: "黃金蝦餅", type: "single", price: 450, desc: "以新鮮的白蝦經過不斷拍打及攪拌精製而成，口感獨特，每一口都吃得到蝦肉的鮮甜及酥脆。快來金色三麥嚐鮮！", img: "" },
+                { name: "墨魚醉嗆烏魚子", type: "single", price: 380, desc: "大火將墨魚煎至金黃酥脆，再與烘烤過的烏魚子、培根丁拌炒，濃郁鹹香，滿滿的大海風味，讓人一口接一口。", img: "" },
+                { name: "現釀啤酒蝦 🌶️", type: "single", price: 380, desc: "精選大蝦事先去殼，加入蔥蒜、辣椒，大火乾煎，再嗆入啤酒調味，使蝦肉鮮甜略帶淡淡麥香，是不可錯過的下酒良伴。", img: "" },
+                { name: "墨西哥濃香玉米片", type: "single", price: 250, desc: "稱霸涮嘴界的墨西哥玉米片來了，不只香酥脆口，還搭配主廚精心調製的莎莎醬和起司醬，清新又開胃，整個超順口！如果滿嘴脆片來不及跟大夥聊天，那麼不如用彼此的咔滋聲響來代替吧！", img: "" },
                 { name: "北海道鹽昆布透抽", type: "single", price: 280, desc: "", img: "" },
-                { name: "椒香滿天飛 🌶️🌶️", type: "single", price: 280, desc: "", img: "" },
-                { name: "蜜香滿天飛", type: "single", price: 280, desc: "", img: "" },
-                { name: "涼拌墨魚 🌶️", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "", img: "" },
-                { name: "墨西哥雞肉餅 🌶️🌶️", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 480 }], desc: "", img: "" },
-                { name: "德式綜合香腸", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 550 }], desc: "", img: "" },
-                { name: "酥炸薯條", type: "single", price: 170, desc: "", img: "" },
-                { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }], desc: "", img: "" },
-                { name: "咔滋蟹舞明太子", type: "single", price: 450, desc: "", img: "" }
+                { name: "櫻桃鴨椒響曲", type: "single", price: 280, desc: "麻辣界的交響樂團，由櫻桃鴨腿領軍，火熱拌炒燈籠椒、乾辣椒、泡山椒、花椒，風味麻中帶香、香中帶辣；皮香酥、肉彈嫩，與味蕾共舞出再三回合的「椒響曲」。", img: "" },
+                { name: "蜜香滿天飛", type: "single", price: 280, desc: "尾韻輕盈的蜂蜜香氣，好吃到讓心飛起來！來自精選中段雞翅先炸再爆炒，飽滿吸收主廚的天然蜂蜜蔬果醬，香甜卻不膩口，蜜香迴盪久久。", img: "" },
+                { name: "涼拌墨魚 🌶️", type: "select", options: [{ n: "M", p: 250 }, { n: "L", p: 350 }], desc: "彈脆墨魚汆燙切片，灑上香菜、蔥絲、辣椒絲，拌上特調微辣墨魚醬，噴香開胃。", img: "" },
+                { name: "墨西哥雞肉餅 🌶️🌶️", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 480 }], desc: "鮮嫩多汁的酥炸雞肉丁，搭配香濃乳酪、洋蔥、黑橄欖與各式香料，包至餅皮內烤至外表酥脆，微辣的墨西哥風味讓您一吃上癮！", img: "" },
+                { name: "德式綜合香腸", type: "select", options: [{ n: "M", p: 280 }, { n: "L", p: 550 }], desc: "同時享有黑胡椒香腸、煙燻香腸、青花椒德式香腸(3選2)，搭配黃芥末醬與酸菜，肉味鮮香。青花椒德式香腸：精選台灣豬前腿肉及獨門調料，呈現青花椒微帶麻感的香氣，再以德國櫸木煙燻製成，運用低溫真空工藝搭配漸進式升溫熟化技術，鮮嫩Q彈！", img: "" },
+                { name: "酥炸薯條", type: "single", price: 170, desc: "酥炸馬鈴薯條，傳統美式風味，經典不敗的好滋味！", img: "" },
+                { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }], desc: "翅腿裹粉酥炸，將雞汁封存，搭配特製椒麻醬汁，酥香椒麻，顛覆味蕾，是主廚大力推薦的招牌菜。", img: "" },
+                { name: "咔滋蟹舞明太子", type: "single", price: 450, desc: "咔滋咔滋！是軟殼蟹在唇齒間舞動出酥脆口感，搭配濃郁的明太子美乃滋，鱈魚卵在舌尖噗滋爆裂出濃郁鹹香，交疊出大海的雙倍鮮美！", img: "" }
             ]
         },
         {
             category: "🍝 RICE & SPAGHETTI 飯 & 麵",
             items: [
-                { name: "鮭魚什香拌飯", type: "select", options: [{ n: "2人", p: 550 }, { n: "4人", p: 980 }], desc: "", img: "" },
-                { name: "西班牙海鮮燉飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "", img: "" },
-                { name: "松露野菇燉飯", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "", img: "" },
-                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "", img: "" },
-                { name: "紐奧良什錦飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }], desc: "", img: "" },
-                { name: "義大利海鮮麵", type: "single", price: 350, desc: "", img: "" },
-                { name: "義式番茄海鮮麵", type: "single", price: 350, desc: "", img: "" },
-                { name: "奶油雙菇雞肉麵", type: "single", price: 350, desc: "", img: "" },
-                { name: "海鮮義大利麵 (兒童餐)", type: "single", price: 350, desc: "附蔬菜、經典炸物", img: "" },
-                { name: "烤鮭魚拌飯 (兒童餐)", type: "single", price: 380, desc: "附蔬菜、經典炸物", img: "" }
+                { name: "鮭魚什香拌飯", type: "select", options: [{ n: "2人", p: 550 }, { n: "4人", p: 980 }], desc: "不惜成本鋪上滿滿晶瑩飽滿的鮭魚卵，搭配鮮烤鮭魚肉、海苔香鬆、夏威夷果仁，口感絕佳，滿口都是鮮美的好滋味。", img: "" },
+                { name: "西班牙海鮮燉飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "以多種海鮮料、雞肉、德式香腸及數十種香料燉煮而成，米粒吸飽精華，口口精彩，鮮美豐盛，適合多人享用。", img: "" },
+                { name: "松露野菇燉飯", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "以松露醬與松露油調製而成的醬汁淋入米粒與柳松菇、香菇、杏鮑菇等多種野菇，慢火燉煮，最後灑上夏威夷果仁，濃郁滑順，每一口都滿足。", img: "" },
+                { name: "剝皮辣椒鮮蝦燉飯 🌶️🌶️", type: "select", options: [{ n: "2人", p: 480 }, { n: "4人", p: 820 }], desc: "突破你對剝皮辣椒的想像！主廚特別將這項台灣美食製成獨樹一格的西式青醬基底，勾引食慾的酸香呼應透抽、淡菜與白蝦的鮮甜，與米粒交融為滑潤鹹鮮的滋味，口口滿足。", img: "" },
+                { name: "紐奧良什錦飯 🌶️", type: "select", options: [{ n: "2人", p: 480 }], desc: "以鮮嫩雞肉、歐式香腸、脆彈蝦仁及濃郁紅醬拌炒，鋪上特色啤酒蛋，食材豐富、風味獨特，最後灑上口感十足的夏威夷果仁為美味加分。", img: "" },
+                { name: "義大利海鮮麵", type: "single", price: 350, desc: "香濃白醬拌炒義大利麵，再加入精選鮮蝦、干貝、墨魚、蛤蠣，濃郁鮮美，意猶未盡。", img: "" },
+                { name: "義式番茄海鮮麵", type: "single", price: 350, desc: "使用精選鮮蝦、干貝、墨魚、蛤蠣，拌炒經典番茄紅醬，酸甜清爽，香氣濃郁。", img: "" },
+                { name: "奶油雙菇雞肉麵", type: "single", price: 350, desc: "以濃郁白醬拌炒秀珍菇、杏鮑菇、鮮嫩雞肉、彩椒，是濃郁香滑卻清爽不膩的奶油風味義大利麵。", img: "" },
+                { name: "西西里鯷鮮烏魚子義麵", type: "single", price: 350, desc: "餐桌彷彿吹來西西里海風，以當地著名的鯷魚風味，融合台灣在地烏魚子，還讓烘乾番茄、曬乾辣椒帶來濃縮的甜與香氣，詮釋出獨一無二的鮮辣海味。", img: "" },
+                { name: "北義奶油濃蕈麵", type: "single", price: 350, desc: "北義料理偏重鮮奶油、起司等元素，我們以鮮奶油、百里香與多種蕈菇慢慢煨煮出阿爾卑斯山初雪般溫厚口感，鮮醇蕈香，再點綴帕瑪森起司，餘韻綿綿。", img: "" },
+                { name: "椒麻天使冷麵", type: "single", price: 350, desc: "一下清爽可人，一下椒麻帶勁，雙面性格的天使冷麵準備征服食慾！先吃冷麵裡義式番茄沙拉醬汁原味，再拌進椒麻雞沾醬增添花椒香氣，搭配酥嫩椒麻雞，十分清爽卻雙重滿足！", img: "" },
+                { name: "海鮮義大利麵 (兒童餐)", type: "single", price: 350, desc: "義大利海鮮麵搭配新鮮時蔬與經典炸物。", img: "" },
+                { name: "烤鮭魚拌飯 (兒童餐)", type: "single", price: 380, desc: "鮮烤鮭魚拌飯搭配新鮮時蔬與經典炸物。", img: "" },
+                { name: "躲貓貓肉醬兒童餐", type: "single", price: 380, desc: "躲貓貓肉醬兒童餐", img: "" }
             ]
         },
         {
             category: "🍕 PIZZA 披薩",
             items: [
-                { name: "蝦仁鮭魚披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }], desc: "", img: "" },
-                { name: "德式香腸披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }], desc: "", img: "" },
-                { name: "絲綢白乳酪披薩", type: "select", options: [{ n: "8吋", p: 350 }], desc: "", img: "" },
-                { name: "陽光鳳梨披薩", type: "select", options: [{ n: "8吋", p: 380 }], desc: "", img: "" }
+                { name: "蝦仁鮭魚披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }], desc: "雙層薄皮鋪上滿滿的煙燻鮭魚、蝦仁、洋蔥、甜椒，再灑上濃厚起司，每一口都吃得到海鮮的鮮甜美味。", img: "" },
+                { name: "德式香腸披薩", type: "select", options: [{ n: "6吋", p: 280 }, { n: "8吋", p: 380 }], desc: "雙層薄皮抹上香蒜醬，鋪上特製德國煙燻香腸、洋蔥、彩椒以及濃厚乳酪，慢火烘烤，薄脆可口。", img: "" },
+                { name: "絲綢白乳酪披薩", type: "select", options: [{ n: "8吋", p: 350 }], desc: "自製的風乾番茄，與新鮮牛乳製成的莫札瑞拉起司，融化出陽光濃郁卻又帶著如花落清透的多重享受！", img: "" },
+                { name: "陽光鳳梨披薩", type: "select", options: [{ n: "8吋", p: 380 }], desc: "新鮮鳳梨搭配蝦仁，酸甜的口感，是經典中的經典", img: "" }
+            ]
+        },
+        {
+            category: "🍲 HOT POT 鍋類",
+            items: [
+                { name: "精釀啤酒海鮮鍋", type: "single", price: 480, desc: "精選大蝦、大蛤、花枝丸、墨魚等海鮮，特製醬料入海鮮鍋底，最後以金色三麥精釀啤酒慢火熬煮，濃濃麥香與海鮮非常合拍。", img: "" },
+                { name: "精選麻辣鍋", type: "single", price: 480, desc: "以五十種天然辛香料熬煮而成的麻辣鍋底，加入秀珍菇、杏鮑菇、白菜等鮮甜蔬菜，搭配精選豬肉片，香麻順口。", img: "" },
+                { name: "南洋風味叻沙鍋", type: "single", price: 480, desc: "新加坡精典叻沙風味，散發濃郁的蝦醬與椰汁香氣，帶勁的辣味混搭清新的香茅與微酸口感，再搭配豐富海鮮，特殊風味，讓人回味無窮。", img: "" },
+                { name: "酥皮海鮮濃湯", type: "single", price: 250, desc: "以墨魚、蝦仁加入鮮奶油燉煮至濃郁湯頭，鋪上酥皮烘烤，酥脆餅皮融入濃湯中，美味再升級。", img: "" },
+                { name: "酸菜白肉富貴鍋", type: "single", price: 780, desc: "鮮甜高湯搭配上主廚手工醃漬的酸白菜燉煮，帶出自然甘甜的發酵酸度，再佐以蛤蠣、鮮蝦、曼波魚、曼波魚丸與精選肉片，滿滿一鍋的豐富食材，吃得您口水直流！", img: "" }
             ]
         },
         {
             category: "🍮 DESSERT 甜點",
             items: [
                 { name: "焦糖葡萄塔 (蛋奶素)", type: "select", options: [{ n: "8顆", p: 250 }], desc: "", img: "" },
-                { name: "黑巧提拉米蘇 (含酒精)", type: "single", price: 150, desc: "", img: "" },
-                { name: "波士頓派 (蛋奶素)", type: "single", price: 150, desc: "", img: "" },
-                { name: "黑麥霜淇淋 (蛋奶素)", type: "single", price: 150, desc: "", img: "" },
-                { name: "金色三麥經典蛋糕", type: "select", options: [{ n: "6吋", p: 790 }], desc: "", img: "" }
+                { name: "黑巧提拉米蘇 (含酒精)", type: "single", price: 150, desc: "以香草與黑巧克力冰淇淋為基底，交織出濃郁絲滑的綿密口感，搭配香蕉與焦糖堅果的多層次組合，每一口都是幸福滿足，是金色三麥熱門甜點之一", img: "" },
+                { name: "波士頓派 (蛋奶素)", type: "single", price: 150, desc: "美味可口", img: "" },
+                { name: "黑麥霜淇淋 (蛋奶素)", type: "single", price: 150, desc: "濃郁的黑麥香氣，與香醇的尾韻，被霜淇淋的輕甜中和，是成熟大人味。(此商品含有酒精，提醒您禁止酒駕，未滿18歲請勿飲酒)", img: "" },
+                { name: "金色三麥經典蛋糕", type: "select", options: [{ n: "6吋", p: 790 }], desc: "使用了精緻烘焙的蛋糕作為基底，每一口都是絕妙好滋味！隨季節變換不同口味，時時新美味。", img: "" },
+                { name: "榴槤忘返甜披薩", type: "single", price: 350, desc: "獨特的榴槤香氣融合馬札瑞拉起司，一口咬下濃郁香甜、香氣噴發，小心上癮！", img: "" }
             ]
         },
         {
             category: "🍺 ALCOHOLIC BEVERAGES 酒精飲品",
             items: [
-                { name: "發光黑爵士 (7.5%)", type: "single", price: 220, desc: "蘭姆酒/可樂/黃檸檬", img: "" },
-                { name: "搖滾黑玫瑰 (16.4%)", type: "single", price: 250, desc: "黑蘭姆酒/君度橙酒/杏仁露/蛋白泡沫/玫瑰糖漿", img: "" },
+                { name: "發光黑爵士 (7.5%)", type: "single", price: 220, desc: "白色蘭姆酒/可樂/黃檸檬", img: "" },
+                { name: "搖滾黑玫瑰 (16.4%)", type: "single", price: 250, desc: "黑色蘭姆酒/君度橙酒/杏仁露/蛋白泡沫/玫瑰糖漿", img: "" },
                 { name: "蜜柚瑪格麗特 (8.6%)", type: "single", price: 250, desc: "香艾酒/君度橙酒/蜂蜜/檸檬/精釀啤酒", img: "" },
                 { name: "迷幻冰果橙酒 (7.7%)", type: "single", price: 250, desc: "君度橙酒/精釀啤酒/覆盆莓果泥/百香果", img: "" },
                 { name: "醉鬼說莓醉 (5%)", type: "single", price: 250, desc: "威士忌/覆盆莓果泥", img: "" },
@@ -312,15 +329,14 @@
         {
             category: "🍹 DRINK 飲料",
             items: [
-                { name: "SUNMAI 紅烏龍康普茶 (330ml)", type: "single", price: 90, desc: "", img: "" },
-                { name: "蜂蜜啤酒芒果冰沙", type: "single", price: 220, desc: "", img: "" },
-                { name: "桃氣破冰船", type: "single", price: 220, desc: "", img: "" },
-                { name: "桂花奶霜氣泡烏龍", type: "single", price: 180, desc: "", img: "" },
-                { name: "華麗芭洛克果茶 (熱)", type: "single", price: 180, desc: "", img: "" },
-                { name: "鮮果好夢茶 (熱)", type: "single", price: 180, desc: "", img: "" },
-                { name: "彩虹珊瑚鮮果汁", type: "single", price: 150, desc: "", img: "" },
-                { name: "豔夏紅寶石", type: "single", price: 150, desc: "", img: "" },
-                { name: "芭莉仙女下凡來", type: "single", price: 150, desc: "", img: "" },
+                { name: "彩虹珊瑚鮮果汁", type: "single", price: 150, desc: "新鮮水果現榨，擁有豐富且可愛漸層果汁，讓你每喝一口都有好心情。", img: "" },
+                { name: "桂花奶霜氣泡烏龍", type: "single", price: 180, desc: "將桂花與青茶結合，配上天然的蜂蜜調配，清爽中帶著淡淡桂花香氣。", img: "" },
+                { name: "芭莉仙女下凡來", type: "single", price: 150, desc: "將芭樂與茉莉茶結合，茶香中帶著果香，配上天然的蜂蜜調配，清爽中帶著淡淡甜蜜。", img: "" },
+                { name: "桃氣破冰船", type: "single", price: 220, desc: "甜蜜的水蜜桃混著淡淡的萊姆香，配上冰涼的香草冰淇淋與爽口的蘇打水，給你最暢快的冰涼體驗。", img: "" },
+                { name: "豔夏紅寶石", type: "single", price: 150, desc: "酸酸甜甜的冰涼洛神茶，就像是紅寶石般的剔透。", img: "" },
+                { name: "華麗芭洛克果茶 (熱)", type: "single", price: 180, desc: "嚴選台灣在地綠茶，配上新鮮的季節水果，入喉回甘的溫暖滋味，讓人念念不忘。", img: "" },
+                { name: "鮮果好夢茶 (熱)", type: "single", price: 180, desc: "用南非國寶茶 Rooibos 為基底，搭配新鮮水果，讓味覺享受布一樣的飲品體驗。", img: "" },
+                { name: "蜂蜜啤酒芒果冰沙", type: "single", price: 220, desc: "用世界冠軍的蜂蜜啤酒與金黃芒果製成，綿密的雪酪口感，一入口，融化在舌尖不只是果香還有蜂蜜的清甜。", img: "" },
                 { name: "美式咖啡 (冰/熱)", type: "single", price: 120, desc: "", img: "" },
                 { name: "拿鐵咖啡 (冰/熱)", type: "single", price: 150, desc: "", img: "" },
                 { name: "莫西多氣泡咖啡", type: "single", price: 220, desc: "", img: "" }
@@ -329,24 +345,35 @@
         {
             category: "🥗 VEGETARIAN 蔬食",
             items: [
-                { name: "纖主義涼涮秋葵 (素)", type: "single", price: 180, desc: "", img: "" },
-                { name: "握握手小農溫沙拉 (素)", type: "single", price: 250, desc: "", img: "" },
-                { name: "凱薩沙拉 (蛋奶素)", type: "single", price: 220, desc: "", img: "" },
-                { name: "酥炸香濃起司條 (蛋奶素)", type: "single", price: 180, desc: "", img: "" },
-                { name: "酥炸山藥 (素)", type: "single", price: 220, desc: "", img: "" },
-                { name: "植想麻辣蔬食雞 🌶️🌶️ (素)", type: "single", price: 250, desc: "", img: "" },
-                { name: "蔬食椒麻雞 🌶️ (素)", type: "single", price: 260, desc: "", img: "" },
-                { name: "純蔬彈力蝦肉餅 (素)", type: "single", price: 280, desc: "", img: "" },
-                { name: "炸鮮菇降落傘 (素)", type: "single", price: 280, desc: "", img: "" },
-                { name: "BBQ美腿燒 🌶️ (五辛素)", type: "single", price: 150, desc: "", img: "" },
-                { name: "帕瑪森南瓜打滾 (蛋奶素)", type: "single", price: 250, desc: "", img: "" },
-                { name: "南瓜濃湯 (蛋奶素)", type: "single", price: 180, desc: "", img: "" },
+                { name: "纖主義涼涮秋葵 (素)", type: "single", price: 180, desc: "在啤酒與肉食之間，好好平衡一下！冰鎮過後滑潤鮮脆的秋葵，融合芝麻花生沾醬的雙堅果重砲濃香，一口接一口的涮嘴鮮蔬，以清新姿態成為酒桌最佳拍檔！", img: "" },
+                { name: "握握手小農溫沙拉 (素)", type: "single", price: 250, desc: "安心與美味，都跟小農約定好了！來自台灣小農的頂級生菜，不同的鮮脆拌勻煎烤蕈菇、堅果與義大利酒醋醬汁，交織出多層次的開胃享受。", img: "" },
+                { name: "凱薩沙拉 (蛋奶素)", type: "single", price: 220, desc: "全世界最知名的經典沙拉也有純蔬食版囉!以蘿蔓葉綜合多種新鮮蔬菜與葡萄乾，淋上特製的蔬食凱薩沙拉醬汁，爽脆開胃，上桌第一道必點。", img: "" },
+                { name: "酥炸香濃起司條 (蛋奶素)", type: "single", price: 180, desc: "由天然新鮮乳酪精製而成，外酥脆內香濃，享受拉絲美味。", img: "" },
+                { name: "酥炸山藥 (素)", type: "single", price: 220, desc: "越單純難度越高，但它做到了！山藥炸出鬆熱口感與爽脆炸衣，搭配主廚特製的金桔沾醬，酸甜果香四溢。", img: "" },
+                { name: "植想麻辣蔬食雞 🌶️🌶️ (素)", type: "single", price: 250, desc: "翻滾吧，香氣！炙熱大火翻炒植物肉製成的蔬食雞丁，釋放花椒的麻勁、乾辣椒的辛辣，拌入外酥內嫩的杏鮑菇，口感超豐富，是非蔬食者也能享受的過癮滋味！(純素可食)", img: "" },
+                { name: "蔬食椒麻雞 🌶️ (素)", type: "single", price: 260, desc: "現在蔬食一族也享受得到金色三麥的招牌餐點「椒麻雞」！主廚以全植物食材融合新鮮花椒配方，炸出雞腿般外酥內多汁的口感，滿嘴濃郁麻香，跟素食常見的豆腥味說掰掰，就算肉食主義者也無法抗拒！", img: "" },
+                { name: "純蔬彈力蝦肉餅 (素)", type: "single", price: 280, desc: "蝦肉鮮味還原度超高！還有蝦漿般Q嫩、蝦肉丁般的彈脆，主廚僅用全植物成分就展現豐富海味口感，搭配金桔醬，更襯出鮮美！", img: "" },
+                { name: "炸鮮菇降落傘 (素)", type: "single", price: 280, desc: "在地新鮮香菇也能炸出歐洲森林裡的蕈菇香氣！創意天外飛來，乾燥牛肝菌打碎後融合麵衣，濃郁蕈香結合鮮菇的多汁口感，讓美味的驚喜降臨餐桌。", img: "" },
+                { name: "BBQ美腿燒 🌶️ (五辛素)", type: "single", price: 150, desc: "精挑細選白嫩如美腿的杏鮑菇，一次帶來酸甜鮮麻多層次風味，不只緊密吸附獨特的花椒燒烤醬，同時保有驚艷的多汁口感，兼顧天然原味與精緻調味，扭轉蔬食平淡的刻板印象。", img: "" },
+                { name: "帕瑪森南瓜打滾 (蛋奶素)", type: "single", price: 250, desc: "炸出綿密香甜口感的栗子南瓜，打滾過金沙蛋黃與帕瑪森起司的美味天堂路，結合兩種鹹鮮味，風味超濃郁，這就是在美食江湖打滾的獨門絕招！", img: "" },
+                { name: "酥皮南瓜濃湯 (蛋奶素)", type: "single", price: 250, desc: "上選日本南瓜與台灣金瓜熬煮，自然甘甜、營養滿分，鋪上酥皮烘烤，一同品嘗酥脆餅皮與濃湯，濃郁香甜好滋味。(可做素食)", img: "" },
                 { name: "冠軍蜂蜜啤酒麥芽麵包 (蛋奶素)", type: "single", price: 180, desc: "", img: "" },
-                { name: "辣味義式蔬菜麵 🌶️🌶️ (素)", type: "single", price: 350, desc: "", img: "" },
-                { name: "聞香起舞野菇飯 (素)", type: "single", price: 280, desc: "", img: "" },
-                { name: "花心蔬脆披薩", type: "select", options: [{ n: "6吋", p: 250 }], desc: "", img: "" },
-                { name: "榴槤忘返甜披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 280 }], desc: "", img: "" },
-                { name: "陽光鳳梨披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 250 }], desc: "", img: "" }
+                { name: "辣味義式蔬菜麵 🌶️🌶️ (素)", type: "single", price: 350, desc: "清炒新鮮彩椒、菇類、花椰菜，再加入特調辣醬拌炒義大利麵，將蔬食美味引入香辣新境界。", img: "" },
+                { name: "聞香起舞野菇飯 (素)", type: "single", price: 280, desc: "這香氣，讓人像找到松露的豬鼻子般興奮！尤其白松露油的優雅辛香與新鮮蕈菇的鮮嫩，加上素香鬆、夏威夷豆的豐富口感，吃一口就開心的想跳舞。", img: "" },
+                { name: "花心蔬脆披薩 (蛋奶素)", type: "select", options: [{ n: "6吋", p: 250 }], desc: "雙層薄皮鋪上各式彩椒、菇類、黑橄欖、番茄再加上酸甜蘋果丁以及起司絲，清爽不膩的好滋味，是健康無負擔的新選擇。", img: "" },
+                { name: "陽光鳳梨披薩 (蛋奶素)", type: "select", options: [{ n: "8吋", p: 380 }], desc: "脫胎自經典夏威夷披薩的奶蛋蔬食版本，新鮮鳳梨搭絕妙搭配莫札瑞拉起司，拉絲香濃、酸甜清爽，酥脆更讓人順口", img: "" }
+            ]
+        },
+        {
+            category: "🍖 GRILLED 燒烤",
+            items: [
+                { name: "烤鮮嫩雞腿軟骨串", type: "single", price: 250, desc: "鮮嫩雞腿軟骨薄塗上特調醬汁及麻辣醬，經烤烤後口感柔軟多汁，鹹香微辣的下酒良伴。", img: "" },
+                { name: "嫩烤戰斧豬排", type: "single", price: 580, desc: "一刀剖面，驚豔粉嫩肉質與鮮美肉汁！先煎再烤，釋放月桂葉、迷迭香氣息，記得先嚐大塊肉，享受最多汁時刻，感受雲林「究好豬」肋骨部位的魅力。", img: "" },
+                { name: "啤酒慢跑雞", type: "single", price: 480, desc: "特選小土雞每天都慢跑，肉質超彈嫩！不僅以160度慢火烤出細滑口感，連續48小時吸收金色三麥啤酒醃醬美味，連皮帶肉每一口都是止不住的香！", img: "" },
+                { name: "火焰秘辛烤串翅", type: "single", price: 280, desc: "微辛、微焦、微甜，香氣卻如猛火般熱情撲向你！絕對秘方的主廚自製手工辛味烤醬，搭配獨特刀法讓雞翅鋪展為翅排深刻入味，烤出焦香外皮、滑嫩肉質，由內而外都是吃貨的寵愛。", img: "" },
+                { name: "肋眼蓋極串烤豬", type: "single", price: 380, desc: "每一口的軟嫩，來自每頭豬僅有五百公克的「肋眼蓋」霜降肉，再以「優格花麻醬」醃至更具深度的嬌嫩質地，精準的烤功釋放醃料裡芝麻花生、花椒的香氣，串起燒烤豬肉的精緻質感。", img: "" },
+                { name: "大窯大擺烤肋排", type: "single", price: 680, desc: "美式粗獷煙燻香氣將圍繞你，彷彿置身大烤窯前，讓人大口咬下的軟嫩多汁，來自四小時低溫料理，連同獨門醬汁烤出的香甜醇厚，一起氣勢登場。", img: "" },
+                { name: "酥炸綜合拼盤", type: "single", price: 380, desc: "集結高鈣起司條、黃金鱈魚塊、薯條，同時享有各式人氣酥炸餐點。", img: "" }
             ]
         }
     ];
@@ -525,7 +552,6 @@
         navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
-    // ⭐ 綁定餐點圖文彈窗功能
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
         menuData.forEach((cat, cIdx) => {
@@ -537,7 +563,7 @@
                         <div class="item-clickable-area" style="text-align:left; flex:1;" onclick="showItemDetail(${cIdx}, ${iIdx})">
                             <span style="font-weight:bold; font-size:14px; display:block;">${item.name} <span class="info-icon">ⓘ</span></span>
                             <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
-                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-top:3px;">${item.desc}</span>`:''}
+                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-top:3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${item.desc}</span>`:''}
                         </div>
                         <div style="display:flex; align-items:center;">
                             <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
@@ -553,7 +579,7 @@
                         <div style="text-align:left; flex:1; padding-right:10px;">
                             <div class="item-clickable-area" onclick="showItemDetail(${cIdx}, ${iIdx})">
                                 <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name} <span class="info-icon">ⓘ</span></span>
-                                ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px;">${item.desc}</span>`:''}
+                                ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${item.desc}</span>`:''}
                             </div>
                             <select id="sel-${cIdx}-${iIdx}" style="padding:4px 8px; font-size:12px; margin:0; border-radius:6px; height:auto; width:auto;" onchange="updateSpecQtyUI('${item.name}', ${cIdx}, ${iIdx})">
                                 ${optionsHtml}
@@ -582,7 +608,6 @@
         document.getElementById(`cat-head-${idx}`).classList.toggle('open');
     }
 
-    // ⭐ 顯示餐點圖文彈窗
     function showItemDetail(cIdx, iIdx) {
         const item = menuData[cIdx].items[iIdx];
         document.getElementById('item-detail-title').innerText = item.name;
@@ -831,7 +856,7 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            const cleanText = (msg.text || '').replace(/"/g, '"');
+            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
             
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
