@@ -160,7 +160,9 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="text-align: left;">
                 <h3 style="margin: 0; color: var(--primary);" id="room-title"></h3>
-                <span id="room-code-display" style="font-size:13px; font-weight:bold; margin-top:4px; display:inline-block;"></span>
+                <div id="room-code-display" style="font-size:13px; font-weight:bold; margin-top:4px;"></div>
+                <!-- ⭐ 新增：小組成員即時名單顯示區 -->
+                <div id="room-members-display" style="font-size:12px; margin-top:8px; padding:6px 10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd; font-weight:bold; color:var(--admin-blue); line-height: 1.4;">👥 本組成員：載入中...</div>
             </div>
             <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出 / 更換小組</button>
         </div>
@@ -189,6 +191,7 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
+    <!-- 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         <div class="tab-nav">
@@ -203,6 +206,7 @@
 
 <div id="toast"></div>
 
+<!-- 表情貼明細彈窗 -->
 <div id="reaction-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 25px 20px;">
         <span class="close-btn" onclick="closeReactionModal()">×</span>
@@ -211,6 +215,7 @@
     </div>
 </div>
 
+<!-- 餐點圖文詳情彈窗 -->
 <div id="item-detail-modal-overlay" class="overlay">
     <div class="modal-content" style="transform: translate(-50%, -50%); padding: 0; overflow: hidden; width: 90%; max-width: 400px;">
         <span class="close-btn" style="color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); z-index: 10;" onclick="closeItemDetailModal()">×</span>
@@ -224,7 +229,6 @@
 </div>
 
 <script>
-    // ⭐ 完美終極版 MenuData：包含精準價錢、103張截圖淬鍊出的文案、並把「椒香滿天飛」、「炸魚薯條」等全數補回！
     const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
@@ -256,7 +260,6 @@
                 { name: "酥炸薯條", type: "single", price: 170, desc: "酥炸馬鈴薯條，傳統美式風味，經典不敗的好滋味！", img: "" },
                 { name: "酥炸椒麻雞", type: "select", options: [{ n: "M", p: 220 }, { n: "L", p: 320 }], desc: "翅腿裹粉酥炸，將雞汁封存，搭配特製椒麻醬汁，酥香椒麻，顛覆味蕾，是主廚大力推薦的招牌菜。", img: "" },
                 { name: "咔滋蟹舞明太子", type: "single", price: 450, desc: "咔滋咔滋！是軟殼蟹在唇齒間舞動出酥脆口感，搭配濃郁的明太子美乃滋，鱈魚卵在舌尖噗滋爆裂出濃郁鹹香，交疊出大海的雙倍鮮美！", img: "" },
-                // ⭐ 完美補回：椒香滿天飛 與 炸魚薯條佐塔塔
                 { name: "椒香滿天飛 🌶️🌶️", type: "single", price: 280, desc: "精選雞翅中段，酥炸至乾香酥脆，搭配滿滿的特調秘辛香料，勁辣爽口，超級下酒！", img: "" },
                 { name: "炸魚薯條佐塔塔", type: "single", price: 450, desc: "經典Fish&Chips的全新演繹！台灣東海岸飛虎魚又稱「鬼頭刀」，特別醃製精釀啤酒炸出外酥香內滑嫩的口感，搭配花東剝皮辣椒特製的酸辣塔塔醬與爽口薯條，誰能忍住一口接一口的誘惑！", img: "" }
             ]
@@ -540,6 +543,10 @@
             const tKey = myGroupData.table == 1 ? 'table1' : 'table2';
             const groupStatus = statusObj[tKey].groups[myGroupData.groupName];
             if (groupStatus) {
+                // ⭐ 初始載入時顯示小組成員
+                if (groupStatus.members) {
+                    document.getElementById('room-members-display').innerText = `👥 本組成員：${groupStatus.members.join('、')}`;
+                }
                 syncCartUI(groupStatus.cart || {});
                 localChatHistory = groupStatus.chat || [];
                 localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
@@ -645,40 +652,45 @@
     function updateSpecQtyUI(baseName, cIdx, iIdx) {
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${baseName} (${specName})`;
-        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[fullKey] || 0;
+        // ⭐ 切換規格時，顯示「自己」點的數量
+        const myCartKey = `${fullKey}::${currentName}`;
+        document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = localCart[myCartKey] || 0;
     }
 
+    // ⭐ 完美分帳核心：把點餐者綁在 Key 上面傳給後端
     function modSpecCart(cIdx, iIdx, delta) {
         triggerFastPolling(); 
         const itemObj = menuData[cIdx].items[iIdx];
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${itemObj.name} (${specName})`;
+        const myCartKey = `${fullKey}::${currentName}`;
         
-        let currentQty = localCart[fullKey] || 0;
+        let currentQty = localCart[myCartKey] || 0;
         let newQty = Math.max(0, currentQty + delta);
-        localCart[fullKey] = newQty;
+        localCart[myCartKey] = newQty;
         document.getElementById(`qty-spec-${cIdx}-${iIdx}`).innerText = newQty;
 
         syncCartUI(localCart);
-        uploadCartDelta(fullKey, delta);
+        uploadCartDelta(myCartKey, delta);
     }
 
     function modCart(itemName, delta) {
         triggerFastPolling(); 
-        let currentQty = localCart[itemName] || 0;
+        const myCartKey = `${itemName}::${currentName}`;
+        let currentQty = localCart[myCartKey] || 0;
         let newQty = Math.max(0, currentQty + delta);
-        localCart[itemName] = newQty;
+        localCart[myCartKey] = newQty;
         document.getElementById(`qty-${itemName}`).innerText = newQty;
 
         syncCartUI(localCart);
-        uploadCartDelta(itemName, delta);
+        uploadCartDelta(myCartKey, delta);
     }
 
-    function uploadCartDelta(itemName, delta) {
+    function uploadCartDelta(cartKey, delta) {
         isUpdatingCart = true;
         fetch(gasURL, {
             method: 'POST', redirect: 'follow',
-            body: JSON.stringify({ action: 'updateData', type: 'cart_delta', name: currentName, payload: { item: itemName, delta: delta } })
+            body: JSON.stringify({ action: 'updateData', type: 'cart_delta', name: currentName, payload: { item: cartKey, delta: delta } })
         })
         .then(res => res.json())
         .then(data => {
@@ -689,38 +701,80 @@
         .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 800); });
     }
 
+    // ⭐ 完美分帳核心：解析包含名字的資料，並整理出超美的購物車明細
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
-        const list = document.getElementById('cart-list'); list.innerHTML = '';
-        let hasItem = false; let totalSum = 0;
+        const list = document.getElementById('cart-list'); 
+        list.innerHTML = '';
+        let hasItem = false; 
+        let totalSum = 0;
 
+        let displayCart = {}; // 用來整理要顯示在購物車的資料
+
+        // 步驟一：拆解後端傳來的 Key (例如: 德式豬腳::楊定豊)
         for(let key in localCart) {
             const qty = localCart[key] || 0;
             if(qty > 0) {
                 hasItem = true;
-                const price = itemPriceMap[key] || 0; const subTotal = price * qty; totalSum += subTotal;
-                list.innerHTML += `<li><strong>${key}</strong> <span style="color:#8d99ae; font-size:12px;">($${price})</span> <span style="color:var(--accent); font-weight:bold;">x ${qty}</span> = <strong>$${subTotal}</strong></li>`;
+                
+                let parts = key.split('::');
+                let itemName = parts[0];
+                let userName = parts.length > 1 ? parts[1] : '原有點餐';
+
+                if (!displayCart[itemName]) {
+                    displayCart[itemName] = { total: 0, users: {} };
+                }
+                displayCart[itemName].total += qty;
+                displayCart[itemName].users[userName] = (displayCart[itemName].users[userName] || 0) + qty;
             }
         }
 
+        // 步驟二：繪製超詳細的購物車清單
+        for(let itemName in displayCart) {
+            let itemTotal = displayCart[itemName].total;
+            let price = itemPriceMap[itemName] || 0; 
+            let subTotal = price * itemTotal; 
+            totalSum += subTotal;
+            
+            let userStrs = [];
+            for(let u in displayCart[itemName].users) {
+                userStrs.push(`${u} ${displayCart[itemName].users[u]}份`);
+            }
+
+            list.innerHTML += `
+            <li style="margin-bottom:8px;">
+                <strong>${itemName}</strong> <span style="color:#8d99ae; font-size:12px;">($${price})</span> 
+                <span style="color:var(--accent); font-weight:bold;">x ${itemTotal}</span> = <strong>$${subTotal}</strong>
+                <div style="font-size:12px; color:#6c757d; margin-top:3px; padding-left:8px; border-left:3px solid #edf2f4;">
+                    🙋‍♂️ 點餐者：${userStrs.join('、')}
+                </div>
+            </li>`;
+        }
+
+        // 步驟三：把「自己點的數量」更新回菜單的 + - 中間
         menuData.forEach((cat, cIdx) => {
             cat.items.forEach((item, iIdx) => {
                 if(item.type === 'single') {
                     const qtyEl = document.getElementById(`qty-${item.name}`);
-                    if(qtyEl) qtyEl.innerText = localCart[item.name] || 0;
+                    const myCartKey = `${item.name}::${currentName}`;
+                    if(qtyEl) qtyEl.innerText = localCart[myCartKey] || 0;
                 } else {
                     const selectEl = document.getElementById(`sel-${cIdx}-${iIdx}`);
                     if(selectEl) {
                         const fullKey = `${item.name} (${selectEl.value})`;
+                        const myCartKey = `${fullKey}::${currentName}`;
                         const qtySpecEl = document.getElementById(`qty-spec-${cIdx}-${iIdx}`);
-                        if(qtySpecEl) qtySpecEl.innerText = localCart[fullKey] || 0;
+                        if(qtySpecEl) qtySpecEl.innerText = localCart[myCartKey] || 0;
                     }
                 }
             });
         });
 
-        if(hasItem) list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費金額：$${totalSum}</div>`;
-        else list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
+        if(hasItem) {
+            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費金額：$${totalSum}</div>`;
+        } else {
+            list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
+        }
     }
 
     function openReactionModal(msgId) {
@@ -858,7 +912,7 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            const cleanText = (msg.text || '').replace(/"/g, '"');
+            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
             
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
@@ -945,6 +999,11 @@
             fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncGroup', name: currentName }) })
             .then(res => res.json()).then(data => {
                 if(data.status === 'success') {
+                    // ⭐ 即時更新小組成員名單
+                    if(data.members) {
+                        document.getElementById('room-members-display').innerText = `👥 本組成員：${data.members.join('、')}`;
+                    }
+
                     if(!isUpdatingCart && document.activeElement.tagName !== 'SELECT') { syncCartUI(data.cart || {}); }
                     if(!isUpdatingChat) {
                         localChatHistory = data.chat || [];
@@ -991,6 +1050,7 @@
         }).catch(()=>{ showToast('連線異常'); });
     }
 
+    // ⭐ 完美升級總召後台：解析帶有人名的點餐 Key
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
         let globalSummary = {};
         const allMenuItems = menuData.flatMap(c => c.items);
@@ -1011,12 +1071,27 @@
                 const groupObj = tGroups[groupIdentifier];
                 const parts = groupIdentifier.split('#');
                 let groupTotal = 0; let groupItemsHtml = '';
+                
                 for(let key in groupObj.cart) {
                     const qty = groupObj.cart[key] || 0;
                     if(qty > 0) {
-                        const price = itemPriceMap[key] || 0; const cost = price * qty;
-                        groupTotal += cost; totalClassCost += cost; globalSummary[key] += qty;
-                        groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${key} x ${qty} = $${cost}</div>`;
+                        // 拆解名稱與點餐者
+                        let keyParts = key.split('::');
+                        let itemName = keyParts[0];
+                        let userName = keyParts.length > 1 ? keyParts[1] : '原有點餐';
+
+                        const price = itemPriceMap[itemName] || 0; 
+                        const cost = price * qty;
+                        groupTotal += cost; 
+                        totalClassCost += cost; 
+                        
+                        if(globalSummary[itemName] !== undefined) {
+                            globalSummary[itemName] += qty;
+                        } else {
+                            globalSummary[itemName] = qty;
+                        }
+                        
+                        groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${itemName} x ${qty} <span style="font-size:11px;color:#adb5bd;">(${userName})</span> = $${cost}</div>`;
                     }
                 }
                 if(groupItemsHtml === '') groupItemsHtml = '<div style="padding-left:15px; color:#adb5bd; font-style:italic;">該組尚未點餐</div>';
@@ -1031,12 +1106,12 @@
         });
 
         let hasOrder = false;
-        for(let key in globalSummary) {
-            const qty = globalSummary[key];
+        for(let itemName in globalSummary) {
+            const qty = globalSummary[itemName];
             if(qty > 0) {
                 hasOrder = true;
-                const price = itemPriceMap[key] || 0; const cost = price * qty;
-                summaryPanel.innerHTML += `<div>• <strong>${key}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${qty}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
+                const price = itemPriceMap[itemName] || 0; const cost = price * qty;
+                summaryPanel.innerHTML += `<div>• <strong>${itemName}</strong>： <span style="color:var(--admin-blue); font-weight:bold;">${qty}</span> 份 <span style="color:#8d99ae; font-size:12px;">(小計: $${cost})</span></div>`;
             }
         }
         
