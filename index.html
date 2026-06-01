@@ -47,6 +47,7 @@
         .category-header.open { background: var(--primary); color: white; border-color: var(--primary); }
         .category-content { display: none; padding: 5px 10px; border-left: 2px solid var(--admin-blue); margin-bottom: 15px; background: #fff; }
         .category-content.open { display: block; }
+        .toggle-icon { font-size: 12px; }
 
         .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #f1f3f5; }
         .menu-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; justify-content: center; align-items: center; margin: 0 5px; }
@@ -183,6 +184,7 @@
         <button type="button" id="adminBtnRoom" class="admin-btn" style="display: none; margin-top:20px; background-color:#4a4e69;" onclick="fetchAdminData()">📊 切換至總召管理員後台</button>
     </div>
 
+    <!-- 管理員後台 -->
     <div id="admin-screen" style="display: none; text-align: left;">
         <h3 style="color: var(--primary); border-bottom: 3px solid #edf2f4; padding-bottom: 10px; margin-top: 0; text-align: center;">📊 總召大數據後台</h3>
         <div class="tab-nav">
@@ -338,8 +340,7 @@
     let localCart = {}; let localChatHistory = [];
     let isUpdatingCart = false, isUpdatingChat = false;
     
-    // ⭐ 智慧節能輪詢控制參數
-    let currentPollRate = 10000; // 預設降速至 10 秒
+    let currentPollRate = 10000;
     let fastPollTimeout = null;
     
     let replyingToObj = null; 
@@ -358,11 +359,9 @@
         setTimeout(() => toast.className = "", 3000);
     }
 
-    // ⭐ 觸發高頻輪詢 (衝刺模式：切換至 3 秒)
     function triggerFastPolling() {
         currentPollRate = 3000;
         if(fastPollTimeout) clearTimeout(fastPollTimeout);
-        // 如果 30 秒都沒有新的動作，就自動降速回 10 秒，保護配額
         fastPollTimeout = setTimeout(() => {
             currentPollRate = 10000;
         }, 30000);
@@ -504,6 +503,7 @@
         navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
+    // ⭐ 確保所有餐點都渲染出內容物說明
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); list.innerHTML = '';
         menuData.forEach((cat, cIdx) => {
@@ -515,6 +515,7 @@
                         <div style="text-align:left;">
                             <span style="font-weight:bold; font-size:14px; display:block;">${item.name}</span>
                             <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
+                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-top:3px;">${item.desc}</span>`:''}
                         </div>
                         <div style="display:flex; align-items:center;">
                             <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
@@ -529,6 +530,7 @@
                     <div class="menu-item">
                         <div style="text-align:left; flex:1; padding-right:10px;">
                             <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name}</span>
+                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px;">${item.desc}</span>`:''}
                             <select id="sel-${cIdx}-${iIdx}" style="padding:4px 8px; font-size:12px; margin:0; border-radius:6px; height:auto; width:auto;" onchange="updateSpecQtyUI('${item.name}', ${cIdx}, ${iIdx})">
                                 ${optionsHtml}
                             </select>
@@ -563,7 +565,7 @@
     }
 
     function modSpecCart(cIdx, iIdx, delta) {
-        triggerFastPolling(); // 啟動高頻輪詢
+        triggerFastPolling(); 
         const itemObj = menuData[cIdx].items[iIdx];
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${itemObj.name} (${specName})`;
@@ -578,7 +580,7 @@
     }
 
     function modCart(itemName, delta) {
-        triggerFastPolling(); // 啟動高頻輪詢
+        triggerFastPolling(); 
         let currentQty = localCart[itemName] || 0;
         let newQty = Math.max(0, currentQty + delta);
         localCart[itemName] = newQty;
@@ -675,7 +677,7 @@
     }
 
     function removeReaction(msgId, emoji) {
-        triggerFastPolling(); // 觸發高頻
+        triggerFastPolling(); 
         const msg = localChatHistory.find(m => m.id === msgId);
         if (!msg || !msg.reactions || !msg.reactions[emoji]) return;
 
@@ -711,7 +713,7 @@
     }
 
     function triggerReaction(emoji) {
-        triggerFastPolling(); // 觸發高頻
+        triggerFastPolling(); 
         document.getElementById('chat-context-menu').style.display = 'none';
         if (!targetMsgForContext) return;
         
@@ -732,7 +734,7 @@
     }
 
     function sendChat() {
-        triggerFastPolling(); // 觸發高頻
+        triggerFastPolling(); 
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
         const nowStr = new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
         
@@ -772,7 +774,7 @@
                 }
             }
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
-            const cleanText = (msg.text || '').replace(/"/g, '"');
+            const cleanText = (msg.text || '').replace(/"/g, '&quot;');
             
             box.innerHTML += `
             <div class="msg-bubble ${isMe ? 'mine' : ''}" data-id="${msgId}" data-sender="${msg.sender}" data-text="${cleanText}">
@@ -844,12 +846,10 @@
         }
     });
 
-    // ⭐ 真正的智慧節能輪詢引擎：用遞迴 setTimeout 代替 setInterval
     function startPolling() {
         if(syncTimer) clearTimeout(syncTimer);
         
         const doPoll = () => {
-            // 背景休眠判定：如果切換到別的視窗，降速或不抓
             if (document.hidden) {
                 syncTimer = setTimeout(doPoll, 10000);
                 return;
@@ -867,7 +867,6 @@
                 } else if(data.status === 'kicked') { clearTimeout(syncTimer); location.reload(); }
             }).catch(()=>{})
             .finally(() => {
-                // 排程下一次抓取，間隔取決於當前是「熱絡(3s)」還是「掛機(10s)」
                 syncTimer = setTimeout(doPoll, currentPollRate);
             });
         };
