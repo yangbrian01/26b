@@ -41,7 +41,6 @@
         .tab-btn { flex: 1; padding: 12px; border-radius: 10px; background: #edf2f4; color: #6c757d; font-weight: bold; cursor: pointer; text-align: center; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: #fff; }
         
-        /* ⭐ 新增：未讀訊息閃爍特效 */
         @keyframes blink-alert {
             0%, 100% { background-color: #edf2f4; color: #6c757d; }
             50% { background-color: var(--accent); color: white; box-shadow: 0 0 10px rgba(230, 57, 70, 0.4); }
@@ -239,6 +238,9 @@
 </div>
 
 <script>
+    // ⭐ 全域開關：關閉點餐功能
+    const isOrderingClosed = true;
+
     const menuData = [
         {
             category: "🥗 SALAD & SOUP 沙拉 & 濃湯",
@@ -410,7 +412,6 @@
     let replyingToObj = null; 
     let targetMsgForContext = null; 
 
-    // ⭐ 閃爍提醒標記變數
     let isChatTabActive = false;
     let lastMsgCount = 0;
 
@@ -563,7 +564,7 @@
                 syncCartUI(groupStatus.cart || {});
                 localChatHistory = groupStatus.chat || [];
                 localChatHistory.forEach(m => { if(!m.id) m.id = 'msg_' + Math.random().toString(36).substr(2,9); });
-                lastMsgCount = localChatHistory.length; // ⭐ 記錄初始訊息數量
+                lastMsgCount = localChatHistory.length; 
                 syncChatUI(localChatHistory);
             }
         }
@@ -575,8 +576,17 @@
         navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
+    // ⭐ 點餐截止：隱藏菜單列表，顯示截止公告
     function renderMenuListUI() {
-        const list = document.getElementById('menu-list'); list.innerHTML = '';
+        const list = document.getElementById('menu-list'); 
+        list.innerHTML = '';
+        
+        if (isOrderingClosed) {
+            list.innerHTML = `<div style="background: #ffe3e3; color: var(--accent); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 14px; box-shadow: 0 4px 12px rgba(230, 57, 70, 0.1);">⚠️ 點餐已截止，目前僅供確認購物車明細與結帳金額。</div>`;
+            return; // 🛑 點餐截止，不渲染菜單按鈕
+        }
+        
+        // 若為開放點餐狀態，渲染正常菜單
         menuData.forEach((cat, cIdx) => {
             let itemsHtml = '';
             cat.items.forEach((item, iIdx) => {
@@ -586,7 +596,6 @@
                         <div class="item-clickable-area" style="text-align:left; flex:1;" onclick="showItemDetail(${cIdx}, ${iIdx})">
                             <span style="font-weight:bold; font-size:14px; display:block;">${item.name} <span class="info-icon">ⓘ</span></span>
                             <span style="font-size:12px; color:var(--accent); font-weight:700;">$${item.price}</span>
-                            ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-top:3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${item.desc}</span>`:''}
                         </div>
                         <div style="display:flex; align-items:center;">
                             <button class="menu-btn secondary" onclick="modCart('${item.name}', -1)">-</button>
@@ -602,7 +611,6 @@
                         <div style="text-align:left; flex:1; padding-right:10px;">
                             <div class="item-clickable-area" onclick="showItemDetail(${cIdx}, ${iIdx})">
                                 <span style="font-weight:bold; font-size:14px; display:block; margin-bottom:4px;">${item.name} <span class="info-icon">ⓘ</span></span>
-                                ${item.desc ? `<span style="font-size:11px; color:#8d99ae; display:block; margin-bottom:4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${item.desc}</span>`:''}
                             </div>
                             <select id="sel-${cIdx}-${iIdx}" style="padding:4px 8px; font-size:12px; margin:0; border-radius:6px; height:auto; width:auto;" onchange="updateSpecQtyUI('${item.name}', ${cIdx}, ${iIdx})">
                                 ${optionsHtml}
@@ -664,6 +672,7 @@
     }
 
     function updateSpecQtyUI(baseName, cIdx, iIdx) {
+        if (isOrderingClosed) return;
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
         const fullKey = `${baseName} (${specName})`;
         const myCartKey = `${fullKey}::${currentName}`;
@@ -671,6 +680,7 @@
     }
 
     function modSpecCart(cIdx, iIdx, delta) {
+        if (isOrderingClosed) return showToast('⚠️ 點餐已截止！');
         triggerFastPolling(); 
         const itemObj = menuData[cIdx].items[iIdx];
         const specName = document.getElementById(`sel-${cIdx}-${iIdx}`).value;
@@ -687,6 +697,7 @@
     }
 
     function modCart(itemName, delta) {
+        if (isOrderingClosed) return showToast('⚠️ 點餐已截止！');
         triggerFastPolling(); 
         const myCartKey = `${itemName}::${currentName}`;
         let currentQty = localCart[myCartKey] || 0;
@@ -713,6 +724,7 @@
         .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 800); });
     }
 
+    // ⭐ 升級服務費結算：自動計算 10% 服務費並加總
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); 
@@ -757,28 +769,35 @@
             </li>`;
         }
 
-        menuData.forEach((cat, cIdx) => {
-            cat.items.forEach((item, iIdx) => {
-                if(item.type === 'single') {
-                    const qtyEl = document.getElementById(`qty-${item.name}`);
-                    const myCartKey = `${item.name}::${currentName}`;
-                    if(qtyEl) qtyEl.innerText = localCart[myCartKey] || 0;
-                } else {
-                    const selectEl = document.getElementById(`sel-${cIdx}-${iIdx}`);
-                    if(selectEl) {
-                        const fullKey = `${item.name} (${selectEl.value})`;
-                        const myCartKey = `${fullKey}::${currentName}`;
-                        const qtySpecEl = document.getElementById(`qty-spec-${cIdx}-${iIdx}`);
-                        if(qtySpecEl) qtySpecEl.innerText = localCart[myCartKey] || 0;
+        if (!isOrderingClosed) {
+            menuData.forEach((cat, cIdx) => {
+                cat.items.forEach((item, iIdx) => {
+                    if(item.type === 'single') {
+                        const qtyEl = document.getElementById(`qty-${item.name}`);
+                        const myCartKey = `${item.name}::${currentName}`;
+                        if(qtyEl) qtyEl.innerText = localCart[myCartKey] || 0;
+                    } else {
+                        const selectEl = document.getElementById(`sel-${cIdx}-${iIdx}`);
+                        if(selectEl) {
+                            const fullKey = `${item.name} (${selectEl.value})`;
+                            const myCartKey = `${fullKey}::${currentName}`;
+                            const qtySpecEl = document.getElementById(`qty-spec-${cIdx}-${iIdx}`);
+                            if(qtySpecEl) qtySpecEl.innerText = localCart[myCartKey] || 0;
+                        }
                     }
-                }
+                });
             });
-        });
+        }
 
         if(hasItem) {
-            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;"><div style="text-align:right; font-weight:bold; color:var(--accent); font-size:16px;">💰 本組消費金額：$${totalSum}</div>`;
+            let svc = Math.round(totalSum * 0.1);
+            let finalSum = totalSum + svc;
+            list.innerHTML += `<hr style="border:0; border-top:1px dashed #fde08b; margin:10px 0;">
+            <div style="text-align:right; color:#495057; font-size:14px;">小計：$${totalSum}</div>
+            <div style="text-align:right; color:#495057; font-size:14px;">10% 服務費：$${svc}</div>
+            <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:18px; margin-top:5px;">💰 本組總計：$${finalSum}</div>`;
         } else {
-            list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也，快點餐吧！</span>';
+            list.innerHTML = '<span style="color:#adb5bd; font-size:13px;">組內目前空空如也。</span>';
         }
     }
 
@@ -876,7 +895,6 @@
         .finally(() => { setTimeout(() => { isUpdatingChat = false; }, 1000); });
     }
 
-    // ⭐ 時間戳記修復，使用精確的 HH:mm 格式
     function sendChat() {
         triggerFastPolling(); 
         const input = document.getElementById('chat-input'); const text = input.value.trim(); if(!text) return; input.value = '';
@@ -898,12 +916,10 @@
     }
 
     function syncChatUI(chatArray) {
-        // ⭐ 未讀訊息閃爍特效邏輯
         if (!isChatTabActive && chatArray.length > lastMsgCount && lastMsgCount > 0) {
-            const chatBtn = document.querySelectorAll('.tab-nav .tab-btn')[1]; // 取第二個按鈕 (討論版)
+            const chatBtn = document.querySelectorAll('.tab-nav .tab-btn')[1];
             chatBtn.classList.add('blink');
         }
-        // 更新最後數量
         if (isChatTabActive || lastMsgCount === 0) {
             lastMsgCount = chatArray.length;
         }
@@ -930,7 +946,6 @@
             if (reactionsHtml) reactionsHtml = `<div class="reactions-wrap">${reactionsHtml}</div>`;
             const cleanText = (msg.text || '').replace(/"/g, '"');
             
-            // ⭐ 時間戳記修復：把後端(2026/06/01 15:30:00)跟前端(15:30)的時間完美切割
             let displayTime = msg.time || '';
             if (displayTime.includes(' ')) {
                 const parts = displayTime.split(' ');
@@ -1051,7 +1066,6 @@
         .then(() => { localStorage.removeItem('teacherBanquetName'); location.reload(); });
     }
 
-    // ⭐ 切換 Tab 時，如果切到聊天室就把閃爍拔掉
     function switchTab(tabId) {
         document.querySelectorAll('.tab-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1070,14 +1084,12 @@
         }
     }
 
-    // ===== 總召後台與全班廣播 =====
     function switchAdminSubTab(subId) {
         document.getElementById('admin-tab-summary').classList.remove('active'); document.getElementById('admin-tab-breakdown').classList.remove('active');
         document.getElementById('admin-panel-summary').style.display = 'none'; document.getElementById('admin-panel-breakdown').style.display = 'none';
         document.getElementById('admin-tab-' + subId).classList.add('active'); document.getElementById('admin-panel-' + subId).style.display = 'block';
     }
 
-    // ⭐ 發送全班廣播的觸發函數
     function sendBroadcast() {
         const msg = document.getElementById('admin-broadcast-msg').value.trim();
         if(!msg) return showToast('請輸入廣播內容！');
@@ -1104,6 +1116,7 @@
         }).catch(()=>{ showToast('連線異常'); });
     }
 
+    // ⭐ 總召後台 10% 服務費精算顯示
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
         let globalSummary = {};
         const allMenuItems = menuData.flatMap(c => c.items);
@@ -1146,13 +1159,19 @@
                         groupItemsHtml += `<div style="padding-left:15px; color:#555;">• ${itemName} x ${qty} <span style="font-size:11px;color:#adb5bd;">(${userName})</span> = $${cost}</div>`;
                     }
                 }
+                
+                let svc = Math.round(groupTotal * 0.1);
+                let groupFinal = groupTotal + svc;
+
                 if(groupItemsHtml === '') groupItemsHtml = '<div style="padding-left:15px; color:#adb5bd; font-style:italic;">該組尚未點餐</div>';
                 breakdownPanel.innerHTML += `
                 <div style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #edf2f4;">
                     <div style="font-weight:bold; color:var(--admin-blue); font-size:14px;">[第 ${tableNum} 桌] ${parts[0]} (密碼: ${parts[1]})</div>
                     <div style="font-size:12px; color:#6c757d; padding-left:5px;">組員: ${groupObj.members.join(', ')}</div>
                     ${groupItemsHtml}
-                    <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">組開銷小計: $${groupTotal}</div>
+                    <div style="text-align:right; font-weight:bold; color:var(--accent); font-size:13px; margin-top:3px;">
+                        小計: $${groupTotal} | 服務費: $${svc} <br> <span style="font-size:15px;">總計: $${groupFinal}</span>
+                    </div>
                 </div>`;
             }
         });
@@ -1168,8 +1187,18 @@
         }
         
         if(hasOrder) {
-            summaryPanel.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;"><div style="text-align:right; font-weight:bold; font-size:16px; color:var(--accent);">🔥 全班消費大結算：$${totalClassCost} 元</div>`;
-            breakdownPanel.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;"><div style="text-align:right; font-weight:bold; font-size:16px; color:var(--accent);">🔥 全班總金額：$${totalClassCost} 元</div>`;
+            let totalSvc = Math.round(totalClassCost * 0.1);
+            let totalClassFinal = totalClassCost + totalSvc;
+            
+            summaryPanel.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;">
+            <div style="text-align:right; color:#495057; font-size:14px;">全班小計：$${totalClassCost}</div>
+            <div style="text-align:right; color:#495057; font-size:14px;">10% 服務費：$${totalSvc}</div>
+            <div style="text-align:right; font-weight:bold; font-size:18px; color:var(--accent); margin-top:5px;">🔥 全班總金額：$${totalClassFinal} 元</div>`;
+            
+            breakdownPanel.innerHTML += `<hr style="border:0; border-top:2px dashed #edf2f4; margin:15px 0;">
+            <div style="text-align:right; color:#495057; font-size:14px;">全班小計：$${totalClassCost}</div>
+            <div style="text-align:right; color:#495057; font-size:14px;">10% 服務費：$${totalSvc}</div>
+            <div style="text-align:right; font-weight:bold; font-size:18px; color:var(--accent); margin-top:5px;">🔥 全班總金額：$${totalClassFinal} 元</div>`;
         } else {
             summaryPanel.innerHTML += '<span style="color:#adb5bd;">目前全班尚無點餐資料。</span>';
             breakdownPanel.innerHTML += '<span style="color:#adb5bd;">目前全班尚無點餐資料。</span>';
