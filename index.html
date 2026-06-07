@@ -90,6 +90,7 @@
         .reaction-emoji { font-size: 22px; }
         .reaction-remove-btn { color: var(--accent); font-size: 13px; cursor: pointer; background: #ffe3e3; padding: 6px 12px; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; margin:0; width: auto;}
 
+        /* 餐點圖文詳情彈窗樣式 */
         #item-detail-modal-overlay { z-index: 1060; }
         .item-clickable-area { cursor: pointer; transition: opacity 0.2s; padding-right: 10px; }
         .item-clickable-area:hover { opacity: 0.7; }
@@ -169,8 +170,7 @@
                 <div id="room-code-display" style="font-size:13px; font-weight:bold; margin-top:4px;"></div>
                 <div id="room-members-display" style="font-size:12px; margin-top:8px; padding:6px 10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd; font-weight:bold; color:var(--admin-blue); line-height: 1.4;">👥 本組成員：載入中...</div>
             </div>
-            <button type="button" class="danger" style="width: auto; padding: 6px 12px; margin: 0; font-size: 13px;" onclick="leaveGroup()">退出 / 更換小組</button>
-        </div>
+            </div>
         <div class="tab-nav">
             <div class="tab-btn active" onclick="switchTab('menu')">🍔 點餐</div>
             <div class="tab-btn" onclick="switchTab('chat')">💬 討論版</div>
@@ -576,17 +576,15 @@
         navigator.clipboard.writeText(parts[1]).then(() => { showToast('📋 房號代碼已複製到剪貼簿！'); }).catch(() => { showToast('❌ 複製失敗，請手動選取'); });
     }
 
-    // ⭐ 點餐截止：隱藏菜單列表，顯示截止公告
     function renderMenuListUI() {
         const list = document.getElementById('menu-list'); 
         list.innerHTML = '';
         
         if (isOrderingClosed) {
             list.innerHTML = `<div style="background: #ffe3e3; color: var(--accent); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 14px; box-shadow: 0 4px 12px rgba(230, 57, 70, 0.1);">⚠️ 點餐已截止，目前僅供確認購物車明細與結帳金額。</div>`;
-            return; // 🛑 點餐截止，不渲染菜單按鈕
+            return; 
         }
         
-        // 若為開放點餐狀態，渲染正常菜單
         menuData.forEach((cat, cIdx) => {
             let itemsHtml = '';
             cat.items.forEach((item, iIdx) => {
@@ -724,7 +722,6 @@
         .finally(() => { setTimeout(() => { isUpdatingCart = false; }, 800); });
     }
 
-    // ⭐ 升級服務費結算：自動計算 10% 服務費並加總
     function syncCartUI(serverCartObj) {
         localCart = serverCartObj || {};
         const list = document.getElementById('cart-list'); 
@@ -1059,13 +1056,6 @@
         doPoll();
     }
 
-    function leaveGroup() {
-        if (!confirm('確定要離開此秘密小組嗎？')) return;
-        clearTimeout(syncTimer);
-        fetch(gasURL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'leaveGroup', name: currentName }) })
-        .then(() => { localStorage.removeItem('teacherBanquetName'); location.reload(); });
-    }
-
     function switchTab(tabId) {
         document.querySelectorAll('.tab-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1116,7 +1106,6 @@
         }).catch(()=>{ showToast('連線異常'); });
     }
 
-    // ⭐ 總召後台 10% 服務費精算顯示
     function renderAdminSummaryAndBreakdownUI(groupStatus) {
         let globalSummary = {};
         const allMenuItems = menuData.flatMap(c => c.items);
